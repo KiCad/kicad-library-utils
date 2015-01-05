@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
+
 def select_violating_pins(component):
     violating_pins = []
     for pin in component.pins:
@@ -14,10 +16,10 @@ def check_rule(component, component_printed=True):
     if len(violating_pins) > 0:
         # If component header has not been already printed, print it
         if not component_printed:
-            print '\tcomponent: %s' % component.name
+            print('\tcomponent: %s' % component.name)
             component_printed = True
-        print '\tViolations of rule 3.2'
+        print('\tViolations of rule 3.2')
         for pin in violating_pins:
-            print '\t\tpin: %s (%s), dir: %s, length: %s' % (pin['name'], pin['num'], pin['direction'], pin['length'])
+            print('\t\tpin: %s (%s), dir: %s, length: %s' % (pin['name'], pin['num'], pin['direction'], pin['length']))
     # Return status of component_printed
     return component_printed

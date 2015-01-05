@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
 from schlib import *
 
 # cases covered by this script:
@@ -26,7 +27,7 @@ def fix_component(component):
     pinsD = component.filterPins(direction='D')
     pinsD_count = len(pinsD)
 
-    print component.name
+    print(component.name)
 
     # case (1)
     # assuming that all L pins have same length
@@ -46,7 +47,7 @@ def fix_component(component):
 
                 pin['posx'] = str(posx)
                 pin['length'] = str(length)
-                print '  * fixing posx of %s: %i -> %i' % (pin['name'], old_posx, posx)
+                print('  * fixing posx of %s: %i -> %i' % (pin['name'], old_posx, posx))
 
     # case (2)
     # assuming that all R pins have same length
@@ -66,7 +67,7 @@ def fix_component(component):
 
                 pin['posx'] = str(posx)
                 pin['length'] = str(length)
-                print '  * fixing posx of %s: %i -> %i' % (pin['name'], old_posx, posx)
+                print('  * fixing posx of %s: %i -> %i' % (pin['name'], old_posx, posx))
 
     # case (3)
     # assuming that all U pins have same length
@@ -86,7 +87,7 @@ def fix_component(component):
 
                 pin['posy'] = str(posy)
                 pin['length'] = str(length)
-                print '  * fixing posy of %s: %i -> %i' % (pin['name'], old_posy, posy)
+                print('  * fixing posy of %s: %i -> %i' % (pin['name'], old_posy, posy))
 
     # case (4)
     # assuming that all D pins have same length
@@ -106,7 +107,7 @@ def fix_component(component):
 
                 pin['posy'] = str(posy)
                 pin['length'] = str(length)
-                print '  * fixing posy of %s: %i -> %i' % (pin['name'], old_posy, posy)
+                print('  * fixing posy of %s: %i -> %i' % (pin['name'], old_posy, posy))
 
     # case (5)
     if pinsL_count > 0 and pinsR_count > 0:
@@ -141,7 +142,7 @@ def fix_component(component):
 
                 pin['posx'] = str(posx)
                 pin['length'] = str(length)
-                print '  * fixing posx of %s: %i -> %i' % (pin['name'], old_posx, posx)
+                print('  * fixing posx of %s: %i -> %i' % (pin['name'], old_posx, posx))
 
     # case (6)
     if pinsU_count > 0 and pinsD_count > 0:
@@ -176,7 +177,7 @@ def fix_component(component):
 
                 pin['posy'] = str(posy)
                 pin['length'] = str(length)
-                print '  * fixing posy of %s: %i -> %i' % (pin['name'], old_posy, posy)
+                print('  * fixing posy of %s: %i -> %i' % (pin['name'], old_posy, posy))
 
     # case (7)
     if len(component.draw['rectangles']) == 1:
@@ -200,13 +201,13 @@ def fix_component(component):
                         if abs((posy + 50) - max_posy) >= 100:
                             if next_posy == None or (next_posy != None and abs((posy + 50) - next_posy) >= 100):
                                 pin['posy'] = str(posy + 50)
-                                print '  * fixing posy of %s: %i -> %i' % (pin['name'], posy, posy+50)
+                                print('  * fixing posy of %s: %i -> %i' % (pin['name'], posy, posy+50))
                                 continue
 
                         if abs((posy - 50) - min_posy) >= 100:
                             if prev_posy == None or (prev_posy != None and abs((posy - 50) - prev_posy) >= 100):
                                 pin['posy'] = str(posy - 50)
-                                print '  * fixing posy of %s: %i -> %i' % (pin['name'], posy, posy-50)
+                                print('  * fixing posy of %s: %i -> %i' % (pin['name'], posy, posy-50))
                                 continue
 
     # case (8)
@@ -231,22 +232,22 @@ def fix_component(component):
                         if abs((posx + 50) - max_posx) >= 100:
                             if next_posx == None or (next_posx != None and abs((posx + 50) - next_posx) >= 100):
                                 pin['posx'] = str(posx + 50)
-                                print '  * fixing posx of %s: %i -> %i' % (pin['name'], posx, posx+50)
+                                print('  * fixing posx of %s: %i -> %i' % (pin['name'], posx, posx+50))
                                 continue
 
                         if abs((posx - 50) - min_posx) >= 100:
                             if prev_posx == None or (prev_posx != None and abs((posx - 50) - prev_posx) >= 100):
                                 pin['posx'] = str(posx - 50)
-                                print '  * fixing posx of %s: %i -> %i' % (pin['name'], posx, posx-50)
+                                print('  * fixing posx of %s: %i -> %i' % (pin['name'], posx, posx-50))
                                 continue
 
 if len(sys.argv) < 2:
-    print 'Usage: %s <file1.lib> [file2.lib file3.lib file4.lib ...]' % sys.argv[0]
+    print('Usage: %s <file1.lib> [file2.lib file3.lib file4.lib ...]' % sys.argv[0])
     exit(1)
 
 for f in sys.argv[1:]:
     lib = SchLib(f)
-    print '---', f, '---'
+    print('---', f, '---')
     for component in lib.components:
         fix_component(component)
 

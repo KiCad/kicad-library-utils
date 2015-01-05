@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
+
 def select_violating_fields(component):
     violating_fields = []
     for field in component.fields:
@@ -34,15 +36,15 @@ def check_rule(component, component_printed=True):
     if (len(violating_fields) > 0) or (len(violating_texts) > 0) or (len(violating_pins) > 0):
         # If component header has not been already printed, print it
         if not component_printed:
-            print '\tcomponent: %s' % component.name
+            print('\tcomponent: %s' % component.name)
             component_printed = True
-        print '\tViolations of rule 3.6'
+        print('\tViolations of rule 3.6')
         for field in violating_fields:
             namekey = 'reference' if 'reference' in field else 'name'
-            print '\t\tfield: %s, text_size: %s' % (field[namekey], field['text_size'])
+            print('\t\tfield: %s, text_size: %s' % (field[namekey], field['text_size']))
         for text in violating_texts:
-            print '\t\ttext: %s, text_size: %s' % (text['text'], text['text_size'])
+            print('\t\ttext: %s, text_size: %s' % (text['text'], text['text_size']))
         for pin in violating_pins:
-            print '\t\tpin: %s (%s), dir: %s, name_text_size: %s, num_text_size: %s' % (pin['name'], pin['num'], pin['direction'], pin['name_text_size'], pin['num_text_size'])
+            print('\t\tpin: %s (%s), dir: %s, name_text_size: %s, num_text_size: %s' % (pin['name'], pin['num'], pin['direction'], pin['name_text_size'], pin['num_text_size']))
     # Return status of component_printed
     return component_printed

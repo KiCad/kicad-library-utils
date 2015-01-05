@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
 from schlib import *
 import checkrule3_1, checkrule3_2, checkrule3_6
 import argparse
@@ -12,7 +13,7 @@ args = parser.parse_args()
 
 for libfile in args.libfiles:
     lib = SchLib(libfile)
-    print 'library: %s' % libfile
+    print('library: %s' % libfile)
     for component in lib.components:
         component_printed = False
         component_printed = checkrule3_1.check_rule(component, component_printed)
@@ -20,4 +21,4 @@ for libfile in args.libfiles:
         component_printed = checkrule3_6.check_rule(component, component_printed)
         if not component_printed:
             if args.verbose:
-                print '\tcomponent: %s......OK' % component.name
+                print('\tcomponent: %s......OK' % component.name)
