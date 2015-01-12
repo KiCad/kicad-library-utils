@@ -3,41 +3,123 @@
 
 from __future__ import print_function
 from schlib import *
+import argparse
 
 # cases covered by this script:
-#  (1) pins with posx wrong if component has pins with L direction but not R direction
-#  (2) pins with posx wrong if component has pins with R direction but not L direction
-#  (3) pins with posy wrong if component has pins with U direction but not D direction
-#  (4) pins with posy wrong if component has pins with D direction but not U direction
-#  (5) pins with posx wrong if component has at least one pin wrong in each of the following direction: L, R
-#  (6) pins with posy wrong if component has at least one pin wrong in each of the following direction: U, D
-#  (7) tries to move the pin with L or R direction up or down keeping it 100mil away from another pin or of the rectangle symbol bounds
-#  (8) tries to move the pin with U or D direction to left or right keeping it 100mil away from another pin or of the rectangle symbol bounds
+#  (1) resize pins with posx wrong if component has pins with L direction but not R direction
+#  (2) resize pins with posx wrong if component has pins with R direction but not L direction
+#  (3) resize pins with posy wrong if component has pins with U direction but not D direction
+#  (4) resize pins with posy wrong if component has pins with D direction but not U direction
+#  (5) resize pins with posx wrong if component has at least one pin wrong in each of the following direction: L, R
+#  (6) resize pins with posy wrong if component has at least one pin wrong in each of the following direction: U, D
 
-def fix_component(component):
-    pinsL = component.filterPins(direction='L')
-    pinsL_count = len(pinsL)
+class CheckComponent(object):
+    def __init__(self, component):
+        self.component = component
+        self.prerequisites_ok = False
+        self.header_printed = False
 
-    pinsR = component.filterPins(direction='R')
-    pinsR_count = len(pinsR)
+        self.pinsL = component.filterPins(direction='L')
+        self.pinsL_count = len(self.pinsL)
+        self.pinsR = component.filterPins(direction='R')
+        self.pinsR_count = len(self.pinsR)
+        self.pinsU = component.filterPins(direction='U')
+        self.pinsU_count = len(self.pinsU)
+        self.pinsD = component.filterPins(direction='D')
+        self.pinsD_count = len(self.pinsD)
 
-    pinsU = component.filterPins(direction='U')
-    pinsU_count = len(pinsU)
+        self.need_fix_L = False
+        self.need_fix_R = False
+        self.need_fix_U = False
+        self.need_fix_D = False
 
-    pinsD = component.filterPins(direction='D')
-    pinsD_count = len(pinsD)
+        ## check the prerequisites
 
-    print(component.name)
+        # component has only one rectangle
+        # assuming it as the body of the component
+        if len(component.draw['rectangles']) != 1:
+            return
+
+        # all pins L and R have the same size
+        lengths = []
+        if self.pinsL_count > 0:
+            lengths += [pin['length'] for pin in self.pinsL]
+        if self.pinsR_count > 0:
+            lengths += [pin['length'] for pin in self.pinsR]
+        if lengths and lengths.count(lengths[0]) != len(lengths):
+            return
+
+        # all pins U and D have the same size
+        lengths = []
+        if self.pinsU_count > 0:
+            lengths += [pin['length'] for pin in self.pinsU]
+        if self.pinsD_count > 0:
+            lengths += [pin['length'] for pin in self.pinsD]
+        if lengths and lengths.count(lengths[0]) != len(lengths):
+            return
+
+        # pins length have to be multiple of 50mil
+        for pin in component.pins:
+            if (int(pin['length']) % 50) != 0:
+                return
+
+        # pins posx and posy have to be multiple of 50mil
+        for pin in component.pins:
+            if (int(pin['posx']) % 50) != 0 or (int(pin['posy']) % 50) != 0:
+                return
+
+        # check if at least one pin is wrong in each direction
+        if self.pinsL_count > 0 and self.pinsR_count > 0:
+            for pin in self.pinsL:
+                posx = int(pin['posx'])
+                if (posx % 100) != 0:
+                    self.need_fix_L = True
+                    break
+
+            for pin in self.pinsR:
+                posx = int(pin['posx'])
+                if (posx % 100) != 0:
+                    self.need_fix_R = True
+                    break
+
+        if self.pinsU_count > 0 and self.pinsD_count > 0:
+            for pin in self.pinsU:
+                posy = int(pin['posy'])
+                if (posy % 100) != 0:
+                    self.need_fix_U = True
+                    break
+
+            for pin in self.pinsD:
+                posy = int(pin['posy'])
+                if (posy % 100) != 0:
+                    self.need_fix_D = True
+                    break
+
+        self.prerequisites_ok = True
+
+    def print_header(self):
+        if not self.header_printed:
+            print('\tcomponent: %s' % component.name)
+            self.header_printed = True
+
+    def resize_pin(self, pin, new_len, pos, new_pos):
+        self.print_header()
+        print('\t\t[resize] pin: %s (%s), length: %s -> %i, %s: %s -> %i' %
+            (pin['name'], pin['num'], pin['length'], new_len, pos, pin[pos], new_pos))
+
+        pin['length'] = str(new_len)
+        pin[pos] = str(new_pos)
+
+def resize_component_pins(component):
+    component = CheckComponent(component)
 
     # case (1)
-    # assuming that all L pins have same length
-    if pinsL_count > 0 and pinsR_count == 0:
-        for pin in pinsL:
+    if component.pinsL_count > 0 and component.pinsR_count == 0:
+        for pin in component.pinsL:
             posx = int(pin['posx'])
             length = int(pin['length'])
-            old_posx = posx
 
-            if ((posx % 100) != 0) and ((posx % 50) == 0):
+            if (posx % 100) != 0:
                 if length <= 100:
                     length += 50
                     posx += 50
@@ -45,19 +127,15 @@ def fix_component(component):
                     length -= 50
                     posx -= 50
 
-                pin['posx'] = str(posx)
-                pin['length'] = str(length)
-                print('  * fixing posx of %s: %i -> %i' % (pin['name'], old_posx, posx))
+                component.resize_pin(pin, length, 'posx', posx)
 
     # case (2)
-    # assuming that all R pins have same length
-    if pinsR_count > 0 and pinsL_count == 0:
-        for pin in pinsR:
+    if component.pinsR_count > 0 and component.pinsL_count == 0:
+        for pin in component.pinsR:
             posx = int(pin['posx'])
             length = int(pin['length'])
-            old_posx = posx
 
-            if ((posx % 100) != 0) and ((posx % 50) == 0):
+            if (posx % 100) != 0:
                 if length <= 100:
                     length += 50
                     posx -= 50
@@ -65,19 +143,15 @@ def fix_component(component):
                     length -= 50
                     posx += 50
 
-                pin['posx'] = str(posx)
-                pin['length'] = str(length)
-                print('  * fixing posx of %s: %i -> %i' % (pin['name'], old_posx, posx))
+                component.resize_pin(pin, length, 'posx', posx)
 
     # case (3)
-    # assuming that all U pins have same length
-    if pinsU_count > 0 and pinsD_count == 0:
-        for pin in pinsU:
+    if component.pinsU_count > 0 and component.pinsD_count == 0:
+        for pin in component.pinsU:
             posy = int(pin['posy'])
             length = int(pin['length'])
-            old_posy = posy
 
-            if ((posy % 100) != 0) and ((posy % 50) == 0):
+            if (posy % 100) != 0:
                 if length <= 100:
                     length += 50
                     posy -= 50
@@ -85,19 +159,15 @@ def fix_component(component):
                     length -= 50
                     posy += 50
 
-                pin['posy'] = str(posy)
-                pin['length'] = str(length)
-                print('  * fixing posy of %s: %i -> %i' % (pin['name'], old_posy, posy))
+                component.resize_pin(pin, length, 'posy', posy)
 
     # case (4)
-    # assuming that all D pins have same length
-    if pinsD_count > 0 and pinsU_count == 0:
-        for pin in pinsD:
+    if component.pinsD_count > 0 and component.pinsU_count == 0:
+        for pin in component.pinsD:
             posy = int(pin['posy'])
             length = int(pin['length'])
-            old_posy = posy
 
-            if ((posy % 100) != 0) and ((posy % 50) == 0):
+            if (posy % 100) != 0:
                 if length <= 100:
                     length += 50
                     posy += 50
@@ -105,150 +175,55 @@ def fix_component(component):
                     length -= 50
                     posy -= 50
 
-                pin['posy'] = str(posy)
-                pin['length'] = str(length)
-                print('  * fixing posy of %s: %i -> %i' % (pin['name'], old_posy, posy))
+                component.resize_pin(pin, length, 'posy', posy)
 
     # case (5)
-    if pinsL_count > 0 and pinsR_count > 0:
-        # check if at least one pin is wrong in L direction
-        need_fix_L  = False
-        for pin in pinsL:
+    if component.need_fix_L and component.need_fix_R:
+        for pin in (component.pinsL + component.pinsR):
             posx = int(pin['posx'])
-            if ((posx % 100) != 0) and ((posx % 50) == 0):
-                need_fix_L = True
-                break
+            length = int(pin['length'])
 
-        # check if at least one pin is wrong in R direction
-        need_fix_R  = False
-        for pin in pinsR:
-            posx = int(pin['posx'])
-            if ((posx % 100) != 0) and ((posx % 50) == 0):
-                need_fix_R = True
-                break
+            if length <= 100:
+                length += 50
+                posx += 50 if posx > 0 else -50
+            elif length >= 150:
+                length -= 50
+                posx += -50 if posx > 0 else 50
 
-        if need_fix_L and need_fix_R:
-            for pin in (pinsL + pinsR):
-                posx = int(pin['posx'])
-                length = int(pin['length'])
-                old_posx = posx
-
-                if length <= 100:
-                    length += 50
-                    posx += 50 if posx > 0 else -50
-                elif length >= 150:
-                    length -= 50
-                    posx += -50 if posx > 0 else 50
-
-                pin['posx'] = str(posx)
-                pin['length'] = str(length)
-                print('  * fixing posx of %s: %i -> %i' % (pin['name'], old_posx, posx))
+            component.resize_pin(pin, length, 'posx', posx)
 
     # case (6)
-    if pinsU_count > 0 and pinsD_count > 0:
-        # check if at least one pin is wrong in L direction
-        need_fix_U  = False
-        for pin in pinsU:
+    if component.need_fix_U and component.need_fix_D:
+        for pin in (component.pinsU + component.pinsD):
             posy = int(pin['posy'])
-            if ((posy % 100) != 0) and ((posy % 50) == 0):
-                need_fix_U = True
-                break
+            length = int(pin['length'])
 
-        # check if at least one pin is wrong in R direction
-        need_fix_D  = False
-        for pin in pinsD:
-            posy = int(pin['posy'])
-            if ((posy % 100) != 0) and ((posy % 50) == 0):
-                need_fix_D = True
-                break
+            if length <= 100:
+                length += 50
+                posy += 50 if posy > 0 else -50
+            elif length >= 150:
+                length -= 50
+                posy += -50 if posy > 0 else 50
 
-        if need_fix_U and need_fix_D:
-            for pin in (pinsU + pinsD):
-                posy = int(pin['posy'])
-                length = int(pin['length'])
-                old_posy = posy
+            component.resize_pin(pin, length, 'posy', posy)
 
-                if length <= 100:
-                    length += 50
-                    posy += 50 if posy > 0 else -50
-                elif length >= 150:
-                    length -= 50
-                    posy += -50 if posy > 0 else 50
+    return component.header_printed
 
-                pin['posy'] = str(posy)
-                pin['length'] = str(length)
-                print('  * fixing posy of %s: %i -> %i' % (pin['name'], old_posy, posy))
 
-    # case (7)
-    if len(component.draw['rectangles']) == 1:
-        min_posy = int(component.draw['rectangles'][0]['endy'])
-        max_posy = int(component.draw['rectangles'][0]['starty'])
+parser = argparse.ArgumentParser()
+parser.add_argument('libfiles', nargs='+')
+parser.add_argument('-y', '--apply', help='Apply the suggested modifications in the report', action='store_true')
+parser.add_argument('-v', '--verbose', help='Print output for all pins - violating or not', action='store_true')
+args = parser.parse_args()
 
-        for d in ['L', 'R']:
-            for n in range(2):
-                pins = component.filterPins(direction=d)
-                if n == 0:
-                    pins = sorted(pins, key=lambda e: int(e['posy']))
-                else:
-                    pins = sorted(pins, key=lambda e: int(e['posy']), reverse=True)
-
-                for i, pin in enumerate(pins):
-                    posy = int(pin['posy'])
-                    prev_posy = int(pins[i-1]['posy']) if i > 0 else None
-                    next_posy = int(pins[i+1]['posy']) if i < (len(pins)-1) else None
-
-                    if ((posy % 100) != 0) and ((posy % 50) == 0):
-                        if abs((posy + 50) - max_posy) >= 100:
-                            if next_posy == None or (next_posy != None and abs((posy + 50) - next_posy) >= 100):
-                                pin['posy'] = str(posy + 50)
-                                print('  * fixing posy of %s: %i -> %i' % (pin['name'], posy, posy+50))
-                                continue
-
-                        if abs((posy - 50) - min_posy) >= 100:
-                            if prev_posy == None or (prev_posy != None and abs((posy - 50) - prev_posy) >= 100):
-                                pin['posy'] = str(posy - 50)
-                                print('  * fixing posy of %s: %i -> %i' % (pin['name'], posy, posy-50))
-                                continue
-
-    # case (8)
-    if len(component.draw['rectangles']) == 1:
-        min_posx = int(component.draw['rectangles'][0]['startx'])
-        max_posx = int(component.draw['rectangles'][0]['endx'])
-
-        for d in ['U', 'D']:
-            for n in range(2):
-                pins = component.filterPins(direction=d)
-                if n == 0:
-                    pins = sorted(pins, key=lambda e: int(e['posx']))
-                else:
-                    pins = sorted(pins, key=lambda e: int(e['posx']), reverse=True)
-
-                for i, pin in enumerate(pins):
-                    posx = int(pin['posx'])
-                    prev_posx = int(pins[i-1]['posx']) if i > 0 else None
-                    next_posx = int(pins[i+1]['posx']) if i < (len(pins)-1) else None
-
-                    if ((posx % 100) != 0) and ((posx % 50) == 0):
-                        if abs((posx + 50) - max_posx) >= 100:
-                            if next_posx == None or (next_posx != None and abs((posx + 50) - next_posx) >= 100):
-                                pin['posx'] = str(posx + 50)
-                                print('  * fixing posx of %s: %i -> %i' % (pin['name'], posx, posx+50))
-                                continue
-
-                        if abs((posx - 50) - min_posx) >= 100:
-                            if prev_posx == None or (prev_posx != None and abs((posx - 50) - prev_posx) >= 100):
-                                pin['posx'] = str(posx - 50)
-                                print('  * fixing posx of %s: %i -> %i' % (pin['name'], posx, posx-50))
-                                continue
-
-if len(sys.argv) < 2:
-    print('Usage: %s <file1.lib> [file2.lib file3.lib file4.lib ...]' % sys.argv[0])
-    exit(1)
-
-for f in sys.argv[1:]:
-    lib = SchLib(f)
-    print('---', f, '---')
+for libfile in args.libfiles:
+    lib = SchLib(libfile)
+    print('library: %s' % libfile)
     for component in lib.components:
-        fix_component(component)
+        component_printed = resize_component_pins(component)
+        if not component_printed:
+            if args.verbose:
+                print('\tcomponent: %s......OK' % component.name)
 
-    lib.save()
+    if args.apply:
+        lib.save()
