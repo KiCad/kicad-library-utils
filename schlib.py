@@ -219,7 +219,7 @@ class SchLib(object):
 
             # DRAW
             to_write.append('DRAW\n')
-            for elem in component.draw.iteritems():
+            for elem in component.draw.items():
                 for item in component.draw[elem[0]]:
                     keys_list = Component._DRAW_KEYS[elem[0]]
                     line = Component._DRAW_ELEMS[elem[0]] + ' '
