@@ -20,7 +20,7 @@ class Component(object):
     _DRAW_KEYS = {'arcs':_ARC_KEYS, 'circles':_CIRCLE_KEYS, 'polylines':_POLY_KEYS, 'rectangles':_RECT_KEYS, 'texts':_TEXT_KEYS, 'pins':_PIN_KEYS}
     _DRAW_ELEMS = {'arcs':'A', 'circles':'C', 'polylines':'P', 'rectangles':'S', 'texts':'T', 'pins':'X'}
 
-    _KEYS = {'DEF':_DEF_KEYS, 'F0':_F0_KEYS, 'F1':_FN_KEYS, 'F2':_FN_KEYS, 'F3':_FN_KEYS,
+    _KEYS = {'DEF':_DEF_KEYS, 'F0':_F0_KEYS, 'F1':_FN_KEYS, 'F2':_FN_KEYS, 'F3':_FN_KEYS, 'F4':_FN_KEYS,
              'A':_ARC_KEYS, 'C':_CIRCLE_KEYS, 'P':_POLY_KEYS, 'S':_RECT_KEYS, 'T':_TEXT_KEYS, 'X':_PIN_KEYS}
 
     def __init__(self, data):
@@ -43,11 +43,11 @@ class Component(object):
             if line[0] == 'DEF':
                 self.definition = dict(zip(self._DEF_KEYS,values))
 
-            if line[0] == 'F0':
+            elif line[0] == 'F0':
                 self.fields = []
                 self.fields.append(dict(zip(self._F0_KEYS,values)))
 
-            elif line[0] in ['F1', 'F2', 'F3']:
+            elif line[0][0] == 'F':
                 self.fields.append(dict(zip(self._FN_KEYS,values)))
 
             elif line[0] == 'ALIAS':
@@ -86,7 +86,11 @@ class Component(object):
                     if line[0] == 'P':
                         n_points = int(line[1])
                         points = line[5:5+(2*n_points)]
-                        values = line[1:5] + [points] + [line[-1]]
+                        values = line[1:5] + [points]
+                        if len(line) > (5 + len(points)):
+                            values += [line[-1]]
+                        else:
+                            values += ['']
                         self.draw['polylines'].append(dict(zip(self._POLY_KEYS,values)))
                     if line[0] == 'S':
                         self.draw['rectangles'].append(dict(zip(self._RECT_KEYS,values)))
