@@ -4,7 +4,7 @@
 # from schlib python class. Spaces and line positioning will be ignored
 
 if [[ $# < 1 ]]; then
-    echo "Usage: $0 libfiles"
+    echo "Usage: $0 lib_files"
     exit 1
 fi
 
@@ -27,6 +27,6 @@ EOF
 
 for file in $@; do
     if ( test "$file" ); then
-        echo "schlib created an invalid output file for libfile: $file"
+        echo "schlib class generated an invalid output file for libfile: $file"
     fi
 done
