@@ -25,9 +25,13 @@ EOF
     return 1
 }
 
+# colors
+RED="\e[0;31m"
+NOCOLOR="\e[0m"
+
 for file in "$@"; do
     echo "* testing $file"
     if ( test_schlib "$file" ); then
-        echo "schlib class generated a non identical output for the file: $file"
+        echo -e "${RED}schlib class has generated a non identical output for the file: $file${NOCOLOR}"
     fi
 done
