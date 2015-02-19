@@ -8,7 +8,7 @@ if [[ $# < 1 ]]; then
     exit 1
 fi
 
-function test {
+function test_schlib {
     filename=`basename "$1"`
 
 # python code --- START
@@ -19,14 +19,15 @@ lib.save('/tmp/$filename')
 EOF
 # python code --- END
 
-    sort $1 > /tmp/$filename.original.sorted
-    sort /tmp/$filename > /tmp/$filename.schlib.sorted
-    [[ `diff -b /tmp/$filename.original.sorted /tmp/$filename.schlib.sorted` ]] && return 0
+    sort "$1" > "/tmp/$filename.original.sorted"
+    sort "/tmp/$filename" > "/tmp/$filename.schlib.sorted"
+    [[ `diff -b "/tmp/$filename.original.sorted" "/tmp/$filename.schlib.sorted"` ]] && return 0
     return 1
 }
 
-for file in $@; do
-    if ( test "$file" ); then
-        echo "schlib class generated an invalid output file for libfile: $file"
+for file in "$@"; do
+    echo "* testing $file"
+    if ( test_schlib "$file" ); then
+        echo "schlib class generated a non identical output for the file: $file"
     fi
 done
