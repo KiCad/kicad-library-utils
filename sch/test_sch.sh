@@ -8,8 +8,8 @@ if [[ $# < 1 ]]; then
     exit 1
 fi
 
-function test {
-    filename=`basename "$1"`
+function test_sch {
+    filename=`basename $1`
 
 # python code --- START
 python << EOF
@@ -19,14 +19,15 @@ lib.save('/tmp/$filename')
 EOF
 # python code --- END
 
-    sort $1 > /tmp/$filename.original.sorted
+    sort "$1" > /tmp/$filename.original.sorted
     sort /tmp/$filename > /tmp/$filename.sch.sorted
     [[ `diff -b /tmp/$filename.original.sorted /tmp/$filename.sch.sorted` ]] && return 0
     return 1
 }
 
-for file in $@; do
-    if ( test "$file" ); then
+for file in "$@"; do
+    echo "* testing $file"
+    if ( test_sch "$file" ); then
         echo "sch class generated an invalid output file for sch file: $file"
     fi
 done
