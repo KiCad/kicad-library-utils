@@ -94,6 +94,7 @@ class Schematic(object):
         self.noconns = []
 
         if not 'EESchema Schematic File' in self.header:
+            self.header = None
             sys.stderr.write('The file is not a KiCad Schematic File\n')
             return
 
@@ -147,6 +148,9 @@ class Schematic(object):
                         self.bitmaps.append(Bitmap(block_data))
 
     def save(self, filename=None):
+        # check whether it has header, what means that sch file was loaded fine
+        if not self.header: return
+
         if not filename: filename = self.filename
 
         # insert the header

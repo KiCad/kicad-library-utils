@@ -142,6 +142,7 @@ class SchLib(object):
         self.components = []
 
         if not 'EESchema-LIBRARY' in self.header:
+            self.header = None
             sys.stderr.write('The file is not a KiCad Schematic Library File\n')
             return
 
@@ -171,6 +172,9 @@ class SchLib(object):
         return None
 
     def save(self, filename=None):
+        # check whether it has header, what means that schlib file was loaded fine
+        if not self.header: return
+
         if not filename: filename = self.filename
 
         # insert the header
