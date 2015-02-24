@@ -57,6 +57,22 @@ class Component(object):
             elif line[0] == 'F':
                 self.fields.append(dict(zip(key_list,values)))
 
+    # TODO: error checking
+    # * check if field_data is a dictionary
+    # * check if at least 'ref' and 'name' were passed
+    # * ignore invalid items of field_data on merging
+    # TODO: enhancements
+    # * 'value' could be used instead of 'ref'
+    def addField(self, field_data):
+        def_field = {'id':None, 'ref':None, 'orient':'H', 'posx':'0', 'posy':'0', 'size':'50',
+                     'attributs':'0001', 'hjust':'C', 'props':'CNN', 'name':'~'}
+
+        # merge dictionaries and set the id value
+        field = dict(list(def_field.items()) + list(field_data.items()))
+        field['id'] = str(len(self.fields))
+
+        self.fields.append(field)
+
 class Sheet(object):
     """
     A class to parse sheets of Schematic Files Format of the KiCad
