@@ -13,13 +13,18 @@ args = parser.parse_args()
 for f in args.sch_file:
     sch = Schematic(f)
 
-    # TODO: check first if field already exists
-
     for component in sch.components:
         value = '~'
         if args.fill:
             value = component.fields[1]['ref']
 
-        component.addField({'name':'\"Manufacturer PN\"', 'ref':value})
+        MPN = False
+        for field in component.fields:
+            if field['name'] == '\"MPN\"':
+                MPN = True
+                break
+
+        if not MPN:
+            component.addField({'name':'\"MPN\"', 'ref':value})
 
     sch.save()
