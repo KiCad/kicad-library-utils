@@ -72,6 +72,7 @@ class Component(object):
         field['id'] = str(len(self.fields))
 
         self.fields.append(field)
+        return field
 
 class Sheet(object):
     """
