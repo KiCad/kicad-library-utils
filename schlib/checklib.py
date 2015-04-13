@@ -6,7 +6,7 @@ from schlib import *
 import checkrule3_1, checkrule3_2, checkrule3_6
 import argparse
 
-parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser(description='Execute the checkrule scripts to check the KLC in the libraries')
 parser.add_argument('libfiles', nargs='+')
 parser.add_argument('-v', '--verbose', help='Print output for all pins - violating or not', action='store_true')
 args = parser.parse_args()
