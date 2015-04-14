@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import sys, shlex
+import os.path
 
 class Component(object):
     """
@@ -135,11 +136,19 @@ class SchLib(object):
     """
     A class to parse Schematic Libraries Files Format of the KiCad
     """
-    def __init__(self, filename):
-        f = open(filename)
+    def __init__(self, filename, create=False):
         self.filename = filename
-        self.header = [f.readline()]
+        self.header = []
         self.components = []
+
+        if create:
+            if not os.path.isfile(filename):
+                f = open(filename, 'w')
+                self.header = ['EESchema-LIBRARY Version 2.3\n', '#encoding utf-8\n']
+            return
+        else:
+            f = open(filename)
+            self.header = [f.readline()]
 
         if self.header and not 'EESchema-LIBRARY' in self.header[0]:
             self.header = None
