@@ -23,7 +23,8 @@ class Component(object):
     _KEYS = {'DEF':_DEF_KEYS, 'F0':_F0_KEYS, 'F1':_FN_KEYS, 'F2':_FN_KEYS, 'F3':_FN_KEYS, 'F4':_FN_KEYS,
              'A':_ARC_KEYS, 'C':_CIRCLE_KEYS, 'P':_POLY_KEYS, 'S':_RECT_KEYS, 'T':_TEXT_KEYS, 'X':_PIN_KEYS}
 
-    def __init__(self, data):
+    def __init__(self, data, comments):
+        self.comments = comments
         self.fplist = []
         self.aliases = []
         building_fplist = False
@@ -137,21 +138,21 @@ class SchLib(object):
     def __init__(self, filename):
         f = open(filename)
         self.filename = filename
-        self.header = f.readline()
-        self.comments = []
+        self.header = [f.readline()]
         self.components = []
 
-        if not 'EESchema-LIBRARY' in self.header:
+        if self.header and not 'EESchema-LIBRARY' in self.header[0]:
             self.header = None
             sys.stderr.write('The file is not a KiCad Schematic Library File\n')
             return
 
-        f.seek(0)
+        self.header.append(f.readline())
         building_component = False
 
+        comments = []
         for i, line in enumerate(f.readlines()):
             if line.startswith('#'):
-                self.comments.append({'line':i, 'comment':line})
+                comments.append(line)
 
             elif line.startswith('DEF'):
                 building_component = True
@@ -162,7 +163,8 @@ class SchLib(object):
                 component_data.append(line)
                 if line.startswith('ENDDEF'):
                     building_component = False
-                    self.components.append(Component(component_data))
+                    self.components.append(Component(component_data, comments))
+                    comments = []
 
     def getComponentByName(self, name):
         for component in self.components:
@@ -178,11 +180,13 @@ class SchLib(object):
         if not filename: filename = self.filename
 
         # insert the header
-        to_write = []
-        to_write.append(self.header)
+        to_write = self.header
 
         # insert the components
         for component in self.components:
+            # append the component comments
+            to_write += component.comments
+
             # DEF
             line = 'DEF '
             for key in Component._DEF_KEYS:
@@ -247,9 +251,9 @@ class SchLib(object):
             # ENDDEF
             to_write.append('ENDDEF\n')
 
-        # insert the comments
-        for c in self.comments:
-            to_write.insert(c['line'], c['comment'])
+        # insert the footer
+        to_write.append('#\n')
+        to_write.append('#End Library\n')
 
         f = open(filename, 'w')
         f.writelines(to_write)
