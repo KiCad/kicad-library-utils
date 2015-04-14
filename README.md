@@ -27,6 +27,8 @@ KiCad utilities
 
 **update_footprints.py**: This script updates the footprints fields of sch files using a csv as input.
 
+**move_part.py**: Script to move components between libraries.
+
 
 How to use
 ==========
