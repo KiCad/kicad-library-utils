@@ -25,6 +25,8 @@ KiCad utilities
 
 **add_part_number.py**: This script is used to add/edit part numbers fields in the schematic files.
 
+**update_footprints.py**: This script updates the footprints fields of sch files using a csv as input.
+
 
 How to use
 ==========
