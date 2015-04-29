@@ -60,3 +60,9 @@ How to use
     
     # run the following command to see other options
     ./checklib.py -h
+
+
+Notice
+======
+
+The scripts use a different algorithm to generate files in relation to the KiCad saving action. That will result output files with more modified lines than expected, but yet functional. Anyway, always check the generated files by opnening them on KiCad. Additionally, if you are working over a git repository (if not, you should) you can use git diff to give a look at the modifications.
