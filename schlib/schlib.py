@@ -145,10 +145,10 @@ class SchLib(object):
             if not os.path.isfile(filename):
                 f = open(filename, 'w')
                 self.header = ['EESchema-LIBRARY Version 2.3\n', '#encoding utf-8\n']
-            return
-        else:
-            f = open(filename)
-            self.header = [f.readline()]
+                return
+
+        f = open(filename)
+        self.header = [f.readline()]
 
         if self.header and not 'EESchema-LIBRARY' in self.header[0]:
             self.header = None
