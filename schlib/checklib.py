@@ -8,20 +8,31 @@ import argparse
 
 parser = argparse.ArgumentParser(description='Execute checkrule scripts checking 3.* KLC rules in the libraries')
 parser.add_argument('libfiles', nargs='+')
+parser.add_argument('-c', '--component', help='check only a specific component (implicitly verbose)', action='store')
 parser.add_argument('--nocolor', help='does not use colors to show the output', action='store_true')
 parser.add_argument('-v', '--verbose', help='show status of all components and extra information about the violation', action='store_true')
 args = parser.parse_args()
 
 printer = PrintColor(use_color = not args.nocolor)
 
+# force to be verbose if is looking for a specific component
+if args.component: args.verbose = True
+
 for libfile in args.libfiles:
     lib = SchLib(libfile)
+    n_components = 0
     printer.purple('library: %s' % libfile)
     for component in lib.components:
+        # skip components with non matching names
+        if args.component and args.component != component.name: continue
+        n_components += 1
+
+        # perform the checks
         check3_1 = checkrule3_1.check_rule(component)
         check3_2 = checkrule3_2.check_rule(component)
         check3_6 = checkrule3_6.check_rule(component)
 
+        # print the bad news
         if check3_1 or check3_2 or check3_6.count([]) < 3:
             printer.green('component: %s' % component.name)
 
@@ -59,5 +70,10 @@ for libfile in args.libfiles:
                     printer.white('\t\tpin: %s (%s), dir: %s, name_text_size: %s, num_text_size: %s' %
                         (pin['name'], pin['num'], pin['direction'], pin['name_text_size'], pin['num_text_size']))
 
+        # print the good news
         elif args.verbose:
             printer.light_green('component: %s......OK' % component.name)
+
+    # no occurrences found
+    if args.component and n_components == 0:
+        printer.red('cannot find %s in the library %s' % (args.component, lib.filename))
