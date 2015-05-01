@@ -17,6 +17,8 @@ KiCad utilities
 
 **test_schlib.sh**: A shell script used to validate the generation of files of the schlib class.
 
+**move_part.py**: Script to move components between libraries.
+
 ## sch directory
 
 **sch.py**: A python class to parse Schematic Files Format of the KiCad.
@@ -26,8 +28,6 @@ KiCad utilities
 **add_part_number.py**: This script is used to add/edit part numbers fields in the schematic files.
 
 **update_footprints.py**: This script updates the footprints fields of sch files using a csv as input.
-
-**move_part.py**: Script to move components between libraries.
 
 
 How to use
@@ -59,10 +59,12 @@ How to use
     ./add_part_number.py --bom-csv=path_to_bom_csv path_to_sch_files/*.sch
     
     # run the following command to see other options
-    ./checklib.py -h
+    ./add_part_number.py -h
 
 
 Notice
 ======
 
-The scripts use a different algorithm to generate files in relation to the KiCad saving action. That will result output files with more modified lines than expected, but yet functional. Anyway, always check the generated files by opnening them on KiCad. Additionally, if you are working over a git repository (if not, you should) you can use git diff to give a look at the modifications.
+The scripts use a different algorithm to generate files in relation to the KiCad saving action. That will result output files with more modified lines than expected, because the line generally are repositioned. However, the file still functional.
+
+Always check the generated files by opening them on KiCad. Additionally, if you are working over a git repository (if not, you should) you can commit your work before proceed with the scripts, this will put you safe of any trouble. Also, you would use git diff to give a look at the modifications.
