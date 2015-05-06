@@ -56,6 +56,7 @@ class KicadMod(object):
         # models
         self.models = self._getModels()
 
+    # check if value exists in any element of data
     def _hasValue(self, data, value):
         for i in data:
             if type(i) == type([]):
@@ -65,6 +66,7 @@ class KicadMod(object):
                 return True
         return False
 
+    # return the array which has value as first element
     def _getArray(self, data, value, result=None):
         if result is None: result = []
         for i in data:
@@ -75,8 +77,10 @@ class KicadMod(object):
                     result.append(data)
         return result
 
+    # create or update an array
     def _createArray(self, new_array, place_after=None):
         # check first if array already exists
+        # first element of array is used as key
         array = self._getArray(self.sexpr_data, new_array[0])
         if array:
             index = self.sexpr_data.index(array[0])
@@ -84,7 +88,7 @@ class KicadMod(object):
             self.sexpr_data.insert(index, new_array)
             return
 
-        # place_after must be an array with desired position
+        # place_after must be an array with the desired position
         # the new array will be placed after the first matched position
         for field in place_after:
             pos_array = self._getArray(self.sexpr_data, field)
@@ -92,23 +96,13 @@ class KicadMod(object):
                 self.sexpr_data.insert(self.sexpr_data.index(pos_array[0]) + 1, new_array)
                 break
 
-    def _unlock(self):
-        try:
-            self.sexpr_data.remove('locked')
-        except ValueError:
-            pass
-
-    def _lock(self):
-        self.unlock()
-        self.sexpr_data.insert(2, 'locked')
-
-    def _getValue(self, field):
-        a = self._getArray(self.sexpr_data, field)
+    # return the second element of the array because the array is expected
+    # to have the following format: [key value]
+    def _getValue(self, array):
+        a = self._getArray(self.sexpr_data, array)
         return None if not a else a[0][1]
 
     def _getText(self, which_text):
-        which_text = which_text.lower()
-        assert which_text in ['reference', 'value', 'user'], "which_text must be one of the following options: 'reference', 'value', 'user'"
         result = []
         for text in self._getArray(self.sexpr_data, 'fp_text'):
             if text[1] == which_text:
@@ -135,6 +129,20 @@ class KicadMod(object):
                 result.append(text_dict)
 
         return result
+
+    def _setText(self, which_text, data):
+        # first remove the existing arrays
+        for text in self._getArray(self.sexpr_data, 'fp_text'):
+            if text[1] == which_text:
+                self.sexpr_data.remove(text)
+
+        # TODO: should check if all keys of dictionary are valid
+        # update the arrays
+        for text in data:
+#            ['fp_text', 'reference', 'REF**', ['at', 0, 8.95], ['layer', 'F.SilkS'], ['effects', ['font', ['size', 1, 1], ['thickness', 0.15]]]]
+            fp_text = ['fp_text', which_text, data[which_text]]
+
+
 
     def _getLines(self, layer=None):
         lines = []
@@ -276,12 +284,65 @@ class KicadMod(object):
 
         return models
 
+    def Save(self, filename=None):
+        if not filename: filename = self.filename
+
+        # module name
+        self.sexpr_data[1] = self.name
+
+        # locked flag
+        try:
+            self.sexpr_data.remove('locked')
+        except ValueError:
+            pass
+        if self.locked:
+            self.sexpr_data.insert(2, 'locked')
+
+        # description
+        self._createArray(['descr', self.description], ['tedit'])
+
+        # tags
+        self._createArray(['descr', self.tags], ['descr', 'tedit'])
+
+        # attribute
+        attr = self.attribute.lower()
+        assert attr in ['pth', 'smd', 'virtual'], "attribute must be one of the following options: 'pth', 'smd', 'virtual'"
+        # when the footprint is PTH the attr isn't explicitly defined, thus the field attr doesn't exists
+        try:
+            self.sexpr_data.remove(self._getArray(self.sexpr_data, 'attr')[0])
+        except IndexError:
+            pass
+        # create the field attr if not pth
+        if attr != 'pth': self._createArray(['attr', attr], ['tags', 'descr', 'tedit'])
+
+        # reference
+        self._setText('reference', [self.reference])
+
+        # value
+
+        # user text
+
+        # lines
+
+        # circles
+
+        # arcs
+
+        # pads
+
+        # models
+
+        pass
+
+
 if __name__ == '__main__':
     module = KicadMod('/tmp/SOT-23.kicad_mod')
     module = KicadMod('/tmp/USB_A_Vertical.kicad_mod')
 
     print('--- module.name')
     print(module.name)
+    print('--- module.locked')
+    print(module.locked)
     print('--- module.description')
     print(module.description)
     print('--- module.tags')
@@ -304,3 +365,14 @@ if __name__ == '__main__':
     print(module.pads)
     print('--- module.models')
     print(module.models)
+
+    print('--- setting data')
+    module.name = 'new module name'
+    module.locked = False
+    module.attribute = 'virtual'
+
+    print('--- saving data')
+    module.Save()
+
+    print('--- new sexpr data')
+    print(module.sexpr_data)
