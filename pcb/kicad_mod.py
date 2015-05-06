@@ -16,6 +16,46 @@ class KicadMod(object):
         sexpr_data = sexpr.parse_sexp(sexpr_data)
         self.sexpr_data = sexpr_data
 
+        # module name
+        self.name = self.sexpr_data[1]
+
+        # locked flag
+        self.locked = True if self._hasValue(self.sexpr_data, 'locked') else False
+
+        # description
+        self.description = self._getValue('descr')
+
+        # tags
+        self.tags = self._getValue('tags')
+
+        # attribute
+        self.attribute =  self._getValue('attr')
+        if not self.attribute: self.attribute = 'pth'
+
+        # reference
+        self.reference = self._getText('reference')[0]
+
+        # value
+        self.value = self._getText('value')[0]
+
+        # user text
+        self.userText = self._getText('user')
+
+        # lines
+        self.lines = self._getLines()
+
+        # circles
+        self.circles = self._getCircles()
+
+        # arcs
+        self.arcs = self._getArcs()
+
+        # pads
+        self.pads = self._getPads()
+
+        # models
+        self.models = self._getModels()
+
     def _hasValue(self, data, value):
         for i in data:
             if type(i) == type([]):
@@ -52,44 +92,21 @@ class KicadMod(object):
                 self.sexpr_data.insert(self.sexpr_data.index(pos_array[0]) + 1, new_array)
                 break
 
-    def getName(self):
-        return self.sexpr_data[1]
+    def _unlock(self):
+        try:
+            self.sexpr_data.remove('locked')
+        except ValueError:
+            pass
 
-    def setName(self, name):
-        self.sexpr_data[1] = name
+    def _lock(self):
+        self.unlock()
+        self.sexpr_data.insert(2, 'locked')
 
-    def isLocked(self):
-        return self._hasValue(self.sexpr_data, 'locked')
-
-    def getDescription(self):
-        a =  self._getArray(self.sexpr_data, 'descr')
+    def _getValue(self, field):
+        a = self._getArray(self.sexpr_data, field)
         return None if not a else a[0][1]
 
-    def setDescription(self, descr):
-        self._createArray(['descr', descr], ['tedit'])
-
-    def getTags(self):
-        a =  self._getArray(self.sexpr_data, 'tags')
-        return None if not a else a[0][1]
-
-    def setTags(self, tags):
-        self._createArray(['tags', tags], ['descr', 'tedit'])
-
-    def getAttribute(self):
-        attr =  self._getArray(self.sexpr_data, 'attr')
-        return 'pth' if not attr else attr[0][1]
-
-    def setAttribute(self, attr):
-        attr = attr.lower()
-        assert attr in ['pth', 'smd', 'virtual'], "attr must be one of the following options: 'pth', 'smd', 'virtual'"
-        if attr == 'pth':
-            # when the footprint is PTH the attr isn't explicitly defined
-            if self.getAttribute() != 'pth':
-                self.sexpr_data.remove(self._getArray(self.sexpr_data, 'attr')[0])
-        else:
-            self._createArray(['attr', attr], ['tags', 'descr', 'tedit'])
-
-    def getText(self, which_text):
+    def _getText(self, which_text):
         which_text = which_text.lower()
         assert which_text in ['reference', 'value', 'user'], "which_text must be one of the following options: 'reference', 'value', 'user'"
         result = []
@@ -119,16 +136,7 @@ class KicadMod(object):
 
         return result
 
-    def getReference(self):
-        return self.getText('reference')[0]
-
-    def getValue(self):
-        return self.getText('value')[0]
-
-    def getUserText(self):
-        return self.getText('user')
-
-    def getLines(self, layer=None):
+    def _getLines(self, layer=None):
         lines = []
         for line in self._getArray(self.sexpr_data, 'fp_line'):
             line_dict = {}
@@ -149,7 +157,7 @@ class KicadMod(object):
 
         return lines
 
-    def getCircles(self, layer=None):
+    def _getCircles(self, layer=None):
         circles = []
         for circle in self._getArray(self.sexpr_data, 'fp_circle'):
             circle_dict = {}
@@ -170,7 +178,7 @@ class KicadMod(object):
 
         return circles
 
-    def getArcs(self, layer=None):
+    def _getArcs(self, layer=None):
         arcs = []
         for arc in self._getArray(self.sexpr_data, 'fp_arc'):
             arc_dict = {}
@@ -194,7 +202,7 @@ class KicadMod(object):
 
         return arcs
 
-    def getPads(self):
+    def _getPads(self):
         pads = []
         for pad in self._getArray(self.sexpr_data, 'pad'):
             pad_dict = {'number':pad[1], 'type':pad[2], 'shape':pad[3]}
@@ -245,7 +253,7 @@ class KicadMod(object):
 
         return pads
 
-    def getModels(self):
+    def _getModels(self):
         models_array = self._getArray(self.sexpr_data, 'model')
 
         models = []
@@ -270,34 +278,29 @@ class KicadMod(object):
 
 if __name__ == '__main__':
     module = KicadMod('/tmp/SOT-23.kicad_mod')
-#    module = KicadMod('/tmp/USB_A_Vertical.kicad_mod')
+    module = KicadMod('/tmp/USB_A_Vertical.kicad_mod')
 
-    print(module.getName())
-    print(module.getDescription())
-    print(module.getTags())
-    print(module.getAttribute())
-    print('-'*5)
-
-    module.setName('new name')
-    module.setDescription('my new description')
-    module.setTags('tag1 tag2 tag3')
-    module.setAttribute('virtual')
-
-    print(module.getName())
-    print(module.getDescription())
-    print(module.getTags())
-    print(module.getAttribute())
-    print('-'*5)
-
-    print(module.getReference())
-    print(module.getValue())
-    print(module.getUserText())
-    print('-'*5)
-
-    print(module.getLines('F.CrtYd'))
-    print('-'*5)
-
-    print(module.getPads())
-    print('-'*5)
-
-    print(module.getModels())
+    print('--- module.name')
+    print(module.name)
+    print('--- module.description')
+    print(module.description)
+    print('--- module.tags')
+    print(module.tags)
+    print('--- module.attribute')
+    print(module.attribute)
+    print('--- module.reference')
+    print(module.reference)
+    print('--- module.value')
+    print(module.value)
+    print('--- module.userText')
+    print(module.userText)
+    print('--- module.lines')
+    print(module.lines)
+    print('--- module.circles')
+    print(module.circles)
+    print('--- module.arcs')
+    print(module.arcs)
+    print('--- module.pads')
+    print(module.pads)
+    print('--- module.models')
+    print(module.models)
