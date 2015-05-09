@@ -93,11 +93,11 @@ class KicadMod(object):
     # create an array
     def _createArray(self, new_array, place_after=None):
         # place_after must be an array with the desired position
-        # the new array will be placed after the first matched position
+        # the new array will be placed after the last matched position
         for field in place_after:
             pos_array = self._getArray(self.sexpr_data, field)
             if pos_array:
-                self.sexpr_data.insert(self.sexpr_data.index(pos_array[0]) + 1, new_array)
+                self.sexpr_data.insert(self.sexpr_data.index(pos_array[len(pos_array)-1]) + 1, new_array)
                 break
 
     # return the second element of the array because the array is expected
@@ -157,7 +157,7 @@ class KicadMod(object):
             fp_text.append(['effects', font])
 
             # create the array
-            self._createArray(fp_text, ['attr', 'tags', 'descr', 'tedit'])
+            self._createArray(fp_text, ['fp_text', 'attr', 'tags', 'descr', 'tedit'])
 
 
     def _getLines(self, layer=None):
@@ -181,10 +181,22 @@ class KicadMod(object):
 
         return lines
 
+    def _addLines(self, lines):
+        for line in lines:
+            fp_line = ['fp_line',
+                ['start', line['start']['x'], line['start']['y']],
+                ['end', line['end']['x'], line['end']['y']],
+                ['layer', line['layer']],
+                ['width', line['width']]]
+
+            self._createArray(fp_line, ['fp_line', 'fp_text', 'attr', 'tags', 'descr', 'tedit'])
+
+
     def _getCircles(self, layer=None):
         circles = []
         for circle in self._getArray(self.sexpr_data, 'fp_circle'):
             circle_dict = {}
+            # filter layers, None = all layers
             if self._hasValue(circle, layer) or layer == None:
                 a = self._getArray(circle, 'center')[0]
                 circle_dict['center'] = {'x':a[1], 'y':a[2]}
@@ -202,10 +214,21 @@ class KicadMod(object):
 
         return circles
 
+    def _addCircles(self, circles):
+        for circle in circles:
+            fp_circle = ['fp_circle',
+                ['center', circle['center']['x'], circle['center']['y']],
+                ['end', circle['end']['x'], circle['end']['y']],
+                ['layer', circle['layer']],
+                ['width', circle['width']]]
+
+            self._createArray(fp_circle, ['fp_circle','fp_line', 'fp_text', 'attr', 'tags', 'descr', 'tedit'])
+
     def _getArcs(self, layer=None):
         arcs = []
         for arc in self._getArray(self.sexpr_data, 'fp_arc'):
             arc_dict = {}
+            # filter layers, None = all layers
             if self._hasValue(arc, layer) or layer == None:
                 a = self._getArray(arc, 'start')[0]
                 arc_dict['start'] = {'x':a[1], 'y':a[2]}
@@ -225,6 +248,17 @@ class KicadMod(object):
                 arcs.append(arc_dict)
 
         return arcs
+
+    def _addArcs(self, arcs):
+        for arc in arcs:
+            fp_arc = ['fp_arc',
+                ['start', arc['start']['x'], arc['start']['y']],
+                ['end', arc['end']['x'], arc['end']['y']],
+                ['angle', arc['angle']],
+                ['layer', arc['layer']],
+                ['width', arc['width']]]
+
+            self._createArray(fp_arc, ['fp_arc', 'fp_circle','fp_line', 'fp_text', 'attr', 'tags', 'descr', 'tedit'])
 
     def _getPads(self):
         pads = []
@@ -334,26 +368,34 @@ class KicadMod(object):
         # remove all existing text arrays
         for text in self._getArray(self.sexpr_data, 'fp_text'):
             self.sexpr_data.remove(text)
-
+        # reference
+        self._addText('reference', [self.reference])
+        # value
+        self._addText('value', [self.value])
         # user text
         self._addText('user', self.userText)
 
-        # value
-        self._addText('value', [self.value])
-
-        # reference
-        self._addText('reference', [self.reference])
-
         # lines
+        # remove all existing lines arrays
+        for line in self._getArray(self.sexpr_data, 'fp_line'):
+            self.sexpr_data.remove(line)
+        self._addLines(self.lines)
 
         # circles
+        # remove all existing circles arrays
+        for circle in self._getArray(self.sexpr_data, 'fp_circle'):
+            self.sexpr_data.remove(circle)
+        self._addCircles(self.circles)
 
         # arcs
+        # remove all existing arcs arrays
+        for arc in self._getArray(self.sexpr_data, 'fp_arc'):
+            self.sexpr_data.remove(arc)
+        self._addArcs(self.arcs)
 
         # pads
 
         # models
-
 
 
 if __name__ == '__main__':
