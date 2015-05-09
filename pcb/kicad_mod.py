@@ -77,17 +77,21 @@ class KicadMod(object):
                     result.append(data)
         return result
 
-    # create or update an array
-    def _createArray(self, new_array, place_after=None):
-        # check first if array already exists
+    # update or create an array
+    def _updateCreateArray(self, array, place_after=None):
+        # check if array exists
         # first element of array is used as key
-        array = self._getArray(self.sexpr_data, new_array[0])
-        if array:
-            index = self.sexpr_data.index(array[0])
+        # this function only works for arrays which has a single occurrence
+        found_array = self._getArray(self.sexpr_data, array[0])
+        if found_array:
+            index = self.sexpr_data.index(found_array[0])
             self.sexpr_data.pop(index)
-            self.sexpr_data.insert(index, new_array)
-            return
+            self.sexpr_data.insert(index, array)
+        else:
+            self._createArray(array, place_after)
 
+    # create an array
+    def _createArray(self, new_array, place_after=None):
         # place_after must be an array with the desired position
         # the new array will be placed after the first matched position
         for field in place_after:
@@ -124,24 +128,36 @@ class KicadMod(object):
                 text_dict['font']['italic'] = self._hasValue(a, 'italic')
 
                 # text hide
-                text_dict['hide'] = self._hasValue(text, 'italic')
+                text_dict['hide'] = self._hasValue(text, 'hide')
 
                 result.append(text_dict)
 
         return result
 
-    def _setText(self, which_text, data):
-        # first remove the existing arrays
-        for text in self._getArray(self.sexpr_data, 'fp_text'):
-            if text[1] == which_text:
-                self.sexpr_data.remove(text)
-
+    def _addText(self, which_text, data):
         # TODO: should check if all keys of dictionary are valid
         # update the arrays
         for text in data:
-#            ['fp_text', 'reference', 'REF**', ['at', 0, 8.95], ['layer', 'F.SilkS'], ['effects', ['font', ['size', 1, 1], ['thickness', 0.15]]]]
-            fp_text = ['fp_text', which_text, data[which_text]]
+            fp_text = ['fp_text', which_text, text[which_text]]
 
+            # text position
+            at = ['at', text['pos']['x'], text['pos']['y']]
+            if 'orientation' in text['pos']: at.append(text['pos']['orientation'])
+            fp_text.append(at)
+
+            # layer
+            fp_text.append(['layer', text['layer']])
+
+            # text hide
+            if text['hide']: fp_text.append(['hide'])
+
+            # effects
+            font = ['font', ['size', text['font']['height'], text['font']['width']], ['thickness', text['font']['thickness']]]
+            if text['font']['italic']: font.append('italic')
+            fp_text.append(['effects', font])
+
+            # create the array
+            self._createArray(fp_text, ['attr', 'tags', 'descr', 'tedit'])
 
 
     def _getLines(self, layer=None):
@@ -299,10 +315,10 @@ class KicadMod(object):
             self.sexpr_data.insert(2, 'locked')
 
         # description
-        self._createArray(['descr', self.description], ['tedit'])
+        self._updateCreateArray(['descr', self.description], ['tedit'])
 
         # tags
-        self._createArray(['descr', self.tags], ['descr', 'tedit'])
+        self._updateCreateArray(['descr', self.tags], ['descr', 'tedit'])
 
         # attribute
         attr = self.attribute.lower()
@@ -313,14 +329,20 @@ class KicadMod(object):
         except IndexError:
             pass
         # create the field attr if not pth
-        if attr != 'pth': self._createArray(['attr', attr], ['tags', 'descr', 'tedit'])
+        if attr != 'pth': self._updateCreateArray(['attr', attr], ['tags', 'descr', 'tedit'])
 
-        # reference
-        self._setText('reference', [self.reference])
-
-        # value
+        # remove all existing text arrays
+        for text in self._getArray(self.sexpr_data, 'fp_text'):
+            self.sexpr_data.remove(text)
 
         # user text
+        self._addText('user', self.userText)
+
+        # value
+        self._addText('value', [self.value])
+
+        # reference
+        self._addText('reference', [self.reference])
 
         # lines
 
@@ -332,12 +354,11 @@ class KicadMod(object):
 
         # models
 
-        pass
 
 
 if __name__ == '__main__':
     module = KicadMod('/tmp/SOT-23.kicad_mod')
-    module = KicadMod('/tmp/USB_A_Vertical.kicad_mod')
+    #module = KicadMod('/tmp/USB_A_Vertical.kicad_mod')
 
     print('--- module.name')
     print(module.name)
@@ -370,9 +391,12 @@ if __name__ == '__main__':
     module.name = 'new module name'
     module.locked = False
     module.attribute = 'virtual'
+    module.reference['reference'] = 'RES1'
+    module.value['value'] = '100K'
 
     print('--- saving data')
     module.Save()
 
     print('--- new sexpr data')
-    print(module.sexpr_data)
+    import pprint
+    pprint.pprint(module.sexpr_data)
