@@ -115,7 +115,7 @@ class KicadMod(object):
 
                 # text position
                 a = self._getArray(text, 'at')[0]
-                text_dict['pos'] = {'x':a[1], 'y':a[2]}
+                text_dict['pos'] = {'x':a[1], 'y':a[2], 'orientation':0}
                 if len(a) > 3: text_dict['pos']['orientation'] = a[3]
 
                 # text layer
@@ -142,7 +142,7 @@ class KicadMod(object):
 
             # text position
             at = ['at', text['pos']['x'], text['pos']['y']]
-            if 'orientation' in text['pos']: at.append(text['pos']['orientation'])
+            if text['pos']['orientation'] != 0: at.append(text['pos']['orientation'])
             fp_text.append(at)
 
             # layer
@@ -265,23 +265,28 @@ class KicadMod(object):
         for pad in self._getArray(self.sexpr_data, 'pad'):
             pad_dict = {'number':pad[1], 'type':pad[2], 'shape':pad[3]}
 
+            # position
             a = self._getArray(pad, 'at')[0]
-            pad_dict['pos'] = {'x':[1], 'y':[2]}
+            pad_dict['pos'] = {'x':a[1], 'y':a[2], 'orientation':0}
             if len(a) > 3: pad_dict['pos']['orientation'] = a[3]
 
+            # size
             a = self._getArray(pad, 'size')[0]
-            pad_dict['size'] = {'x':[1], 'y':[2]}
+            pad_dict['size'] = {'x':a[1], 'y':a[2]}
 
+            # layers
             a = self._getArray(pad, 'layers')[0]
             pad_dict['layers'] = a[1:]
 
             # drill
+            pad_dict['drill'] = {}
             drill = self._getArray(pad, 'drill')
             if drill:
+                # there is only one drill per pad
                 drill = drill[0]
-                pad_dict['drill'] = {}
 
                 # offset
+                pad_dict['drill']['offset'] = {}
                 offset = self._getArray(drill, 'offset')
                 if offset:
                     offset = offset[0]
@@ -296,14 +301,19 @@ class KicadMod(object):
                     pad_dict['drill']['shape'] = 'circular'
 
                 # size
+                pad_dict['drill']['size'] = {}
                 if len(drill) > 1:
                     x = drill[1]
                     y = drill[2] if len(drill) > 2 else x
                     pad_dict['drill']['size'] = {'x':x, 'y':y}
 
+            # die length
+            pad_dict['die_length'] = {}
             a = self._getArray(pad, 'die_length')
             if a: pad_dict['die_length'] = a[0][1]
 
+            # rect delta
+            pad_dict['rect_delta'] = {}
             a = self._getArray(pad, 'rect_delta')
             if a: pad_dict['rect_delta'] = a[0][1:]
 
