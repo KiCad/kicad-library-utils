@@ -263,6 +263,7 @@ class KicadMod(object):
     def _getPads(self):
         pads = []
         for pad in self._getArray(self.sexpr_data, 'pad'):
+            # number, type, shape
             pad_dict = {'number':pad[1], 'type':pad[2], 'shape':pad[3]}
 
             # position
@@ -321,6 +322,55 @@ class KicadMod(object):
 
         return pads
 
+    def _addPads(self, pads):
+        for p in pads:
+            # number, type, shape
+            pad = ['pad', p['number'], p['type'], p['shape']]
+
+            # position
+            at = ['at', p['pos']['x'], p['pos']['y']]
+            if p['pos']['orientation'] != 0: at.append(p['pos']['orientation'])
+            pad.append(at)
+
+            # size
+            pad.append(['size', p['size']['x'], p['size']['y']])
+
+            # layers
+            pad.append(['layers'] + p['layers'])
+
+            # drill
+            if p['drill']:
+                drill = ['drill']
+
+                # drill shape
+                if p['drill']['shape'] == 'oval':
+                    drill += ['oval']
+
+                # drill size
+                if p['drill']['size']:
+                    drill += [p['drill']['size']['x']]
+
+                    # if shape is oval has y size
+                    if p['drill']['shape'] == 'oval':
+                        drill += [p['drill']['size']['y']]
+
+                # drill offset
+                if p['drill']['offset']:
+                    drill += ['offset', p['drill']['offset']['x'], p['drill']['offset']['y']]
+
+                pad.append(drill)
+
+            # die length
+            if p['die_length']:
+                pad.append(['die_length', p['die_length']])
+
+            # rect_delta
+            if p['rect_delta']:
+                pad.append(['rect_delta'] + p['rect_delta'])
+
+        self._createArray(pad, ['pad', 'fp_arc', 'fp_circle','fp_line', 'fp_text', 'attr', 'tags', 'descr', 'tedit'])
+
+
     def _getModels(self):
         models_array = self._getArray(self.sexpr_data, 'model')
 
@@ -343,6 +393,16 @@ class KicadMod(object):
             models.append(model_dict)
 
         return models
+
+    def _addModels(self, models):
+        for model in models:
+            m = ['model', model['file'],
+                ['at', ['xyz', model['pos']['x'], model['pos']['y'], model['pos']['z']]],
+                ['scale', ['xyz', model['scale']['x'], model['scale']['y'], model['scale']['z']]],
+                ['rotate', ['xyz', model['rotate']['x'], model['rotate']['y'], model['rotate']['z']]]
+                ]
+
+            self._createArray(m, ['model', 'pad', 'fp_arc', 'fp_circle','fp_line', 'fp_text', 'attr', 'tags', 'descr', 'tedit'])
 
     def Save(self, filename=None):
         if not filename: filename = self.filename
@@ -404,8 +464,16 @@ class KicadMod(object):
         self._addArcs(self.arcs)
 
         # pads
+        # remove all existing pads arrays
+        for pad in self._getArray(self.sexpr_data, 'pads'):
+            self.sexpr_data.remove(pad)
+        self._addPads(self.pads)
 
         # models
+        # remove all existing models arrays
+        for model in self._getArray(self.sexpr_data, 'models'):
+            self.sexpr_data.remove(model)
+        self._addModels(self.models)
 
 
 if __name__ == '__main__':
