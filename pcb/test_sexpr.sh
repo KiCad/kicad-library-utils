@@ -23,9 +23,9 @@ f.close()
 EOF
 # python code --- END
 
-    # remove spaces and new lines, sort the file and re-add some new lines
-    tr -d ' \n' < "$1" | sort | tr '(' '\n(' > "/tmp/$filename.original.sorted"
-    tr -d ' \n' < "/tmp/$filename.out" | sort | tr '(' '\n(' > "/tmp/$filename.out.sorted"
+    # remove spaces and new lines, re-add some new lines and sort the file
+    tr -d ' \n' < "$1" | tr '(' '\n(' | sort > "/tmp/$filename.original.sorted"
+    tr -d ' \n' < "/tmp/$filename.out" | tr '(' '\n(' | sort > "/tmp/$filename.out.sorted"
 
     [[ `diff -b "/tmp/$filename.original.sorted" "/tmp/$filename.out.sorted"` ]] && return 0
     return 1
