@@ -51,7 +51,10 @@ def build_sexp(exp, n=0):
     elif type(exp) == type('') and re.search(r'[\s()]', exp):
         out += '"%s"' % repr(exp)[1:-1].replace('"', '\"')
     else:
-        out += '%s' % exp
+        if exp == '':
+            out += '""'
+        else:
+            out += '%s' % exp
     return out
 
 if __name__ == '__main__':
