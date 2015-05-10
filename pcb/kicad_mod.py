@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import sexpr
+import sexpr, re
 
 class KicadMod(object):
     """
@@ -13,11 +13,19 @@ class KicadMod(object):
         # read the s-expression data
         f = open(filename)
         sexpr_data = ''.join(f.readlines())
+
+        # insert quotes in the tedit value to avoid wrong parsing
+        sexpr_data = re.sub(r'\(tedit (.*)\)', r'(tedit "\1")', sexpr_data)
+
+        # parse s-expr
         sexpr_data = sexpr.parse_sexp(sexpr_data)
         self.sexpr_data = sexpr_data
 
         # module name
         self.name = self.sexpr_data[1]
+
+        # module layer
+        self.layer = self._getValue('layer')
 
         # locked flag
         self.locked = True if self._hasValue(self.sexpr_data, 'locked') else False
@@ -149,7 +157,7 @@ class KicadMod(object):
             fp_text.append(['layer', text['layer']])
 
             # text hide
-            if text['hide']: fp_text.append(['hide'])
+            if text['hide']: fp_text.append('hide')
 
             # effects
             font = ['font', ['size', text['font']['height'], text['font']['width']], ['thickness', text['font']['thickness']]]
@@ -279,6 +287,11 @@ class KicadMod(object):
             a = self._getArray(pad, 'layers')[0]
             pad_dict['layers'] = a[1:]
 
+            # rect delta
+            pad_dict['rect_delta'] = {}
+            a = self._getArray(pad, 'rect_delta')
+            if a: pad_dict['rect_delta'] = a[0][1:]
+
             # drill
             pad_dict['drill'] = {}
             drill = self._getArray(pad, 'drill')
@@ -313,11 +326,6 @@ class KicadMod(object):
             a = self._getArray(pad, 'die_length')
             if a: pad_dict['die_length'] = a[0][1]
 
-            # rect delta
-            pad_dict['rect_delta'] = {}
-            a = self._getArray(pad, 'rect_delta')
-            if a: pad_dict['rect_delta'] = a[0][1:]
-
             pads.append(pad_dict)
 
         return pads
@@ -334,9 +342,6 @@ class KicadMod(object):
 
             # size
             pad.append(['size', p['size']['x'], p['size']['y']])
-
-            # layers
-            pad.append(['layers'] + p['layers'])
 
             # drill
             if p['drill']:
@@ -356,9 +361,12 @@ class KicadMod(object):
 
                 # drill offset
                 if p['drill']['offset']:
-                    drill += ['offset', p['drill']['offset']['x'], p['drill']['offset']['y']]
+                    drill.append(['offset', p['drill']['offset']['x'], p['drill']['offset']['y']])
 
                 pad.append(drill)
+
+            # layers
+            pad.append(['layers'] + p['layers'])
 
             # die length
             if p['die_length']:
@@ -368,7 +376,7 @@ class KicadMod(object):
             if p['rect_delta']:
                 pad.append(['rect_delta'] + p['rect_delta'])
 
-        self._createArray(pad, ['pad', 'fp_arc', 'fp_circle','fp_line', 'fp_text', 'attr', 'tags', 'descr', 'tedit'])
+            self._createArray(pad, ['pad', 'fp_arc', 'fp_circle','fp_line', 'fp_text', 'attr', 'tags', 'descr', 'tedit'])
 
 
     def _getModels(self):
@@ -404,7 +412,7 @@ class KicadMod(object):
 
             self._createArray(m, ['model', 'pad', 'fp_arc', 'fp_circle','fp_line', 'fp_text', 'attr', 'tags', 'descr', 'tedit'])
 
-    def Save(self, filename=None):
+    def save(self, filename=None):
         if not filename: filename = self.filename
 
         # module name
@@ -419,10 +427,10 @@ class KicadMod(object):
             self.sexpr_data.insert(2, 'locked')
 
         # description
-        self._updateCreateArray(['descr', self.description], ['tedit'])
+        if self.description: self._updateCreateArray(['descr', self.description], ['tedit'])
 
         # tags
-        self._updateCreateArray(['descr', self.tags], ['descr', 'tedit'])
+        if self.tags: self._updateCreateArray(['tags', self.tags], ['descr', 'tedit'])
 
         # attribute
         attr = self.attribute.lower()
@@ -465,58 +473,28 @@ class KicadMod(object):
 
         # pads
         # remove all existing pads arrays
-        for pad in self._getArray(self.sexpr_data, 'pads'):
+        for pad in self._getArray(self.sexpr_data, 'pad'):
             self.sexpr_data.remove(pad)
         self._addPads(self.pads)
 
         # models
         # remove all existing models arrays
-        for model in self._getArray(self.sexpr_data, 'models'):
+        for model in self._getArray(self.sexpr_data, 'model'):
             self.sexpr_data.remove(model)
         self._addModels(self.models)
 
+        # convert array data to s-expression and save in the disc
+        output = sexpr.build_sexp(self.sexpr_data)
+        f = open(filename, 'w')
+        f.write(output)
+        f.close()
+
 
 if __name__ == '__main__':
-    module = KicadMod('/tmp/SOT-23.kicad_mod')
-    #module = KicadMod('/tmp/USB_A_Vertical.kicad_mod')
+#    module = KicadMod('/tmp/SOT-23.kicad_mod')
+#    module = KicadMod('/tmp/USB_A_Vertical.kicad_mod')
+    module = KicadMod('/tmp/SATA-7_SMD.kicad_mod')
 
-    print('--- module.name')
-    print(module.name)
-    print('--- module.locked')
-    print(module.locked)
-    print('--- module.description')
-    print(module.description)
-    print('--- module.tags')
-    print(module.tags)
-    print('--- module.attribute')
-    print(module.attribute)
-    print('--- module.reference')
-    print(module.reference)
-    print('--- module.value')
-    print(module.value)
-    print('--- module.userText')
-    print(module.userText)
-    print('--- module.lines')
-    print(module.lines)
-    print('--- module.circles')
-    print(module.circles)
-    print('--- module.arcs')
-    print(module.arcs)
-    print('--- module.pads')
-    print(module.pads)
-    print('--- module.models')
-    print(module.models)
-
-    print('--- setting data')
-    module.name = 'new module name'
-    module.locked = False
-    module.attribute = 'virtual'
-    module.reference['reference'] = 'RES1'
-    module.value['value'] = '100K'
-
-    print('--- saving data')
-    module.Save()
-
-    print('--- new sexpr data')
     import pprint
-    pprint.pprint(module.sexpr_data)
+    #pprint.pprint(module.sexpr_data)
+    module.save('/tmp/SATA-7_SMD.kicad_mod.output')
