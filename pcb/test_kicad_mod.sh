@@ -8,6 +8,32 @@ if [[ $# < 1 ]]; then
     exit 1
 fi
 
+function format_file {
+    # add new line before (
+    sed 's/(/\n(/g' < "$1" > "$1.tmp"
+    mv "$1.tmp" "$1"
+
+    # add new line before )
+    sed 's/)/\n)/g' < "$1" > "$1.tmp"
+    mv "$1.tmp" "$1"
+
+    # trim spaces
+    sed 's/^ *//;s/ *$//' < "$1" > "$1.tmp"
+    mv "$1.tmp" "$1"
+
+    # remove duplicate spaces
+    tr -s ' ' < "$1" > "$1.tmp"
+    mv "$1.tmp" "$1"
+
+    # remove new lines
+    tr -d '\n' < "$1" > "$1.tmp"
+    mv "$1.tmp" "$1"
+
+    # add new line before (
+    sed 's/(/\n(/g' < "$1" > "$1.tmp"
+    mv "$1.tmp" "$1"
+}
+
 function test_kicad_mod {
     filename=`basename "$1"`
 
@@ -19,11 +45,20 @@ mod.save('/tmp/$filename.out')
 EOF
 # python code --- END
 
-    # remove spaces and new lines, re-add some new lines and sort the file
-    tr -d ' \n' < "$1" | tr '(' '\n(' | sort > "/tmp/$filename.original.sorted"
-    tr -d ' \n' < "/tmp/$filename.out" | tr '(' '\n(' | sort > "/tmp/$filename.out.sorted"
+    orig="/tmp/$filename.orig"
+    out="/tmp/$filename.out"
 
-    [[ `diff -b "/tmp/$filename.original.sorted" "/tmp/$filename.out.sorted"` ]] && return 0
+    cp "$1" "$orig"
+
+    # format files before compare
+    format_file "$orig"
+    format_file "$out"
+
+    # non matching files will remain in tmp directory
+    [[ `diff -b "$orig" "$out"` ]] && return 0
+
+    # remove the matching files
+    rm -f "$orig" "$out"
     return 1
 }
 
