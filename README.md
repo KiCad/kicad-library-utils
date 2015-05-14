@@ -40,6 +40,9 @@ How to use
     
     # run the script passing the files to be checked
     ./checklib.py path_to_lib1 path_to_lib2
+
+    # to check a specific component you can use the -c flag
+    ./checklib.py -c component_name path_to_lib1
     
     # run the following command to see other options
     ./checklib.py -h
