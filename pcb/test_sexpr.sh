@@ -44,7 +44,6 @@ import sexpr, re
 # read file
 f = open('$1')
 data = ''.join(f.readlines())
-data = re.sub(r'\(tedit (.*)\)', r'(tedit "\1")', data)
 out = sexpr.build_sexp(sexpr.parse_sexp(data))
 
 # write file

@@ -14,9 +14,6 @@ class KicadMod(object):
         f = open(filename)
         sexpr_data = ''.join(f.readlines())
 
-        # insert quotes in the tedit value to avoid wrong parsing
-        sexpr_data = re.sub(r'\(tedit (.*)\)', r'(tedit "\1")', sexpr_data)
-
         # parse s-expr
         sexpr_data = sexpr.parse_sexp(sexpr_data)
         self.sexpr_data = sexpr_data
