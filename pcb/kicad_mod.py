@@ -97,13 +97,18 @@ class KicadMod(object):
 
     # create an array
     def _createArray(self, new_array, place_after=None):
-        # place_after must be an array with the desired position
-        # the new array will be placed after the last matched position
+        # place_after must be an array with the desired position name
+        # once the first name match the new array will be placed after
+        # the last matched occurrence of the name
         for field in place_after:
             pos_array = self._getArray(self.sexpr_data, field)
             if pos_array:
-                self.sexpr_data.insert(self.sexpr_data.index(pos_array[len(pos_array)-1]) + 1, new_array)
+                index = len(self.sexpr_data) - self.sexpr_data[::-1].index(pos_array[-1]) - 1
+                self.sexpr_data.insert(index + 1, new_array)
                 break
+        else:
+            # case doesn't find any desired position, append to end of the array
+            self.sexpr_data.append(new_array)
 
     # return the second element of the array because the array is expected
     # to have the following format: [key value]
@@ -490,8 +495,10 @@ class KicadMod(object):
 if __name__ == '__main__':
 #    module = KicadMod('/tmp/SOT-23.kicad_mod')
 #    module = KicadMod('/tmp/USB_A_Vertical.kicad_mod')
-    module = KicadMod('/tmp/SATA-7_SMD.kicad_mod')
+    #module = KicadMod('/tmp/SATA-7_SMD.kicad_mod')
+    module = KicadMod('/home/ricardo/devel/kicad-stuff/footprints/Pin_Headers.pretty/Pin_Header_Angled_2x06.kicad_mod')
 
     import pprint
     #pprint.pprint(module.sexpr_data)
-    module.save('/tmp/SATA-7_SMD.kicad_mod.output')
+    #module.save('/tmp/SATA-7_SMD.kicad_mod.output')
+    module.save('/tmp/Pin_Header_Angled_2x06.kicad_mod')

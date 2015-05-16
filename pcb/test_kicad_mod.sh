@@ -54,11 +54,19 @@ EOF
     format_file "$orig"
     format_file "$out"
 
+    # sort the files
+    sort < "$orig" > "$orig.sorted"
+    sort < "$out"  > "$out.sorted"
+
+    # rename the files
+    #mv "$orig.sorted" "$orig"
+    #mv "$out.sorted" "$out"
+
     # non matching files will remain in tmp directory
-    [[ `diff -b "$orig" "$out"` ]] && return 0
+    [[ `diff -b "$orig.sorted" "$out.sorted"` ]] && return 0
 
     # remove the matching files
-    rm -f "$orig" "$out"
+    rm -f "$orig" "$out" "$orig.sorted" "$out.sorted"
     return 1
 }
 
