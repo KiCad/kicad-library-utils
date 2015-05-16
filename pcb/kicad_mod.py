@@ -328,6 +328,38 @@ class KicadMod(object):
             a = self._getArray(pad, 'die_length')
             if a: pad_dict['die_length'] = a[0][1]
 
+            ## clearances zones settings
+            # clearance
+            pad_dict['clearance'] = {}
+            a = self._getArray(pad, 'clearance')
+            if a: pad_dict['clearance'] = a[0][1]
+            # solder mask margin
+            pad_dict['solder_mask_margin'] = {}
+            a = self._getArray(pad, 'solder_mask_margin')
+            if a: pad_dict['solder_mask_margin'] = a[0][1]
+            # solder paste margin
+            pad_dict['solder_paste_margin'] = {}
+            a = self._getArray(pad, 'solder_paste_margin')
+            if a: pad_dict['solder_paste_margin'] = a[0][1]
+            # solder paste margin ratio
+            pad_dict['solder_paste_margin_ratio'] = {}
+            a = self._getArray(pad, 'solder_paste_margin_ratio')
+            if a: pad_dict['solder_paste_margin_ratio'] = a[0][1]
+
+            ## copper zones settings
+            # zone connect
+            pad_dict['zone_connect'] = {}
+            a = self._getArray(pad, 'zone_connect')
+            if a: pad_dict['zone_connect'] = a[0][1]
+            # thermal width
+            pad_dict['thermal_width'] = {}
+            a = self._getArray(pad, 'thermal_width')
+            if a: pad_dict['thermal_width'] = a[0][1]
+            # thermal gap
+            pad_dict['thermal_gap'] = {}
+            a = self._getArray(pad, 'thermal_gap')
+            if a: pad_dict['thermal_gap'] = a[0][1]
+
             pads.append(pad_dict)
 
         return pads
@@ -377,6 +409,31 @@ class KicadMod(object):
             # rect_delta
             if p['rect_delta']:
                 pad.append(['rect_delta'] + p['rect_delta'])
+
+            ## clearances zones settings
+            # clearance
+            if p['clearance']:
+                  pad.append(['clearance', p['clearance']])
+            # solder mask margin
+            if p['solder_mask_margin']:
+                  pad.append(['solder_mask_margin', p['solder_mask_margin']])
+            # solder paste margin
+            if p['solder_paste_margin']:
+                  pad.append(['solder_paste_margin', p['solder_paste_margin']])
+            # solder paste margin ratio
+            if p['solder_paste_margin_ratio']:
+                  pad.append(['solder_paste_margin_ratio', p['solder_paste_margin_ratio']])
+
+            ## copper zones settings
+            # zone connect
+            if p['zone_connect']:
+                  pad.append(['zone_connect', p['zone_connect']])
+            # thermal width
+            if p['thermal_width']:
+                  pad.append(['thermal_width', p['thermal_width']])
+            # thermal gap
+            if p['thermal_gap']:
+                  pad.append(['thermal_gap', p['thermal_gap']])
 
             self._createArray(pad, ['pad', 'fp_arc', 'fp_circle','fp_line', 'fp_text', 'attr', 'tags', 'descr', 'tedit'])
 
