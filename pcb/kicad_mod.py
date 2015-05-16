@@ -33,6 +33,16 @@ class KicadMod(object):
         # tags
         self.tags = self._getValue('tags')
 
+        # auto place settings
+        self.autoplace_cost90 = self._getValue('autoplace_cost90')
+        self.autoplace_cost180 = self._getValue('autoplace_cost180')
+
+        # module clearance settings
+        self.clearance = self._getValue('clearance')
+        self.solder_mask_margin = self._getValue('solder_mask_margin')
+        self.solder_paste_margin = self._getValue('solder_paste_margin')
+        self.solder_paste_ratio = self._getValue('solder_paste_ratio')
+
         # attribute
         self.attribute =  self._getValue('attr')
         if not self.attribute: self.attribute = 'pth'
@@ -490,6 +500,16 @@ class KicadMod(object):
 
         # tags
         if self.tags: self._updateCreateArray(['tags', self.tags], ['descr', 'tedit'])
+
+        # auto place settings
+        if self.autoplace_cost90: self._updateCreateArray(['autoplace_cost90', self.autoplace_cost90], ['tags', 'descr', 'tedit'])
+        if self.autoplace_cost180: self._updateCreateArray(['autoplace_cost180', self.autoplace_cost180], ['tags', 'descr', 'tedit'])
+
+        # module clearance settings
+        if self.clearance: self._updateCreateArray(['clearance', self.clearance], ['tags', 'descr', 'tedit'])
+        if self.solder_mask_margin: self._updateCreateArray(['solder_mask_margin', self.solder_mask_margin], ['tags', 'descr', 'tedit'])
+        if self.solder_paste_margin: self._updateCreateArray(['solder_paste_margin', self.solder_paste_margin], ['tags', 'descr', 'tedit'])
+        if self.solder_paste_ratio: self._updateCreateArray(['solder_paste_ratio', self.solder_paste_ratio], ['tags', 'descr', 'tedit'])
 
         # attribute
         attr = self.attribute.lower()

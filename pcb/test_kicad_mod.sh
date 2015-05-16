@@ -3,6 +3,8 @@
 # This script file is used to test the consistency of files saved
 # from KicadMod python class. Spaces and line positioning will be ignored
 
+# example of use: ./test_kicad_mod.sh `find /usr/share/kicad/footprints -name *.kicad_mod`
+
 if [[ $# < 1 ]]; then
     echo "Usage: $0 kicad_mod_files"
     exit 1
@@ -58,9 +60,8 @@ EOF
     sort < "$orig" > "$orig.sorted"
     sort < "$out"  > "$out.sorted"
 
-    # rename the files
-    #mv "$orig.sorted" "$orig"
-    #mv "$out.sorted" "$out"
+    # print the diff to make easy to debug
+    diff -b "$orig.sorted" "$out.sorted"
 
     # non matching files will remain in tmp directory
     [[ `diff -b "$orig.sorted" "$out.sorted"` ]] && return 0
