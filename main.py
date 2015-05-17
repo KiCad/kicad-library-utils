@@ -11,6 +11,14 @@ class pin:
         self.name = name
         self.pintype = pintype
         self.altfunctions = []
+        self.drawn = False  # Whether this pin has already been included in the component or not
+
+    def createPintext(self):
+        s = ""
+        for alt in self.altfunctions:
+            s += alt + "/"
+        s += self.name
+        self.pintext = s
         
 class device:
     def __init__(self, xmlfile):
@@ -26,7 +34,7 @@ class device:
         self.tree = etree.parse(self.xmlfile)
         self.root = self.tree.getroot()
 
-        self.ns = {"a": self.root.nsmap[None]}  # F@#k you xml
+        self.ns = {"a": self.root.nsmap[None]}  # I hate XML
 
         self.name = self.root.get("RefName")
         self.package = self.root.get("Package")
@@ -38,12 +46,14 @@ class device:
                 altfunction = signal.get("Name")
                 if(not altfunction == "GPIO"):   # No need to add GPIO as alt function
                     newpin.altfunctions.append(altfunction)
+            newpin.createPintext()  # Have the pins generate their text
             self.pins.append(newpin)
 
     def createComponent(self):
         # s contains the entire component in a single string
 
         ports = {}
+        portpins = {}
         pincount = 0
         portcount = 0
         # Count amount of different Ports and how many I/O pins they contain
@@ -54,11 +64,20 @@ class device:
                 try:
                     ports[port] += 1    # Increment pincount for this port
                 except KeyError:
-                    ports[port] = 1 # Key doesn't yet exist, create it
+                    ports[port] = 1     # Key doesn't yet exist, create it
                     portcount += 1
+                    portpins[port] = {} # Same as above
+                portpins[port][pin.name[2]] = pin
         
-        padding = 200   # 200 mils top and bottom as padding
-        boxheight = pincount * 100 + (portcount - 1) * 100 + padding * 2   # height in mils 
+        
+        padding = 400   # 200 mils top and bottom as padding
+        boxheight = (pincount - 1) * 100 + (portcount - 1) * 100 + padding * 2  # height in mils 
+        
+        maxstringlen = 0
+        for pin in self.pins:
+            maxstringlen = max(maxstringlen, len(pin.pintext))
+
+        boxwidth = maxstringlen * 50 
         
         
         s = ""
@@ -72,8 +91,22 @@ class device:
         s += "F3 \"~\" 0 0 50 H V C CNN\r\n"
         s += "DRAW\r\n"
         # Start drawing rectangles and pins
-        s += "S -100 -" + str(round(boxheight/2)) + " 100 " + str(round(boxheight/2)) + " 0 1 10 f\r\n"
-        
+        # Start to iterate through ports alphabetically
+        positioncounter = 0
+        portkeys = sorted(list(ports.keys()))
+        for port in portkeys:
+            pinnumbers = sorted(list(portpins[port].keys()))
+            for pinnumber in pinnumbers:
+                pin = portpins[port][pinnumber]
+                s+= "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(boxwidth/2 + 100)) + " " + str(round(boxheight/2 - positioncounter*100 - padding)) + " 100 L 50 50 1 1 I\r\n"
+                positioncounter += 1
+                pin.drawn = True
+            positioncounter += 1    # Create gap between 2 ports
+
+
+        print(powerpins)
+
+        s += "S -" + str(round(boxwidth/2)) + " -" + str(round(boxheight/2)) + " " + str(round(boxwidth/2)) + " " + str(round(boxheight/2)) + " 0 1 10 f\r\n"
         s += "ENDDRAW\r\n"
         s += "ENDDEF\r\n"
 
