@@ -6,7 +6,7 @@ import argparse
 from kicad_mod import *
 from print_color import *
 import checkrule6_3, checkrule6_6, checkrule6_9
-import checkrule10_1, checkrule10_2, checkrule10_3, checkrule10_4
+import checkrule10_1, checkrule10_2, checkrule10_3, checkrule10_4, checkrule10_6
 
 parser = argparse.ArgumentParser()
 parser.add_argument('kicad_mod_files', nargs='+')
@@ -27,6 +27,7 @@ for filename in args.kicad_mod_files:
     check10_2 = checkrule10_2.check_rule(module)
     check10_3 = checkrule10_3.check_rule(module)
     check10_4 = checkrule10_4.check_rule(module)
+    check10_6 = checkrule10_6.check_rule(module)
 
     # print the violations
     if (check6_3 or check6_6 or check6_9 or
@@ -68,3 +69,9 @@ for filename in args.kicad_mod_files:
             printer.yellow('\tRule 10.4 violated')
             if args.verbose:
                 printer.light_blue('\tValue is filled with footprint name and is placed on the fabrication layer.')
+
+        if check10_6:
+            printer.yellow('\tRule 10.6 violated')
+            if args.verbose:
+                printer.light_blue('\tAll other properties are left to default values.')
+                printer.light_blue('\t(Move and Place: Free; Auto Place: 0 and 0,  Local Clearance Values: 0)')

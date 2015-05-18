@@ -34,18 +34,17 @@ class KicadMod(object):
         self.tags = self._getValue('tags')
 
         # auto place settings
-        self.autoplace_cost90 = self._getValue('autoplace_cost90')
-        self.autoplace_cost180 = self._getValue('autoplace_cost180')
+        self.autoplace_cost90 = self._getValue('autoplace_cost90', 0)
+        self.autoplace_cost180 = self._getValue('autoplace_cost180', 0)
 
         # module clearance settings
-        self.clearance = self._getValue('clearance')
-        self.solder_mask_margin = self._getValue('solder_mask_margin')
-        self.solder_paste_margin = self._getValue('solder_paste_margin')
-        self.solder_paste_ratio = self._getValue('solder_paste_ratio')
+        self.clearance = self._getValue('clearance', 0)
+        self.solder_mask_margin = self._getValue('solder_mask_margin', 0)
+        self.solder_paste_margin = self._getValue('solder_paste_margin', 0)
+        self.solder_paste_ratio = self._getValue('solder_paste_ratio', 0)
 
         # attribute
-        self.attribute =  self._getValue('attr')
-        if not self.attribute: self.attribute = 'pth'
+        self.attribute =  self._getValue('attr', 'pth')
 
         # reference
         self.reference = self._getText('reference')[0]
@@ -122,9 +121,10 @@ class KicadMod(object):
 
     # return the second element of the array because the array is expected
     # to have the following format: [key value]
-    def _getValue(self, array):
+    # returns def_value if not field the value
+    def _getValue(self, array, def_value=None):
         a = self._getArray(self.sexpr_data, array)
-        return None if not a else a[0][1]
+        return def_value if not a else a[0][1]
 
     def _getText(self, which_text):
         result = []
