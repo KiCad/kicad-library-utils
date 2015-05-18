@@ -27,6 +27,7 @@ class device:
 
         self.readxml()
         self.createComponent()
+        self.createDocu()
 
     def readxml(self):
         self.tree = etree.parse(self.xmlfile)
@@ -38,7 +39,7 @@ class device:
         self.package = self.root.get("Package")
         
         self.bga = False
-        for child in self.root.xpath("a:Pin",namespaces=self.ns):
+        for child in self.root.xpath("a:Pin", namespaces=self.ns):
             # Create object and read attributes
             newpin = pin(child.get("Position"), child.get("Name"), child.get("Type"))
             try:
@@ -57,6 +58,19 @@ class device:
             for apin in self.pins:
                 apin.pinnumber = int(apin.pinnumber)
 
+        # Parse information for documentation
+        self.core = self.root.xpath("a:Core", namespaces=self.ns)[0].text
+        self.family = self.root.get("Family")
+        self.line = self.root.get("Line")
+        try:
+            self.freq = self.root.xpath("a:Frequency", namespaces=self.ns)[0].text
+        except:
+            self.freq = "--"    # Some devices don't have a frequency specification... thanks obama!
+        self.ram = self.root.xpath("a:Ram", namespaces=self.ns)[0].text
+        self.io = self.root.xpath("a:IONb", namespaces=self.ns)[0].text
+        self.flash = self.root.xpath("a:Flash", namespaces=self.ns)[0].text
+        
+        self.voltage = [self.root.xpath("a:Voltage", namespaces=self.ns)[0].get("Min", default="--"), self.root.xpath("a:Voltage", namespaces=self.ns)[0].get("Max", default="--")]
 
     def createComponent(self):
         # s contains the entire component in a single string
@@ -186,36 +200,51 @@ class device:
 
         self.componentstring = s
 
+    def createDocu(self):
+        
+        s = ""
+        s += "$CMP " + self.name.upper() + "\r\n"
+        s += "D Core: " + self.core + " Flash: " + self.flash + "kB Ram: " + self.ram + "kB Frequency: " + self.freq + "MHz Voltage: " + self.voltage[0] + ".." + self.voltage[1] + "V IO-pins: " + self.io + "\r\n"
+        s += "K " + " ".join([self.core, self.family, self.line]) + "\r\n"
+        s += "F \r\n"   # TODO: Add docfiles to devices, maybe url to docfiles follows pattern?
+        s += "$ENDCMP\r\n"
+        self.docustring = s
+
+
 def main():
     args = sys.argv
     
-    pins = []
-
     if(not len(args) == 2 or args[1] == "help"):
         printHelp()
     elif(os.path.isdir(args[1])):
 
-        f = open("stm32.lib", "w")
-        header = '''EESchema-LIBRARY Version 2.3
-#encoding utf-8
-'''     
-        f.write(header)
-        
+        lib = open("stm32.lib", "w")
+        docu = open("stm32.dcm", "w")
+
+        #TODO: Add date and time of file generation to header
+        lib.write("EESchema-LIBRARY Version 2.3\r\n#encoding utf-8\r\n")
+        docu.write("EESchema-DOCLIB  Version 2.0\r\n#\r\n")
+
         files = []
         for (dirpath, dirnames, filenames) in os.walk(args[1]):
             files.extend(filenames)
             break
+
         for xmlfile in files:
             mcu = device(os.path.join(args[1], xmlfile))
-            f.write(mcu.componentstring)
+            lib.write(mcu.componentstring)
+            docu.write(mcu.docustring)
 
-        f.write("#\r\n# End Library\r\n")
-        f.close()
+        lib.write("#\r\n# End Library\r\n")
+        lib.close()
+
+        docu.write("#\r\n#End Doc Library")
+        docu.close()
     else:
         printHelp()
 
 def printHelp():
-    print("Usage: main.py path/to/file.xml")
+    print("Usage: main.py path/to/dir\r\nDirectory should ONLY contain valid xml files, otherwise the result will be bogus.\r\nI haven't included any error checking, so good luck!")
 
 if __name__ == "__main__":
     main()
