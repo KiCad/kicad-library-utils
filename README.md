@@ -29,6 +29,14 @@ KiCad utilities
 
 **update_footprints.py**: This script updates the footprints fields of sch files using a csv as input.
 
+## pcb directory
+
+**kicad_mod.py**: A python class to handle KiCad footprint files, as know as kicad_mod.
+
+**check_kicad_mod.py**: Such script invokes each checkrule script testing the requested module file.
+
+**checkruleX_Y.py**: Each checkrule script checks your correspondent rule and prints out a report informing what is in disagreement with the [KiCad Library Convention](https://github.com/KiCad/kicad-library/wiki/Kicad-Library-Convention).
+
 
 How to use
 ==========
@@ -63,6 +71,18 @@ How to use
     
     # run the following command to see other options
     ./add_part_number.py -h
+
+
+## Footprint Checker (wip)
+
+    # first get into pcb directory
+    cd pcb
+    
+    # run the script passing the files to be checked
+    ./check_kicad_mod.py path_to_fp1 path_to_fp2
+
+    # run the following command to see other options
+    ./check_kicad_mod.py -h
 
 
 Notice
