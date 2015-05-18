@@ -101,7 +101,6 @@ class device:
 
         boxwidth = maxstringlen * 48 + maxleftstringlen * 48
         
-        
         s = ""
         s += "#\r\n"
         s += "# " + self.name.upper() + "\r\n"
@@ -169,8 +168,6 @@ class device:
                 pin.drawn = True
                 leftpincounter += 1
 
-
-
         # Remaining pins
         remainingpins = []
         for pin in self.pins:
@@ -182,15 +179,6 @@ class device:
         for pin in remainingpins:
             s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(-boxwidth/2 - pinlength)) + " " + str(round(-leftpincounter * 100)) + " " + str(pinlength) + " R 50 50 1 1 I\r\n"
             leftpincounter += 1
-
-
-
-
-
-
-
-        
-
 
         s += "S -" + str(round(boxwidth/2)) + " -" + str(round(boxheight/2)) + " " + str(round(boxwidth/2)) + " " + str(round(boxheight/2)) + " 0 1 10 f\r\n"
         s += "ENDDRAW\r\n"
@@ -207,7 +195,7 @@ def main():
         printHelp()
     elif(os.path.isdir(args[1])):
 
-        f = open("test.lib", "w")
+        f = open("stm32.lib", "w")
         header = '''EESchema-LIBRARY Version 2.3
 #encoding utf-8
 '''     
@@ -225,9 +213,6 @@ def main():
         f.close()
     else:
         printHelp()
-    
-
-
 
 def printHelp():
     print("Usage: main.py path/to/file.xml")
