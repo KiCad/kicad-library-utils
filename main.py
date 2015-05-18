@@ -74,7 +74,7 @@ class device:
 
     def createComponent(self):
         # s contains the entire component in a single string
-        pinlength = 150
+        pinlength = 100
 
         ports = {}
         portpins = {}
@@ -108,12 +108,17 @@ class device:
         
         padding = math.ceil(round(maxstringlen*50)/100)*100 + 100   # This will add padding on top of the horizontal pins for the vertical pins
         boxheight = (pincount - 1) * 100 + (portcount - 1) * 100 + padding * 2  # height in mils 
+        if((boxheight/2)%100 > 0):
+            boxheight += 100
         
         maxstringlen = 0
         for pin in self.pins:
             maxstringlen = max(maxstringlen, len(pin.pintext))
 
         boxwidth = maxstringlen * 48 + maxleftstringlen * 48
+        boxwidth = math.floor(boxwidth/100)*100 # Round to 100
+        if((boxwidth/2)%100 > 0):
+            boxwidth += 100
         
         s = ""
         s += "#\r\n"
@@ -143,7 +148,10 @@ class device:
         counter = 0
         for key in vddkeys:
             pin = powerpins["VDD"][key]
-            s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(-((len(vddkeys)-1) * 100)/2 + counter * 100)) + " " + str(round(boxheight/2) + pinlength) + " " + str(pinlength) + " D 50 50 1 1 I\r\n"
+            offset = 50
+            if(len(vddkeys)%2):
+                offset = 0
+            s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(-((len(vddkeys)-1) * 100)/2 + counter * 100 + offset)) + " " + str(round(boxheight/2) + pinlength) + " " + str(pinlength) + " D 50 50 1 1 I\r\n"
             counter += 1
             pin.drawn = True
 
@@ -152,7 +160,10 @@ class device:
         counter = 0
         for key in vsskeys:
             pin = powerpins["VSS"][key]
-            s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(-((len(vsskeys)-1) * 100)/2 + counter * 100)) + " " + str(-round(boxheight/2) - pinlength) + " " + str(pinlength) + " U 50 50 1 1 I\r\n"
+            offset = 50
+            if(len(vsskeys)%2):
+                offset = 0
+            s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(-((len(vsskeys)-1) * 100)/2 + counter * 100 + offset)) + " " + str(-round(boxheight/2) - pinlength) + " " + str(pinlength) + " U 50 50 1 1 I\r\n"
             counter += 1
             pin.drawn = True
 
