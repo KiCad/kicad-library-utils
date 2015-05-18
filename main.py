@@ -16,8 +16,8 @@ class pin:
         for alt in self.altfunctions:
             s += alt + "/"
         s += self.name
-        self.pintext = s
-        
+        self.pintext = s.replace(" ","")
+
 class device:
     def __init__(self, xmlfile):
         self.xmlfile = xmlfile
@@ -98,7 +98,7 @@ class device:
         for pin in self.pins:
             maxstringlen = max(maxstringlen, len(pin.pintext))
 
-        boxwidth = maxstringlen * 50 + maxleftstringlen * 50
+        boxwidth = maxstringlen * 48 + maxleftstringlen * 48
         
         
         s = ""
@@ -170,7 +170,7 @@ class device:
 
 
 
-        # All remaining pins
+        # Remaining pins
         remainingpins = []
         for pin in self.pins:
             if(not pin.drawn):
@@ -217,7 +217,6 @@ def main():
             files.extend(filenames)
             break
         for xmlfile in files:
-            print(xmlfile)
             mcu = device(os.path.join(args[1], xmlfile))
             f.write(mcu.componentstring)
 
