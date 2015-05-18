@@ -60,6 +60,7 @@ class device:
 
     def createComponent(self):
         # s contains the entire component in a single string
+        pinlength = 150
 
         ports = {}
         portpins = {}
@@ -106,9 +107,9 @@ class device:
         s += "# " + self.name.upper() + "\r\n"
         s += "#\r\n"
         s += "DEF " + self.name + " U 0 40 Y Y 1 L N\r\n"
-        s += "F0 \"U\" -1550 1600 50 H V C CNN\r\n"
-        s += "F1 \"" + self.name + "\" 1300 -1600 50 H V C C\r\n"
-        s += "F2 \"~\" 0 -100 50 H V C CIN\r\n"
+        s += "F0 \"U\" " + str(round(-boxwidth/2)) + " " + str(round(boxheight/2) + 25) + " 50 H V L B\r\n"
+        s += "F1 \"" + self.name + "\" " + str(round(boxwidth/2)) + " " + str(round(boxheight/2) + 25) + " 50 H V R B\r\n"
+        s += "F2 \"" + self.package + "\" " + str(round(boxwidth/2)) + " " + str(round(boxheight/2) - 25) + " 50 H V R T\r\n"
         s += "F3 \"~\" 0 0 50 H V C CNN\r\n"
         s += "DRAW\r\n"
         # Start drawing rectangles and pins
@@ -119,7 +120,7 @@ class device:
             pinnumbers = sorted(list(portpins[port].keys()))
             for pinnumber in pinnumbers:
                 pin = portpins[port][pinnumber]
-                s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(boxwidth/2 + 100)) + " " + str(round(boxheight/2 - positioncounter*100 - padding)) + " 100 L 50 50 1 1 I\r\n"
+                s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(boxwidth/2 + pinlength)) + " " + str(round(boxheight/2 - positioncounter*100 - padding)) + " " + str(pinlength) + " L 50 50 1 1 I\r\n"
                 positioncounter += 1
                 pin.drawn = True
             positioncounter += 1    # Create gap between 2 ports
@@ -129,7 +130,7 @@ class device:
         counter = 0
         for key in vddkeys:
             pin = powerpins["VDD"][key]
-            s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(-((len(vddkeys)-1) * 100)/2 + counter * 100)) + " " + str(round(boxheight/2) + 100) + " 100 D 50 50 1 1 I\r\n"
+            s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(-((len(vddkeys)-1) * 100)/2 + counter * 100)) + " " + str(round(boxheight/2) + pinlength) + " " + str(pinlength) + " D 50 50 1 1 I\r\n"
             counter += 1
             pin.drawn = True
 
@@ -138,7 +139,7 @@ class device:
         counter = 0
         for key in vsskeys:
             pin = powerpins["VSS"][key]
-            s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(-((len(vsskeys)-1) * 100)/2 + counter * 100)) + " " + str(-round(boxheight/2) - 100) + " 100 U 50 50 1 1 I\r\n"
+            s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(-((len(vsskeys)-1) * 100)/2 + counter * 100)) + " " + str(-round(boxheight/2) - pinlength) + " " + str(pinlength) + " U 50 50 1 1 I\r\n"
             counter += 1
             pin.drawn = True
 
@@ -148,7 +149,7 @@ class device:
         # Draw Reset pin
         for pin in self.pins:
             if(pin.pintype == "Reset"):
-                s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(-boxwidth/2 - 100)) + " " + str(round(boxheight/2) - leftpincounter * 100 - padding) + " 100 R 50 50 1 1 I\r\n"
+                s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(-boxwidth/2 - pinlength)) + " " + str(round(boxheight/2) - leftpincounter * 100 - padding) + " " + str(pinlength) + " R 50 50 1 1 I\r\n"
                 pin.drawn = True
                 leftpincounter += 1
         leftpincounter += 1 # Create gap between Reset and Boot
@@ -156,7 +157,7 @@ class device:
         # Draw boot pin
         for pin in self.pins:
             if(pin.pintype == "Boot"):
-                s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(-boxwidth/2 - 100)) + " " + str(round(boxheight/2) - leftpincounter * 100 - padding) + " 100 R 50 50 1 1 I\r\n"
+                s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(-boxwidth/2 - pinlength)) + " " + str(round(boxheight/2) - leftpincounter * 100 - padding) + " " + str(pinlength) + " R 50 50 1 1 I\r\n"
                 pin.drawn = True
                 leftpincounter += 1
         leftpincounter += 1
@@ -164,7 +165,7 @@ class device:
         # Draw remaining power pins
         for pin in self.pins:
             if(pin.pintype == "Power" and pin.drawn == False):
-                s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(-boxwidth/2 - 100)) + " " + str(round(boxheight/2) - leftpincounter * 100 - padding) + " 100 R 50 50 1 1 I\r\n"
+                s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(-boxwidth/2 - pinlength)) + " " + str(round(boxheight/2) - leftpincounter * 100 - padding) + " " + str(pinlength) + " R 50 50 1 1 I\r\n"
                 pin.drawn = True
                 leftpincounter += 1
 
@@ -179,7 +180,7 @@ class device:
         leftpincounter = 0
         remainingpins.sort(key = lambda x: x.name)
         for pin in remainingpins:
-            s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(-boxwidth/2 - 100)) + " " + str(round(-leftpincounter * 100)) + " 100 R 50 50 1 1 I\r\n"
+            s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(-boxwidth/2 - pinlength)) + " " + str(round(-leftpincounter * 100)) + " " + str(pinlength) + " R 50 50 1 1 I\r\n"
             leftpincounter += 1
 
 
