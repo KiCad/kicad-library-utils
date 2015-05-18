@@ -6,7 +6,7 @@ import argparse
 from kicad_mod import *
 from print_color import *
 import checkrule6_3, checkrule6_6, checkrule6_9
-import checkrule10_1, checkrule10_2, checkrule10_3
+import checkrule10_1, checkrule10_2, checkrule10_3, checkrule10_4
 
 parser = argparse.ArgumentParser()
 parser.add_argument('kicad_mod_files', nargs='+')
@@ -26,10 +26,11 @@ for filename in args.kicad_mod_files:
     check10_1 = checkrule10_1.check_rule(module)
     check10_2 = checkrule10_2.check_rule(module)
     check10_3 = checkrule10_3.check_rule(module)
+    check10_4 = checkrule10_4.check_rule(module)
 
     # print the violations
     if (check6_3 or check6_6 or check6_9 or
-        check10_1 or check10_2 or check10_3):
+        check10_1 or check10_2 or check10_3 or check10_4):
         printer.green('module: %s' % module.name)
 
         if check6_3:
@@ -62,3 +63,8 @@ for filename in args.kicad_mod_files:
             printer.yellow('\tRule 10.3 violated')
             if args.verbose:
                 printer.light_blue('\tKeywords are separated by spaces.')
+
+        if check10_4:
+            printer.yellow('\tRule 10.4 violated')
+            if args.verbose:
+                printer.light_blue('\tValue is filled with footprint name and is placed on the fabrication layer.')
