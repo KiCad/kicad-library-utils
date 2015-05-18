@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 
-import sys
-import xml.etree.ElementTree as ET
+import sys,os,math
 from lxml import etree
-import os
 
 class pin:
     def __init__(self, pinnumber, name, pintype):
@@ -38,16 +36,27 @@ class device:
 
         self.name = self.root.get("RefName")
         self.package = self.root.get("Package")
-
+        
+        bga = False
         for child in self.root.xpath("a:Pin",namespaces=self.ns):
             # Create object and read attributes
             newpin = pin(child.get("Position"), child.get("Name"), child.get("Type"))
+            try:
+                int(child.get("Position"))
+            except ValueError:
+                bga = True
+
             for signal in child.xpath("a:Signal",namespaces=self.ns):
                 altfunction = signal.get("Name")
                 if(not altfunction == "GPIO"):   # No need to add GPIO as alt function
                     newpin.altfunctions.append(altfunction)
             newpin.createPintext()  # Have the pins generate their text
             self.pins.append(newpin)
+        
+        if(not bga):
+            for apin in self.pins():
+                apin.pinnumber = int(pin.pinnumber)
+
 
     def createComponent(self):
         # s contains the entire component in a single string
@@ -56,9 +65,10 @@ class device:
         portpins = {}
         pincount = 0
         portcount = 0
+        maxleftstringlen = 0
         # Count amount of different Ports and how many I/O pins they contain
         for pin in self.pins:
-            if(pin.pintype == "I/O" and len(pin.name) == 3):    # Avoid counting oscillator pins
+            if(pin.pintype == "I/O" and len(pin.name) <= 4):    # Avoid counting oscillator pins
                 pincount += 1
                 port = pin.name[1]
                 try:
@@ -67,17 +77,28 @@ class device:
                     ports[port] = 1     # Key doesn't yet exist, create it
                     portcount += 1
                     portpins[port] = {} # Same as above
-                portpins[port][pin.name[2]] = pin
+                portpins[port][int(pin.name[2:])] = pin
+            elif(pin.pintype == "I/O" and len(pin.name) > 4):
+                maxleftstringlen = max(maxleftstringlen, len(pin.name))
+       
+        maxstringlen = 0
+        powerpins = {"VDD": {}, "VSS": {}}
+        for pin in self.pins:
+            if(pin.pintype == "Power"):
+                maxstringlen = max(maxstringlen, len(pin.name))
+                if(pin.name.startswith("VDD")):
+                    powerpins["VDD"][pin.pinnumber] = pin
+                elif(pin.name.startswith("VSS")):
+                    powerpins["VSS"][pin.pinnumber] = pin
         
-        
-        padding = 400   # 200 mils top and bottom as padding
+        padding = math.ceil(round(maxstringlen*50)/100)*100 + 100   # This will add padding on top of the horizontal pins for the vertical pins
         boxheight = (pincount - 1) * 100 + (portcount - 1) * 100 + padding * 2  # height in mils 
         
         maxstringlen = 0
         for pin in self.pins:
             maxstringlen = max(maxstringlen, len(pin.pintext))
 
-        boxwidth = maxstringlen * 50 
+        boxwidth = maxstringlen * 50 + maxleftstringlen * 50 + 100
         
         
         s = ""
@@ -98,20 +119,83 @@ class device:
             pinnumbers = sorted(list(portpins[port].keys()))
             for pinnumber in pinnumbers:
                 pin = portpins[port][pinnumber]
-                s+= "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(boxwidth/2 + 100)) + " " + str(round(boxheight/2 - positioncounter*100 - padding)) + " 100 L 50 50 1 1 I\r\n"
+                s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(boxwidth/2 + 100)) + " " + str(round(boxheight/2 - positioncounter*100 - padding)) + " 100 L 50 50 1 1 I\r\n"
                 positioncounter += 1
                 pin.drawn = True
             positioncounter += 1    # Create gap between 2 ports
+        
+        # Draw VDD pins on top of component
+        vddkeys = sorted(list(powerpins["VDD"].keys()))
+        counter = 0
+        for key in vddkeys:
+            pin = powerpins["VDD"][key]
+            s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(-((len(vddkeys)-1) * 100)/2 + counter * 100)) + " " + str(round(boxheight/2) + 100) + " 100 D 50 50 1 1 I\r\n"
+            counter += 1
+            pin.drawn = True
+
+        # Draw VSS pins on bottom of component
+        vsskeys = sorted(list(powerpins["VSS"].keys()))
+        counter = 0
+        for key in vsskeys:
+            pin = powerpins["VSS"][key]
+            s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(-((len(vsskeys)-1) * 100)/2 + counter * 100)) + " " + str(-round(boxheight/2) - 100) + " 100 U 50 50 1 1 I\r\n"
+            counter += 1
+            pin.drawn = True
+
+        # Draw all remaining pins on left hand side
+        leftpincounter = 0
+
+        # Draw Reset pin
+        for pin in self.pins:
+            if(pin.pintype == "Reset"):
+                s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(-boxwidth/2 - 100)) + " " + str(round(boxheight/2) - leftpincounter * 100 - padding) + " 100 R 50 50 1 1 I\r\n"
+                pin.drawn = True
+                leftpincounter += 1
+        leftpincounter += 1 # Create gap between Reset and Boot
+        
+        # Draw boot pin
+        for pin in self.pins:
+            if(pin.pintype == "Boot"):
+                s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(-boxwidth/2 - 100)) + " " + str(round(boxheight/2) - leftpincounter * 100 - padding) + " 100 R 50 50 1 1 I\r\n"
+                pin.drawn = True
+                leftpincounter += 1
+        leftpincounter += 1
+
+        # Draw remaining power pins
+        for pin in self.pins:
+            if(pin.pintype == "Power" and pin.drawn == False):
+                s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(-boxwidth/2 - 100)) + " " + str(round(boxheight/2) - leftpincounter * 100 - padding) + " 100 R 50 50 1 1 I\r\n"
+                pin.drawn = True
+                leftpincounter += 1
 
 
-        print(powerpins)
+
+        # All remaining pins
+        remainingpins = []
+        for pin in self.pins:
+            if(not pin.drawn):
+                remainingpins.append(pin)
+        
+        leftpincounter = 0
+        remainingpins.sort(key = lambda x: x.name)
+        for pin in remainingpins:
+            s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(-boxwidth/2 - 100)) + " " + str(round(-leftpincounter * 100)) + " 100 R 50 50 1 1 I\r\n"
+            leftpincounter += 1
+
+
+
+
+
+
+
+        
+
 
         s += "S -" + str(round(boxwidth/2)) + " -" + str(round(boxheight/2)) + " " + str(round(boxwidth/2)) + " " + str(round(boxheight/2)) + " 0 1 10 f\r\n"
         s += "ENDDRAW\r\n"
         s += "ENDDEF\r\n"
 
         self.componentstring = s
-        print(s)  
 
 def main():
     args = sys.argv
