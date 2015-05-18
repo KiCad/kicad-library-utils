@@ -481,6 +481,14 @@ class KicadMod(object):
 
             self._createArray(m, ['model', 'pad', 'fp_arc', 'fp_circle','fp_line', 'fp_text', 'attr', 'tags', 'descr', 'tedit'])
 
+    def filterLines(self, layer):
+        lines = []
+        for line in self.lines:
+            if line['layer'] == layer:
+                lines.append(line)
+
+        return lines
+
     def save(self, filename=None):
         if not filename: filename = self.filename
 
