@@ -37,14 +37,14 @@ class device:
         self.name = self.root.get("RefName")
         self.package = self.root.get("Package")
         
-        bga = False
+        self.bga = False
         for child in self.root.xpath("a:Pin",namespaces=self.ns):
             # Create object and read attributes
             newpin = pin(child.get("Position"), child.get("Name"), child.get("Type"))
             try:
                 int(child.get("Position"))
             except ValueError:
-                bga = True
+                self.bga = True
 
             for signal in child.xpath("a:Signal",namespaces=self.ns):
                 altfunction = signal.get("Name")
@@ -53,9 +53,9 @@ class device:
             newpin.createPintext()  # Have the pins generate their text
             self.pins.append(newpin)
         
-        if(not bga):
-            for apin in self.pins():
-                apin.pinnumber = int(pin.pinnumber)
+        if(not self.bga):
+            for apin in self.pins:
+                apin.pinnumber = int(apin.pinnumber)
 
 
     def createComponent(self):
@@ -68,7 +68,7 @@ class device:
         maxleftstringlen = 0
         # Count amount of different Ports and how many I/O pins they contain
         for pin in self.pins:
-            if(pin.pintype == "I/O" and len(pin.name) <= 4):    # Avoid counting oscillator pins
+            if(pin.pintype == "I/O" and len(pin.name) <= 4 and pin.name.startswith("P")):    # Avoid counting oscillator pins
                 pincount += 1
                 port = pin.name[1]
                 try:
@@ -79,7 +79,7 @@ class device:
                     portpins[port] = {} # Same as above
                 portpins[port][int(pin.name[2:])] = pin
             elif(pin.pintype == "I/O" and len(pin.name) > 4):
-                maxleftstringlen = max(maxleftstringlen, len(pin.name))
+                maxleftstringlen = max(maxleftstringlen, len(pin.pintext))
        
         maxstringlen = 0
         powerpins = {"VDD": {}, "VSS": {}}
@@ -98,7 +98,7 @@ class device:
         for pin in self.pins:
             maxstringlen = max(maxstringlen, len(pin.pintext))
 
-        boxwidth = maxstringlen * 50 + maxleftstringlen * 50 + 100
+        boxwidth = maxstringlen * 50 + maxleftstringlen * 50
         
         
         s = ""
@@ -204,13 +204,24 @@ def main():
 
     if(not len(args) == 2 or args[1] == "help"):
         printHelp()
-    elif(os.path.isfile(args[1])):
-        test = device(args[1])
+    elif(os.path.isdir(args[1])):
+
         f = open("test.lib", "w")
         header = '''EESchema-LIBRARY Version 2.3
 #encoding utf-8
-'''
-        f.write(header + test.componentstring + "#\r\n# End Library\r\n")
+'''     
+        f.write(header)
+        
+        files = []
+        for (dirpath, dirnames, filenames) in os.walk(args[1]):
+            files.extend(filenames)
+            break
+        for xmlfile in files:
+            print(xmlfile)
+            mcu = device(os.path.join(args[1], xmlfile))
+            f.write(mcu.componentstring)
+
+        f.write("#\r\n# End Library\r\n")
         f.close()
     else:
         printHelp()
