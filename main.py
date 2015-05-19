@@ -215,7 +215,7 @@ class device:
         
         s = ""
         s += "$CMP " + self.name.upper() + "\r\n"
-        s += "D Core: " + self.core + " Flash: " + self.flash + "kB Ram: " + self.ram + "kB Frequency: " + self.freq + "MHz Voltage: " + self.voltage[0] + ".." + self.voltage[1] + "V IO-pins: " + self.io + "\r\n"
+        s += "D Core: " + self.core + " Flash: " + self.flash + "kB Ram: " + self.ram + "kB Frequency: " + self.freq + "MHz Voltage: " + self.voltage[0] + ".." + self.voltage[1] + "V IO-pins: " + self.io + " Package: " + self.package + "\r\n"
         s += "K " + " ".join([self.core, self.family, self.line]) + "\r\n"
         s += "F \r\n"   # TODO: Add docfiles to devices, maybe url to docfiles follows pattern?
         s += "$ENDCMP\r\n"
