@@ -2,6 +2,18 @@
 
 import sys,os,math
 from lxml import etree
+import re
+
+def unique(items):
+    found = set([])
+    keep = []
+
+    for item in items:
+        if item not in found:
+            found.add(item)
+            keep.append(item)
+
+    return keep
 
 class pin:
     def __init__(self, pinnumber, name, pintype):
@@ -19,13 +31,15 @@ class pin:
         self.pintext = s.replace(" ","")
 
 class device:
-    def __init__(self, xmlfile):
+    def __init__(self, xmlfile, pdfdir):
         self.xmlfile = xmlfile
+        self.pdfdir = pdfdir
         self.name = ""
         self.package = ""
         self.pins = []
 
         self.readxml()
+        self.readpdf()
         self.createComponent()
         self.createDocu()
 
@@ -71,6 +85,75 @@ class device:
         self.flash = self.root.xpath("a:Flash", namespaces=self.ns)[0].text
         
         self.voltage = [self.root.xpath("a:Voltage", namespaces=self.ns)[0].get("Min", default="--"), self.root.xpath("a:Voltage", namespaces=self.ns)[0].get("Max", default="--")]
+
+    def readpdf(self):
+        self.pdf = ""
+        files = []
+        for (dirpath, dirnames, filenames) in os.walk(self.pdfdir):
+            files.extend(filenames)
+            break
+
+        s = self.name
+        if("(" in s and ")" in s):
+            paren = s[s.find("(")+1:s.find(")")]    # Get device options contained in parenthesis
+            s = s.replace("("+paren+")","o")    # Replace the parenthesis with a lower case 'o'
+            print(paren)
+            paren = paren.split("-")    # Paren contains different options
+
+        print("NEW: " + s)
+        candidatestring = {}
+        for pdf in files:
+            if(pdf.endswith(".pdf.par")):   # Find all processed PDF files and open them for evaluation
+                p = open(os.path.join(self.pdfdir, pdf), "r")
+                for line in p:
+                    if(line.find(s[:9]) >= 0):
+                        candidatenames = line.rstrip().translate(str.maketrans(","," ")).split()    # Remove newline and commas and then split string
+                        for candidatename in candidatenames:
+                            candidatestring[candidatename] = pdf    # Associate file with every device name
+                    if(not line.startswith("STM32")):   # Assume that the device names are always at the beginning of file
+                        break
+        #print(candidatestring)  # TODO: CONTINUE HERE!!!!
+        keystokeep = []
+        for key in candidatestring:
+            pdfstr = candidatestring[key]
+            indices = [m.start() for m in re.finditer('x', key)]
+            tempname = list(s)
+            tempkey = list(key)
+            for ind in indices:
+                tempname[ind] = "r"
+                tempkey[ind] = "r"
+            mods = "".join(tempname).replace("r","")
+            modkey = "".join(tempkey).replace("r","")
+            #print(s + " " + key)
+            #print(mods + " " + modkey)
+
+            if(mods.find("o") > 0):
+                for option in paren:
+                    temps = mods.replace("o",option)
+                    #print(temps)
+                    if(temps.startswith(modkey)):
+                        keystokeep.append(key)
+            elif(mods.startswith(modkey)):
+                keystokeep.append(key)
+        
+        winners = []    # I got too tired of this
+        for key in unique(keystokeep):
+            try:
+                winners.append(candidatestring.pop(key))
+            except:
+                pass
+
+        #print(winners)
+        if(len(winners) > 0):
+            firstwinner = winners[0]
+            for winner in winners:
+                if(winner == firstwinner):
+                    self.pdf = winner[:-4]
+                else:
+                    self.pdf = ""
+                    print("UHOH!")
+            
+
 
     def createComponent(self):
         # s contains the entire component in a single string
@@ -212,12 +295,12 @@ class device:
         self.componentstring = s
 
     def createDocu(self):
-        
+        pdfprefix = "http://www.st.com/st-web-ui/static/active/en/resource/technical/document/datasheet/"  
         s = ""
         s += "$CMP " + self.name.upper() + "\r\n"
-        s += "D Core: " + self.core + " Flash: " + self.flash + "kB Ram: " + self.ram + "kB Frequency: " + self.freq + "MHz Voltage: " + self.voltage[0] + ".." + self.voltage[1] + "V IO-pins: " + self.io + " Package: " + self.package + "\r\n"
+        s += "D Core: " + self.core + " Package: " + self.package + " Flash: " + self.flash + "kB Ram: " + self.ram + "kB Frequency: " + self.freq + "MHz Voltage: " + self.voltage[0] + ".." + self.voltage[1] + "V IO-pins: " + self.io + "\r\n"
         s += "K " + " ".join([self.core, self.family, self.line]) + "\r\n"
-        s += "F \r\n"   # TODO: Add docfiles to devices, maybe url to docfiles follows pattern?
+        s += "F " + pdfprefix + self.pdf + "\r\n"   # TODO: Add docfiles to devices, maybe url to docfiles follows pattern?
         s += "$ENDCMP\r\n"
         self.docustring = s
 
@@ -225,9 +308,9 @@ class device:
 def main():
     args = sys.argv
     
-    if(not len(args) == 2 or args[1] == "help"):
+    if(not len(args) == 3 or args[1] == "help"):
         printHelp()
-    elif(os.path.isdir(args[1])):
+    elif(os.path.isdir(args[1]) and os.path.isdir(args[2])):
 
         lib = open("stm32.lib", "w")
         docu = open("stm32.dcm", "w")
@@ -237,12 +320,25 @@ def main():
         docu.write("EESchema-DOCLIB  Version 2.0\r\n#\r\n")
 
         files = []
+        for (dirpath, dirnames, filenames) in os.walk(args[2]):
+            files.extend(filenames)
+            break
+        
+
+        for pdffile in files:
+            pdffile = os.path.join(args[2], pdffile)
+            pdfparsedfile = pdffile + ".par"
+            if(not os.path.isfile(pdfparsedfile) and pdffile.endswith(".pdf")):
+                print("Converting: " + pdffile)
+                os.system("pdf2txt.py -o " + pdfparsedfile + " " + pdffile)
+
+        files = []
         for (dirpath, dirnames, filenames) in os.walk(args[1]):
             files.extend(filenames)
             break
 
         for xmlfile in files:
-            mcu = device(os.path.join(args[1], xmlfile))
+            mcu = device(os.path.join(args[1], xmlfile), args[2])
             lib.write(mcu.componentstring)
             docu.write(mcu.docustring)
 
@@ -255,7 +351,7 @@ def main():
         printHelp()
 
 def printHelp():
-    print("Usage: main.py path/to/dir\r\nDirectory should ONLY contain valid xml files, otherwise the result will be bogus.\r\nI haven't included any error checking, so good luck!")
+    print("Usage: main.py path/to/xmldir path/to/pdfdir \r\nDirectory should ONLY contain valid xml files, otherwise the result will be bogus.\r\nI haven't included any error checking, so good luck!")
 
 if __name__ == "__main__":
     main()
