@@ -227,7 +227,11 @@ class device:
             positioncounter += 1    # Create gap between 2 ports
         
         # Draw VDD pins on top of component
-        vddkeys = sorted(list(powerpins["VDD"].keys()))
+        vddkeys = list(powerpins["VDD"].keys())
+        vddvalues = []
+        for pin in list(powerpins["VDD"].values()):
+            vddvalues.append(pin.name)
+        vddvalues, vddkeys = zip(*sorted(zip(vddvalues,vddkeys)))
         counter = 0
         for key in vddkeys:
             pin = powerpins["VDD"][key]
@@ -239,7 +243,13 @@ class device:
             pin.drawn = True
 
         # Draw VSS pins on bottom of component
-        vsskeys = sorted(list(powerpins["VSS"].keys()))
+        vsskeys = list(powerpins["VSS"].keys())
+        vssvalues = []
+        for pin in list(powerpins["VSS"].values()):
+            vssvalues.append(pin.name)
+        print(vsskeys)
+        print(vssvalues)
+        vssvalues, vsskeys = zip(*sorted(zip(vssvalues,vsskeys)))
         counter = 0
         for key in vsskeys:
             pin = powerpins["VSS"][key]
