@@ -67,10 +67,16 @@ class device:
                     newpin.altfunctions.append(altfunction)
             newpin.createPintext()  # Have the pins generate their text
             self.pins.append(newpin)
+        if(self.root.get("HasPowerPad") == "true"):    # Special case for the thermal pad
+            powerpadpin = pin("Th", "VSS/TH", "Power")
+            powerpadpin.createPintext()
+            self.pins.append(powerpadpin)
+
         
         if(not self.bga):
             for apin in self.pins:
-                apin.pinnumber = int(apin.pinnumber)
+                if(not apin.name == "VSS/TH"):
+                    apin.pinnumber = int(apin.pinnumber)
 
         # Parse information for documentation
         self.core = self.root.xpath("a:Core", namespaces=self.ns)[0].text
@@ -83,7 +89,6 @@ class device:
         self.ram = self.root.xpath("a:Ram", namespaces=self.ns)[0].text
         self.io = self.root.xpath("a:IONb", namespaces=self.ns)[0].text
         self.flash = self.root.xpath("a:Flash", namespaces=self.ns)[0].text
-        
         self.voltage = [self.root.xpath("a:Voltage", namespaces=self.ns)[0].get("Min", default="--"), self.root.xpath("a:Voltage", namespaces=self.ns)[0].get("Max", default="--")]
 
     def readpdf(self):
@@ -97,10 +102,9 @@ class device:
         if("(" in s and ")" in s):
             paren = s[s.find("(")+1:s.find(")")]    # Get device options contained in parenthesis
             s = s.replace("("+paren+")","o")    # Replace the parenthesis with a lower case 'o'
-            print(paren)
             paren = paren.split("-")    # Paren contains different options
 
-        print("NEW: " + s)
+        #print("NEW: " + s)
         candidatestring = {}
         for pdf in files:
             if(pdf.endswith(".pdf.par")):   # Find all processed PDF files and open them for evaluation
@@ -151,7 +155,7 @@ class device:
                     self.pdf = winner[:-4]
                 else:
                     self.pdf = ""
-                    print("UHOH!")
+                    print("Datasheet could not be determined for this device: " + self.name)
             
 
 
@@ -247,8 +251,6 @@ class device:
         vssvalues = []
         for pin in list(powerpins["VSS"].values()):
             vssvalues.append(pin.name)
-        print(vsskeys)
-        print(vssvalues)
         vssvalues, vsskeys = zip(*sorted(zip(vssvalues,vsskeys)))
         counter = 0
         for key in vsskeys:
