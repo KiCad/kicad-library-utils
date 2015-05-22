@@ -92,7 +92,7 @@ class device:
         self.voltage = [self.root.xpath("a:Voltage", namespaces=self.ns)[0].get("Min", default="--"), self.root.xpath("a:Voltage", namespaces=self.ns)[0].get("Max", default="--")]
 
     def readpdf(self):
-        self.pdf = ""
+        self.pdf = "NOSHEET"
         files = []
         for (dirpath, dirnames, filenames) in os.walk(self.pdfdir):
             files.extend(filenames)
@@ -150,13 +150,16 @@ class device:
         #print(winners)
         if(len(winners) > 0):
             firstwinner = winners[0]
+            #print(winners)
             for winner in winners:
                 if(winner == firstwinner):
                     self.pdf = winner[:-4]
                 else:
-                    self.pdf = ""
-                    print("Datasheet could not be determined for this device: " + self.name)
-            
+                    self.pdf = "NOSHEET"
+                    break
+        
+        if(self.pdf == "NOSHEET"):
+            print("Datasheet could not be determined for this device: " + self.name)
 
 
     def createComponent(self):
@@ -307,7 +310,10 @@ class device:
         self.componentstring = s
 
     def createDocu(self):
-        pdfprefix = "http://www.st.com/st-web-ui/static/active/en/resource/technical/document/datasheet/"  
+        pdfprefix = "http://www.st.com/st-web-ui/static/active/en/resource/technical/document/datasheet/"
+        if(self.pdf == "NOSHEET"):
+            pdfprefix = ""
+            self.pdf = ""
         s = ""
         s += "$CMP " + self.name.upper() + "\r\n"
         s += "D Core: " + self.core + " Package: " + self.package + " Flash: " + self.flash + "kB Ram: " + self.ram + "kB Frequency: " + self.freq + "MHz Voltage: " + self.voltage[0] + ".." + self.voltage[1] + "V IO-pins: " + self.io + "\r\n"
