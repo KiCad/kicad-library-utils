@@ -5,11 +5,6 @@ def get_pad_1(module):
         if pad['number'] == 1:
             return pad
 
-def set_anchor(pads_array, anchor_point):
-    for pad in pads_array:
-        pad['pos']['x'] -= anchor_point['x']
-        pad['pos']['y'] -= anchor_point['y']
-
 # returns true if a violation is found
 def check_rule(module):
     # check if module is through-hole
@@ -25,7 +20,4 @@ def fix_rule(module):
     if not check_rule(module): return
 
     pad1 = get_pad_1(module)
-    xref = pad1['pos']['x']
-    yref = pad1['pos']['y']
-
-    set_anchor(module.pads, {'x':xref , 'y':yref})
+    module.setAnchor((pad1['pos']['x'], pad1['pos']['y']))

@@ -481,6 +481,46 @@ class KicadMod(object):
 
             self._createArray(m, ['model', 'pad', 'fp_arc', 'fp_circle','fp_line', 'fp_text', 'attr', 'tags', 'descr', 'tedit'])
 
+    def setAnchor(self, anchor_point):
+        # change reference position
+        self.reference['pos']['x'] -= anchor_point[0]
+        self.reference['pos']['y'] -= anchor_point[1]
+
+        # change value position
+        self.value['pos']['x'] -= anchor_point[0]
+        self.value['pos']['y'] -= anchor_point[1]
+
+        # change user text position
+        for text in self.userText:
+            text['pos']['x'] -= anchor_point[0]
+            text['pos']['y'] -= anchor_point[1]
+
+        # change lines position
+        for line in self.lines:
+            line['start']['x'] -= anchor_point[0]
+            line['end']['x'] -= anchor_point[0]
+            line['start']['y'] -= anchor_point[1]
+            line['end']['y'] -= anchor_point[1]
+
+        # change circles position
+        for circle in self.circles:
+            line['center']['x'] -= anchor_point[0]
+            line['end']['x'] -= anchor_point[0]
+            line['center']['y'] -= anchor_point[1]
+            line['end']['y'] -= anchor_point[1]
+
+        # change arcs position
+        for arc in self.arcs:
+            line['start']['x'] -= anchor_point[0]
+            line['end']['x'] -= anchor_point[0]
+            line['start']['y'] -= anchor_point[1]
+            line['end']['y'] -= anchor_point[1]
+
+        # change pads positions
+        for pad in self.pads:
+            pad['pos']['x'] -= anchor_point[0]
+            pad['pos']['y'] -= anchor_point[1]
+
     def filterLines(self, layer):
         lines = []
         for line in self.lines:
