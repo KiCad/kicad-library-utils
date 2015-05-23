@@ -5,7 +5,7 @@ from __future__ import print_function
 import argparse
 from kicad_mod import *
 from print_color import *
-import checkrule6_3, checkrule6_6, checkrule6_9
+import checkrule6_3, checkrule6_4, checkrule6_6, checkrule6_9
 import checkrule10_1, checkrule10_2, checkrule10_3, checkrule10_4, checkrule10_5, checkrule10_6, checkrule10_7
 
 parser = argparse.ArgumentParser()
@@ -21,6 +21,7 @@ for filename in args.kicad_mod_files:
     module = KicadMod(filename)
 
     check6_3 = checkrule6_3.check_rule(module)
+    check6_4 = checkrule6_4.check_rule(module)
     check6_6 = checkrule6_6.check_rule(module)
     check6_9 = checkrule6_9.check_rule(module)
     check10_1 = checkrule10_1.check_rule(module)
@@ -32,7 +33,7 @@ for filename in args.kicad_mod_files:
     check10_7 = checkrule10_7.check_rule(module)
 
     # print the violations
-    if (check6_3 or check6_6 or check6_9 or
+    if (check6_3 or check6_4 or check6_6 or check6_9 or
         check10_1 or check10_2 or check10_3 or check10_4 or check10_5 or check10_6 or check10_7):
         printer.green('module: %s' % module.name)
 
@@ -40,6 +41,11 @@ for filename in args.kicad_mod_files:
             printer.yellow('\tRule 6.3 violated')
             if args.verbose:
                 printer.light_blue('\tFor through-hole components, footprint anchor is set on pad 1.')
+
+        if check6_4:
+            printer.yellow('\tRule 6.4 violated')
+            if args.verbose:
+                printer.light_blue('\tFor surface-mount devices, footprint anchor is placed in the middle with respect to device lead ends. (IPC-7351)')
 
         if check6_6:
             printer.yellow('\tRule 6.6 violated')

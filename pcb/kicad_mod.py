@@ -447,7 +447,6 @@ class KicadMod(object):
 
             self._createArray(pad, ['pad', 'fp_arc', 'fp_circle','fp_line', 'fp_text', 'attr', 'tags', 'descr', 'tedit'])
 
-
     def _getModels(self):
         models_array = self._getArray(self.sexpr_data, 'model')
 
@@ -536,6 +535,19 @@ class KicadMod(object):
                 pads.append(pad)
 
         return pads
+
+    def padsBounds(self):
+        lower_x = lower_y = 1.0E99
+        higher_x = higher_y = -1.0E99
+
+        for pad in self.pads:
+            if pad['pos']['x'] < lower_x: lower_x = pad['pos']['x']
+            if pad['pos']['x'] > higher_x: higher_x = pad['pos']['x']
+
+            if pad['pos']['y'] < lower_y: lower_y = pad['pos']['y']
+            if pad['pos']['y'] > higher_y: higher_y = pad['pos']['y']
+
+        return ((lower_x, lower_y), (higher_x, higher_y))
 
     def save(self, filename=None):
         if not filename: filename = self.filename
