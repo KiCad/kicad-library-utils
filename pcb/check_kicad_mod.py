@@ -6,7 +6,7 @@ import argparse
 from kicad_mod import *
 from print_color import *
 import checkrule6_3, checkrule6_6, checkrule6_9
-import checkrule10_1, checkrule10_2, checkrule10_3, checkrule10_4, checkrule10_6
+import checkrule10_1, checkrule10_2, checkrule10_3, checkrule10_4, checkrule10_5, checkrule10_6, checkrule10_7
 
 parser = argparse.ArgumentParser()
 parser.add_argument('kicad_mod_files', nargs='+')
@@ -27,11 +27,13 @@ for filename in args.kicad_mod_files:
     check10_2 = checkrule10_2.check_rule(module)
     check10_3 = checkrule10_3.check_rule(module)
     check10_4 = checkrule10_4.check_rule(module)
+    check10_5 = checkrule10_5.check_rule(module)
     check10_6 = checkrule10_6.check_rule(module)
+    check10_7 = checkrule10_7.check_rule(module)
 
     # print the violations
     if (check6_3 or check6_6 or check6_9 or
-        check10_1 or check10_2 or check10_3 or check10_4):
+        check10_1 or check10_2 or check10_3 or check10_4 or check10_5 or check10_6 or check10_7):
         printer.green('module: %s' % module.name)
 
         if check6_3:
@@ -70,8 +72,19 @@ for filename in args.kicad_mod_files:
             if args.verbose:
                 printer.light_blue('\tValue is filled with footprint name and is placed on the fabrication layer.')
 
+        if check10_5:
+            printer.yellow('\tRule 10.5 violated')
+            if args.verbose:
+                printer.light_blue('\tAttributes is set to the appropriate value, see tooltip for more information.')
+
         if check10_6:
             printer.yellow('\tRule 10.6 violated')
             if args.verbose:
                 printer.light_blue('\tAll other properties are left to default values.')
                 printer.light_blue('\t(Move and Place: Free; Auto Place: 0 and 0,  Local Clearance Values: 0)')
+
+        if check10_7:
+            printer.yellow('\tRule 10.7 violated')
+            if args.verbose:
+                printer.light_blue('\t3D Shape ".wrl" files are named the same as their footprint and are placed in a folder')
+                printer.light_blue('\tnamed the same as the footprint library replacing the ".pretty" with ".3dshapes"')

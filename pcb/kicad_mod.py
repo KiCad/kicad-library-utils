@@ -489,6 +489,14 @@ class KicadMod(object):
 
         return lines
 
+    def filterPads(self, pad_type):
+        pads = []
+        for pad in self.pads:
+            if pad['type'] == pad_type:
+                pads.append(pad)
+
+        return pads
+
     def save(self, filename=None):
         if not filename: filename = self.filename
 
