@@ -2,7 +2,10 @@
 
 # returns non zero if a violation is found
 def check_rule(module):
-    return module.tags.count(',')
+    if module.tags:
+        return module.tags.count(',')
+
+    return 0
 
 def fix_rule(module):
     # first check if it's violating the rule
