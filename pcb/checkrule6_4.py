@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 def check_rule(module):
+    if module.attribute != 'smd':return ()
+
     bounds = module.padsBounds()
     lower = bounds[0]
     higher = bounds[1]
