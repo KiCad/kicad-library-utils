@@ -42,12 +42,10 @@ def parse_sexp(sexp):
     assert not stack, "Trouble with nesting of brackets"
     return out[0]
 
-def build_sexp(exp, n=0):
+def build_sexp(exp):
     out = ''
     if type(exp) == type([]):
-        out += ('\n' if n > 0 else '') + '  ' * n
-        n += 1
-        out += '(' + ' '.join(build_sexp(x, n) for x in exp) + ')'
+        out += '(' + ' '.join(build_sexp(x) for x in exp) + ')'
     elif type(exp) == type('') and re.search(r'[\s()]', exp):
         out += '"%s"' % repr(exp)[1:-1].replace('"', '\"')
     else:
@@ -56,6 +54,20 @@ def build_sexp(exp, n=0):
         else:
             out += '%s' % exp
     return out
+
+def format_sexp(sexp):
+    n = 0
+    out = ''
+    for c in sexp:
+        if c == '(':
+            if n: out += '\n' + '  '*n
+            n += 1
+        elif c == ')':
+            n -= 1
+
+        out += c
+
+    return '\n'.join(out.split(' \n'))
 
 if __name__ == '__main__':
     sexp = ''' ( ( data "quoted data" 123 4.5)
