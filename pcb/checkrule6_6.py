@@ -8,6 +8,8 @@ def check_rule(module):
     courtyard_lines = module.filterLines('F.CrtYd')
     courtyard_lines += module.filterLines('B.CrtYd')
 
+    # TODO: check if there is no courtyard line
+
     bad_width = []
     bad_courtyard = []
     for line in courtyard_lines:
@@ -48,4 +50,17 @@ def fix_rule(module):
         line['width'] = 0.05
 
     # fix the courtyard
-    # TODO
+    for line in lines[1]:
+        x, y = line['start']['x'], line['start']['y']
+        x = int( (x + (0.0000001 if x >= 0 else -0.0000001))*1E6 )
+        y = int( (y + (0.0000001 if y >= 0 else -0.0000001))*1E6 )
+        x = int(x / 0.05E6) * 0.05
+        y = int(y / 0.05E6) * 0.05
+        line['start']['x'], line['start']['y'] = x, y
+
+        x, y = line['end']['x'], line['end']['y']
+        x = int( (x + (0.0000001 if x >= 0 else -0.0000001))*1E6 )
+        y = int( (y + (0.0000001 if y >= 0 else -0.0000001))*1E6 )
+        x = int(x / 0.05E6) * 0.05
+        y = int(y / 0.05E6) * 0.05
+        line['end']['x'], line['end']['y'] = x, y
