@@ -9,6 +9,7 @@ def check_rule(module):
     courtyard_lines += module.filterLines('B.CrtYd')
 
     # TODO: check if there is no courtyard line
+    # TODO: check arcs and circles
 
     bad_width = []
     bad_courtyard = []
