@@ -23,8 +23,8 @@ class Rule6_6(KLCRule):
             * bad_width
             * bad_grid
         """
-        self.f_courtyard_all = module.filterGraphs('F.SilkS')
-        self.b_courtyard_all = module.filterGraphs('B.SilkS')
+        self.f_courtyard_all = module.filterGraphs('F.CrtYd')
+        self.b_courtyard_all = module.filterGraphs('B.CrtYd')
 
         # check the width
         self.bad_width = []
@@ -32,8 +32,8 @@ class Rule6_6(KLCRule):
             if graph['width'] != 0.05:
                 self.bad_width.append(graph)
 
-        self.f_courtyard_lines = module.filterLines('F.SilkS')
-        self.b_courtyard_lines = module.filterLines('B.SilkS')
+        self.f_courtyard_lines = module.filterLines('F.CrtYd')
+        self.b_courtyard_lines = module.filterLines('B.CrtYd')
 
         # check if there is proper rounding 0.05 of courtyard lines
         # convert position to nanometers (add/subtract 1/10^7 to avoid wrong rounding and cast to int)
@@ -57,7 +57,10 @@ class Rule6_6(KLCRule):
             if start_is_wrong or end_is_wrong:
                 self.bad_grid.append({'nanometers':nanometers, 'line':line})
 
-        return True if (len(self.bad_width) > 0 or len(self.bad_grid) > 0) else False
+        if (len(self.bad_width) > 0 or len(self.bad_grid) > 0 or len(self.f_courtyard_all) == 0):
+            return True
+        else:
+            return False
 
     def fix(self, module):
         """
@@ -76,3 +79,4 @@ class Rule6_6(KLCRule):
                 x, y = int(x / 0.05E6) * 0.05, int(y / 0.05E6) * 0.05
                 item['line']['end']['x'], item['line']['end']['y'] = x, y
 
+            # TODO: create courtyard if does not exists
