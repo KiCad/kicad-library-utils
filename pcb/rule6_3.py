@@ -44,5 +44,6 @@ class Rule6_3(KLCRule):
         """
         Proceeds the fixing of the rule, if possible.
         """
-        if check_rule(module):
-            module.setAnchor(self.pin1_position)
+        if self.check(module):
+            if self.pin1_count == 1:
+                module.setAnchor(self.pin1_position)

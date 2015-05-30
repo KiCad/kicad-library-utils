@@ -22,7 +22,7 @@ class Rule6_4(KLCRule):
         x = (self.pads_bounds['higher']['x'] - self.pads_bounds['lower']['x'])
         y = (self.pads_bounds['higher']['y'] - self.pads_bounds['lower']['y'])
 
-        self.pads_distance = (x, y)
+        self.pads_distance = {'x':x, 'y':y}
 
         if not (x == 0.0 and y == 0.0):
             return True
@@ -33,7 +33,7 @@ class Rule6_4(KLCRule):
         """
         Proceeds the fixing of the rule, if possible.
         """
-        if check_rule(module):
+        if self.check(module):
             x = self.pads_bounds['lower']['x'] + (self.pads_distance['x'] / 2)
             y = self.pads_bounds['lower']['y'] + (self.pads_distance['y'] / 2)
             module.setAnchor((x, y))
