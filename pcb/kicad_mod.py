@@ -555,7 +555,8 @@ class KicadMod(object):
             if pad['pos']['y'] < lower_y: lower_y = pad['pos']['y']
             if pad['pos']['y'] > higher_y: higher_y = pad['pos']['y']
 
-        return ((lower_x, lower_y), (higher_x, higher_y))
+        return {'lower':{'x':lower_x, 'y':lower_y},
+               {'higher':{'x':higher_x, 'y':higher_y}}
 
     def save(self, filename=None):
         if not filename: filename = self.filename
