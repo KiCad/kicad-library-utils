@@ -528,6 +528,27 @@ class KicadMod(object):
 
         return lines
 
+    def filterCircles(self, layer):
+        circles = []
+        for circle in self.circles:
+            if circle['layer'] == layer:
+                circles.append(circle)
+
+        return circles
+
+    def filterArcs(self, layer):
+        arcs = []
+        for arc in self.arcs:
+            if arc['layer'] == layer:
+                arcs.append(arc)
+
+        return arcs
+
+    def filterGraphs(self, layer):
+        return (self.filterLines(layer) +
+                self.filterCircles(layer) +
+                self.filterArcs(layer))
+
     def getPadsByNumber(self, pad_number):
         pads = []
         for pad in self.pads:
@@ -556,7 +577,7 @@ class KicadMod(object):
             if pad['pos']['y'] > higher_y: higher_y = pad['pos']['y']
 
         return {'lower':{'x':lower_x, 'y':lower_y},
-               {'higher':{'x':higher_x, 'y':higher_y}}
+                'higher':{'x':higher_x, 'y':higher_y}}
 
     def save(self, filename=None):
         if not filename: filename = self.filename
