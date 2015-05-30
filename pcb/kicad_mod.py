@@ -528,6 +528,14 @@ class KicadMod(object):
 
         return lines
 
+    def getPadsByNumber(self, pad_number):
+        pads = []
+        for pad in self.pads:
+            if pad['number'] == pad_number:
+                pads.append(pad)
+
+        return pads
+
     def filterPads(self, pad_type):
         pads = []
         for pad in self.pads:
