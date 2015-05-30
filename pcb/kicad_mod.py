@@ -503,17 +503,17 @@ class KicadMod(object):
 
         # change circles position
         for circle in self.circles:
-            line['center']['x'] -= anchor_point[0]
-            line['end']['x'] -= anchor_point[0]
-            line['center']['y'] -= anchor_point[1]
-            line['end']['y'] -= anchor_point[1]
+            circle['center']['x'] -= anchor_point[0]
+            circle['end']['x'] -= anchor_point[0]
+            circle['center']['y'] -= anchor_point[1]
+            circle['end']['y'] -= anchor_point[1]
 
         # change arcs position
         for arc in self.arcs:
-            line['start']['x'] -= anchor_point[0]
-            line['end']['x'] -= anchor_point[0]
-            line['start']['y'] -= anchor_point[1]
-            line['end']['y'] -= anchor_point[1]
+            arc['start']['x'] -= anchor_point[0]
+            arc['end']['x'] -= anchor_point[0]
+            arc['start']['y'] -= anchor_point[1]
+            arc['end']['y'] -= anchor_point[1]
 
         # change pads positions
         for pad in self.pads:
