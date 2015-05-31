@@ -1,23 +1,25 @@
 # -*- coding: utf-8 -*-
 
-from rule import *
+from rules.rule import *
 
-class Rule10_3(KLCRule):
+class Rule(KLCRule):
     """
     Create the methods check and fix to use with the kicad_mod files.
     """
     def __init__(self, module):
-        super(Rule10_3, self).__init__('Rule 10.3', 'Keywords are separated by spaces.')
+        super(Rule, self).__init__(module, 'Rule 10.3', 'Keywords are separated by spaces.')
 
-    def check(self, module):
+    def check(self):
         """
         Proceeds the checking of the rule.
         """
+        module = self.module
         return True if module.tags.count(',') > 0 else False
 
-    def fix(self, module):
+    def fix(self):
         """
         Proceeds the fixing of the rule, if possible.
         """
-        if self.check(module):
+        module = self.module
+        if self.check():
             module.tags = ' '.join(module.tags.replace(' ', '').split(','))

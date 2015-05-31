@@ -1,21 +1,22 @@
 # -*- coding: utf-8 -*-
 
-from rule import *
+from rules.rule import *
 
-class Rule6_4(KLCRule):
+class Rule(KLCRule):
     """
     Create the methods check and fix to use with the kicad_mod files.
     """
     def __init__(self, module):
-        super(Rule6_4, self).__init__('Rule 6.4', 'For surface-mount devices, footprint anchor is placed in the middle with respect to device lead ends. (IPC-7351).')
+        super(Rule, self).__init__(module, 'Rule 6.4', 'For surface-mount devices, footprint anchor is placed in the middle with respect to device lead ends. (IPC-7351).')
 
-    def check(self, module):
+    def check(self):
         """
         Proceeds the checking of the rule.
         The following variables will be accessible after checking:
             * pads_bounds
             * pads_distance
         """
+        module = self.module
         if module.attribute != 'smd':return ()
 
         self.pads_bounds = module.padsBounds()
@@ -29,11 +30,12 @@ class Rule6_4(KLCRule):
 
         return False
 
-    def fix(self, module):
+    def fix(self):
         """
         Proceeds the fixing of the rule, if possible.
         """
-        if self.check(module):
+        module = self.module
+        if self.check():
             x = self.pads_bounds['lower']['x'] + (self.pads_distance['x'] / 2)
             y = self.pads_bounds['lower']['y'] + (self.pads_distance['y'] / 2)
             module.setAnchor((x, y))

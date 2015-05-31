@@ -1,18 +1,19 @@
 # -*- coding: utf-8 -*-
 
-from rule import *
+from rules.rule import *
 
-class Rule10_6(KLCRule):
+class Rule(KLCRule):
     """
     Create the methods check and fix to use with the kicad_mod files.
     """
     def __init__(self, module):
-        super(Rule10_6, self).__init__('Rule 10.6', 'All other properties are left to default values. (Move and Place: Free; Auto Place: 0 and 0,  Local Clearance Values: 0)')
+        super(Rule, self).__init__(module, 'Rule 10.6', 'All other properties are left to default values. (Move and Place: Free; Auto Place: 0 and 0,  Local Clearance Values: 0)')
 
-    def check(self, module):
+    def check(self):
         """
         Proceeds the checking of the rule.
         """
+        module = self.module
         if (module.locked or
             module.autoplace_cost90 != 0 or
             module.autoplace_cost180 != 0 or
@@ -24,11 +25,12 @@ class Rule10_6(KLCRule):
 
         return False
 
-    def fix(self, module):
+    def fix(self):
         """
         Proceeds the fixing of the rule, if possible.
         """
-        if self.check(module):
+        module = self.module
+        if self.check():
             module.locked = False
             module.autoplace_cost90 = 0
             module.autoplace_cost180 = 0

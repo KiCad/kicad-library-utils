@@ -1,18 +1,19 @@
 # -*- coding: utf-8 -*-
 
-from rule import *
+from rules.rule import *
 
-class Rule6_9(KLCRule):
+class Rule(KLCRule):
     """
     Create the methods check and fix to use with the kicad_mod files.
     """
     def __init__(self, module):
-        super(Rule6_9, self).__init__('Rule 6.9', 'Value and reference have a height of 1mm.')
+        super(Rule, self).__init__(module, 'Rule 6.9', 'Value and reference have a height of 1mm.')
 
-    def check(self, module):
+    def check(self):
         """
         Proceeds the checking of the rule.
         """
+        module = self.module
         if (module.reference['font']['height'] != 1 or module.value['font']['height'] != 1 or
             module.reference['font']['width'] != 1 or module.value['font']['width'] != 1 or
             module.reference['font']['thickness'] != 0.15 or module.value['font']['thickness'] != 0.15):
@@ -20,11 +21,12 @@ class Rule6_9(KLCRule):
 
         return False
 
-    def fix(self, module):
+    def fix(self):
         """
         Proceeds the fixing of the rule, if possible.
         """
-        if self.check(module):
+        module = self.module
+        if self.check():
             module.reference['font']['height'] = 1
             module.reference['font']['width'] = 1
             module.reference['font']['thickness'] = 0.15

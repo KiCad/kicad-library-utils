@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 
-from rule import *
+from rules.rule import *
 import os
 
-class Rule10_7(KLCRule):
+class Rule(KLCRule):
     """
     Create the methods check and fix to use with the kicad_mod files.
     """
     def __init__(self, module):
-        super(Rule10_7, self).__init__('Rule 10.7', '3D Shape ".wrl" files are named the same as their footprint and are placed in a folder named the same as the footprint library replacing the ".pretty" with ".3dshapes".')
+        super(Rule, self).__init__(module, 'Rule 10.7', '3D Shape ".wrl" files are named the same as their footprint and are placed in a folder named the same as the footprint library replacing the ".pretty" with ".3dshapes".')
 
-    def check(self, module):
+    def check(self):
         """
         Proceeds the checking of the rule.
         The following variables will be accessible after checking:
@@ -18,6 +18,7 @@ class Rule10_7(KLCRule):
             * model_dir
             * model_file
         """
+        module = self.module
         module_dir = os.path.split(os.path.dirname(module.filename))[-1]
         self.module_dir = os.path.splitext(module_dir)
 
@@ -39,11 +40,12 @@ class Rule10_7(KLCRule):
 
         return True
 
-    def fix(self, module):
+    def fix(self):
         """
         Proceeds the fixing of the rule, if possible.
         """
-        if self.check(module):
+        module = self.module
+        if self.check():
             if len(module.models) == 1:
                 path = os.path.join(self.module_dir[0] + '.3dshapes', module.name + '.wrl')
                 module.models[0]['file'] = path

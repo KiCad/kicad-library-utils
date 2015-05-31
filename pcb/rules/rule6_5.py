@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 
-from rule import *
+from rules.rule import *
 
-class Rule6_5(KLCRule):
+class Rule(KLCRule):
     """
     Create the methods check and fix to use with the kicad_mod files.
     """
     def __init__(self, module):
-        super(Rule6_5, self).__init__('Rule 6.5', 'Silkscreen is not superposed to pads, its outline is completely visible after board assembly, uses 0.15mm line width and provides a reference mark for pin 1. (IPC-7351).')
+        super(Rule, self).__init__(module, 'Rule 6.5', 'Silkscreen is not superposed to pads, its outline is completely visible after board assembly, uses 0.15mm line width and provides a reference mark for pin 1. (IPC-7351).')
 
-    def check(self, module):
+    def check(self):
         """
         Proceeds the checking of the rule.
         The following variables will be accessible after checking:
@@ -17,6 +17,7 @@ class Rule6_5(KLCRule):
             * b_silk
             * bad_width
         """
+        module = self.module
         self.f_silk = module.filterGraphs('F.SilkS')
         self.b_silk = module.filterGraphs('B.SilkS')
 
@@ -28,10 +29,11 @@ class Rule6_5(KLCRule):
 
         return True if len(self.bad_width) else False
 
-    def fix(self, module):
+    def fix(self):
         """
         Proceeds the fixing of the rule, if possible.
         """
-        if self.check(module):
+        module = self.module
+        if self.check():
             for graph in self.bad_width:
                 graph['width'] = 0.15

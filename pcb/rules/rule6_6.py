@@ -3,16 +3,16 @@
 # math and comments from Michal script
 # https://github.com/michal777/KiCad_Lib_Check
 
-from rule import *
+from rules.rule import *
 
-class Rule6_6(KLCRule):
+class Rule(KLCRule):
     """
     Create the methods check and fix to use with the kicad_mod files.
     """
     def __init__(self, module):
-        super(Rule6_6, self).__init__('Rule 6.6', 'Courtyard line has a width 0.05mm. This line is placed so that its clearance is measured from its center to the edges of pads and body, and its position is rounded on a grid of 0.05mm.')
+        super(Rule, self).__init__(module, 'Rule 6.6', 'Courtyard line has a width 0.05mm. This line is placed so that its clearance is measured from its center to the edges of pads and body, and its position is rounded on a grid of 0.05mm.')
 
-    def check(self, module):
+    def check(self):
         """
         Proceeds the checking of the rule.
         The following variables will be accessible after checking:
@@ -23,6 +23,7 @@ class Rule6_6(KLCRule):
             * bad_width
             * bad_grid
         """
+        module = self.module
         self.f_courtyard_all = module.filterGraphs('F.CrtYd')
         self.b_courtyard_all = module.filterGraphs('B.CrtYd')
 
@@ -62,11 +63,12 @@ class Rule6_6(KLCRule):
         else:
             return False
 
-    def fix(self, module):
+    def fix(self):
         """
         Proceeds the fixing of the rule, if possible.
         """
-        if self.check(module):
+        module = self.module
+        if self.check():
             for graph in self.bad_width:
                 graph['width'] = 0.15
 

@@ -4,7 +4,8 @@ class KLCRule(object):
     """
     A base class to represent a KLC rule
     """
-    def __init__(self, name, description):
+    def __init__(self, module, name, description):
+        self.module = module
         self.name = name
         self.description = description
 

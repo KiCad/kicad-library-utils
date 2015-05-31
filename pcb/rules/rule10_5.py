@@ -1,21 +1,22 @@
 # -*- coding: utf-8 -*-
 
-from rule import *
+from rules.rule import *
 
-class Rule10_5(KLCRule):
+class Rule(KLCRule):
     """
     Create the methods check and fix to use with the kicad_mod files.
     """
     def __init__(self, module):
-        super(Rule10_5, self).__init__('Rule 10.5', 'Attributes is set to the appropriate value, see tooltip for more information.')
+        super(Rule, self).__init__(module, 'Rule 10.5', 'Attributes is set to the appropriate value, see tooltip for more information.')
 
-    def check(self, module):
+    def check(self):
         """
         Proceeds the checking of the rule.
         The following variables will be accessible after checking:
             * pth_count
             * smd_count
         """
+        module = self.module
         self.pth_count = len(module.filterPads('thru_hole'))
         self.smd_count = len(module.filterPads('smd'))
 
@@ -25,11 +26,12 @@ class Rule10_5(KLCRule):
 
         return False
 
-    def fix(self, module):
+    def fix(self):
         """
         Proceeds the fixing of the rule, if possible.
         """
-        if self.check(module):
+        module = self.module
+        if self.check():
             if self.pth_count > self.smd_count:
                 module.attribute = 'pth'
             elif self.smd_count > self.pth_count:

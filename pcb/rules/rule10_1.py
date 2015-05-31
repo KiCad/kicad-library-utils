@@ -1,24 +1,26 @@
 # -*- coding: utf-8 -*-
 
-from rule import *
+from rules.rule import *
 import os
 
-class Rule10_1(KLCRule):
+class Rule(KLCRule):
     """
     Create the methods check and fix to use with the kicad_mod files.
     """
     def __init__(self, module):
-        super(Rule10_1, self).__init__('Rule 10.1', 'Footprint name must match its filename. (.kicad_mod files).')
+        super(Rule, self).__init__(module, 'Rule 10.1', 'Footprint name must match its filename. (.kicad_mod files).')
 
-    def check(self, module):
+    def check(self):
         """
         Proceeds the checking of the rule.
         """
+        module = self.module
         return os.path.splitext(os.path.basename(module.filename))[0] != module.name
 
-    def fix(self, module):
+    def fix(self):
         """
         Proceeds the fixing of the rule, if possible.
         """
-        if self.check(module):
+        module = self.module
+        if self.check():
             module.name = os.path.splitext(os.path.basename(module.filename))[0]
