@@ -29,6 +29,6 @@ for filename in args.kicad_mod_files:
     for rule in all_rules:
         rule = rule(module)
         if rule.check():
-            printer.yellow(rule.name)
+            printer.yellow(rule.name, indentation=2)
             if args.verbose:
-                printer.light_blue(rule.description)
+                printer.light_blue(rule.description, indentation=4, max_width=100)
