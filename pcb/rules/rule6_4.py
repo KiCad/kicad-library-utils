@@ -15,6 +15,7 @@ class Rule(KLCRule):
         The following variables will be accessible after checking:
             * pads_bounds
             * pads_distance
+            * right_anchor
         """
         module = self.module
         if module.attribute != 'smd':return ()
@@ -22,8 +23,11 @@ class Rule(KLCRule):
         self.pads_bounds = module.padsBounds()
         x = (self.pads_bounds['higher']['x'] - self.pads_bounds['lower']['x'])
         y = (self.pads_bounds['higher']['y'] - self.pads_bounds['lower']['y'])
-
         self.pads_distance = {'x':x, 'y':y}
+
+        x = self.pads_bounds['lower']['x'] + (self.pads_distance['x'] / 2)
+        y = self.pads_bounds['lower']['y'] + (self.pads_distance['y'] / 2)
+        self.right_anchor = {'x':x, 'y':y}
 
         if not (x == 0.0 and y == 0.0):
             return True
@@ -36,6 +40,4 @@ class Rule(KLCRule):
         """
         module = self.module
         if self.check():
-            x = self.pads_bounds['lower']['x'] + (self.pads_distance['x'] / 2)
-            y = self.pads_bounds['lower']['y'] + (self.pads_distance['y'] / 2)
-            module.setAnchor((x, y))
+            module.setAnchor((self.right_anchor['x'], self.right_anchor['y']))
