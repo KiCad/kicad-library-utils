@@ -24,11 +24,25 @@ for f in dir():
 
 for filename in args.kicad_mod_files:
     module = KicadMod(filename)
-    printer.green('module: %s' % module.name)
+    printer.green('checking module: %s' % module.name)
 
+    n_violations = 0
     for rule in all_rules:
         rule = rule(module)
         if rule.check():
-            printer.yellow(rule.name, indentation=2)
+            n_violations += 1
+            printer.yellow('Violating ' +  rule.name, indentation=2)
             if args.verbose:
                 printer.light_blue(rule.description, indentation=4, max_width=100)
+
+                # example of customized printing feedback by checking the rule name
+                # and a specific variable of the rule
+                if rule.name == 'Rule 6.6' and len(rule.f_courtyard_all) == 0:
+                    printer.red('No courtyard line found in the module', indentation=4)
+        if args.fix:
+            rule.fix()
+
+    if n_violations == 0:
+        printer.light_green('No violations found', indentation=2)
+    elif args.fix:
+        module.save()
