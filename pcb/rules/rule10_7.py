@@ -19,7 +19,7 @@ class Rule(KLCRule):
             * model_file
         """
         module = self.module
-        module_dir = os.path.split(os.path.dirname(module.filename))[-1]
+        module_dir = os.path.split(os.path.dirname(os.path.realpath(module.filename)))[-1]
         self.module_dir = os.path.splitext(module_dir)
 
         if len(module.models) == 0:
