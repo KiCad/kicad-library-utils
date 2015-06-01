@@ -14,7 +14,7 @@ class Rule(KLCRule):
         Proceeds the checking of the rule.
         """
         module = self.module
-        return True if module.tags.count(',') > 0 else False
+        return True if module.tags and module.tags.count(',') > 0 else False
 
     def fix(self):
         """
