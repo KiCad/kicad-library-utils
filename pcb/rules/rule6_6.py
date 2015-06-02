@@ -74,11 +74,11 @@ class Rule(KLCRule):
 
             for item in self.bad_grid:
                 x, y = item['nanometers']['start']['x'], item['nanometers']['start']['y']
-                x, y = int(x / 0.05E6) * 0.05, int(y / 0.05E6) * 0.05
+                x, y = round(x / 0.05E6) * 0.05, round(y / 0.05E6) * 0.05
                 item['line']['start']['x'], item['line']['start']['y'] = x, y
 
                 x, y = item['nanometers']['end']['x'], item['nanometers']['end']['y']
-                x, y = int(x / 0.05E6) * 0.05, int(y / 0.05E6) * 0.05
+                x, y = round(x / 0.05E6) * 0.05, round(y / 0.05E6) * 0.05
                 item['line']['end']['x'], item['line']['end']['y'] = x, y
 
             # TODO: create courtyard if does not exists
