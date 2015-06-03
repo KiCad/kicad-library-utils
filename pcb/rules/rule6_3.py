@@ -27,8 +27,8 @@ class Rule(KLCRule):
             for pad in pads:
                 self.pin1_position.append((pad['pos']['x'], pad['pos']['y']))
 
-            # check if there is more than one pin numbered as 1
-            if self.pin1_count > 1:
+            # check how many pin 1 was found
+            if self.pin1_count != 1:
                 return True
 
             # if reach here there is only one pin 1
