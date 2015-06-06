@@ -55,19 +55,32 @@ def build_sexp(exp):
             out += '%s' % exp
     return out
 
-def format_sexp(sexp):
-    n = 0
+def format_sexp(sexp, indentation_size=2):
     out = ''
-    for c in sexp:
-        if c == '(':
-            if n: out += '\n' + '  '*n
+    n = 0
+    for termtypes in re.finditer(term_regex, sexp):
+        indentation = ''
+        term, value = [(t,v) for t,v in termtypes.groupdict().items() if v][0]
+        if term == 'brackl':
+            if out:
+                if out[-1] == ' ': out = out[:-1]
+                indentation = '\n' + (' ' * indentation_size * n)
             n += 1
-        elif c == ')':
+        elif term == 'brackr':
+            if out and out[-1] == ' ': out = out[:-1]
             n -= 1
+        elif term == 'num':
+            value += ' '
+        elif term == 'sq':
+            value += ' '
+        elif term == 's':
+            value += ' '
+        else:
+            raise NotImplementedError("Error: %r" % (term, value))
 
-        out += c
+        out += indentation + value
 
-    return '\n'.join(out.split(' \n'))
+    return out
 
 if __name__ == '__main__':
     sexp = ''' ( ( data "quoted data" 123 4.5)
