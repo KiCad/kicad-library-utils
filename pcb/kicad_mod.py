@@ -662,7 +662,7 @@ class KicadMod(object):
 
         # convert array data to s-expression and save in the disc
         output = sexpr.build_sexp(self.sexpr_data)
-        output = sexpr.format_sexp(output)
+        output = sexpr.format_sexp(output, max_nesting=1)
         f = open(filename, 'w')
         f.write(output)
         f.close()

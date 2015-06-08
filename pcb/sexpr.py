@@ -55,7 +55,7 @@ def build_sexp(exp):
             out += '%s' % exp
     return out
 
-def format_sexp(sexp, indentation_size=2):
+def format_sexp(sexp, indentation_size=2, max_nesting=2):
     out = ''
     n = 0
     for termtypes in re.finditer(term_regex, sexp):
@@ -63,8 +63,11 @@ def format_sexp(sexp, indentation_size=2):
         term, value = [(t,v) for t,v in termtypes.groupdict().items() if v][0]
         if term == 'brackl':
             if out:
-                if out[-1] == ' ': out = out[:-1]
-                indentation = '\n' + (' ' * indentation_size * n)
+                if n <= max_nesting:
+                    if out[-1] == ' ': out = out[:-1]
+                    indentation = '\n' + (' ' * indentation_size * n)
+                else:
+                    if out[-1] == ')': out += ' '
             n += 1
         elif term == 'brackr':
             if out and out[-1] == ' ': out = out[:-1]
