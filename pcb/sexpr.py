@@ -83,6 +83,7 @@ def format_sexp(sexp, indentation_size=2, max_nesting=2):
 
         out += indentation + value
 
+    out += '\n'
     return out
 
 if __name__ == '__main__':
