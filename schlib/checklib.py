@@ -1,22 +1,29 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from schlib import *
-import checkrule3_1, checkrule3_2, checkrule3_6
-from print_color import *
 import argparse
+from schlib import *
+from print_color import *
+from rules import *
 
 parser = argparse.ArgumentParser(description='Execute checkrule scripts checking 3.* KLC rules in the libraries')
 parser.add_argument('libfiles', nargs='+')
 parser.add_argument('-c', '--component', help='check only a specific component (implicitly verbose)', action='store')
+parser.add_argument('--fix', help='fix the violations if possible', action='store_true')
 parser.add_argument('--nocolor', help='does not use colors to show the output', action='store_true')
-parser.add_argument('-v', '--verbose', help='show status of all components and extra information about the violation', action='store_true')
+parser.add_argument('-v', '--verbose', help='show status of all components and extra information about the violation', action='count')
 args = parser.parse_args()
 
 printer = PrintColor(use_color = not args.nocolor)
 
 # force to be verbose if is looking for a specific component
-if args.component: args.verbose = True
+if not args.verbose and args.component: args.verbose = 1
+
+# get all rules
+all_rules = []
+for f in dir():
+    if f.startswith('rule'):
+        all_rules.append(globals()[f].Rule)
 
 for libfile in args.libfiles:
     lib = SchLib(libfile)
@@ -27,53 +34,35 @@ for libfile in args.libfiles:
         if args.component and args.component != component.name: continue
         n_components += 1
 
-        # perform the checks
-        check3_1 = checkrule3_1.check_rule(component)
-        check3_2 = checkrule3_2.check_rule(component)
-        check3_6 = checkrule3_6.check_rule(component)
+        printer.green('checking component: %s' % component.name)
 
-        # print the bad news
-        if check3_1 or check3_2 or check3_6.count([]) < 3:
-            printer.green('component: %s' % component.name)
-
-            if check3_1:
-                printer.yellow('\tViolations of rule 3.1')
+        n_violations = 0
+        for rule in all_rules:
+            rule = rule(component)
+            if rule.check():
+                n_violations += 1
+                printer.yellow('Violating ' +  rule.name, indentation=2)
                 if args.verbose:
-                    printer.light_blue('\tUsing a 100mils grid, pin ends and origin must lie on grid nodes (IEC-60617).')
+                    printer.light_blue(rule.description, indentation=4, max_width=100)
 
-                for pin in check3_1:
-                    printer.white('\t\tpin: %s (%s), posx %s, posy %s, length: %s' %
-                        (pin['name'], pin['num'], pin['posx'], pin['posy'], pin['length']))
+                    # example of customized printing feedback by checking the rule name
+                    # and a specific variable of the rule
+                    # note that the following text will only be printed when verbosity level is greater than 1
+                    if rule.name == 'Rule 3.1' and args.verbose > 1:
+                        for pin in rule.violating_pins:
+                            printer.red('pin: %s (%s), posx %s, posy %s' %
+                                       (pin['name'], pin['num'], pin['posx'], pin['posy']), indentation=4)
 
-            if check3_2:
-                printer.yellow('\tViolations of rule 3.2')
-                if args.verbose:
-                    printer.light_blue('''\tFor black-box symbols, pins have a length of 100mils. Large pin numbers can be\n\taccomodated by incrementing the width in steps of 50mil.''')
+                    if rule.name == 'Rule 3.2' and args.verbose > 1:
+                        for pin in rule.violating_pins:
+                            printer.red('pin: %s (%s), length %s' %
+                                       (pin['name'], pin['num'], pin['length']), indentation=4)
 
-                for pin in check3_2:
-                    printer.white('\t\tpin: %s (%s), dir: %s, length: %s' %
-                        (pin['name'], pin['num'], pin['direction'], pin['length']))
+            if args.fix:
+                rule.fix()
 
-            if check3_6.count([]) < 3:
-                printer.yellow('\tViolations of rule 3.6')
-                if args.verbose:
-                    printer.light_blue('\tField text uses a common size of 50mils.')
+        if n_violations == 0:
+            printer.light_green('No violations found', indentation=2)
 
-                for field in check3_6[0]:
-                    namekey = 'reference' if 'reference' in field else 'name'
-                    printer.white('\t\tfield: %s, text_size: %s' %
-                        (field[namekey], field['text_size']))
-                for text in check3_6[1]:
-                    printer.white('\t\ttext: %s, text_size: %s' %
-                         (text['text'], text['text_size']))
-                for pin in check3_6[2]:
-                    printer.white('\t\tpin: %s (%s), dir: %s, name_text_size: %s, num_text_size: %s' %
-                        (pin['name'], pin['num'], pin['direction'], pin['name_text_size'], pin['num_text_size']))
-
-        # print the good news
-        elif args.verbose:
-            printer.light_green('component: %s......OK' % component.name)
-
-    # no occurrences found
-    if args.component and n_components == 0:
-        printer.red('cannot find %s in the library %s' % (args.component, lib.filename))
+    if args.fix:
+        lib.save()
