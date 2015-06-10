@@ -3,6 +3,51 @@
 import sys, shlex
 import os.path
 
+class Documentation(object):
+    """
+    A class to parse documentation files (dcm) of Schematic Libraries Files Format of the KiCad
+    """
+    def __init__(self, filename):
+        self.components = {}
+
+        dir_path = os.path.dirname(os.path.realpath(filename))
+        filename = os.path.splitext(os.path.basename(filename))
+        filename = os.path.join(dir_path, filename[0] + '.dcm')
+
+        if not os.path.isfile(filename):
+            return
+
+        f = open(filename)
+        self.header = f.readline()
+
+        if self.header and not 'EESchema-DOCLIB' in self.header:
+            self.header = None
+            sys.stderr.write('The file is not a KiCad Documentation Library File\n')
+            return
+
+        name = None
+        description = None
+        keywords = None
+        datasheet = None
+        for line in f.readlines():
+            line = line.replace('\n', '')
+            if line.startswith('$CMP '):
+                name = line[5:]
+                description = None
+                keywords = None
+                datasheet = None
+            elif line.startswith('D '):
+                description = line[2:]
+            elif line.startswith('K '):
+                keywords = line[2:]
+            elif line.startswith('F '):
+                datasheet = line[2:]
+            elif line.startswith('$ENDCMP'):
+                self.components[name] = {
+                     'description':description,
+                     'keywords':keywords,
+                     'datasheet':datasheet}
+
 class Component(object):
     """
     A class to parse components of Schematic Libraries Files Format of the KiCad
@@ -24,7 +69,7 @@ class Component(object):
     _KEYS = {'DEF':_DEF_KEYS, 'F0':_F0_KEYS, 'F1':_FN_KEYS, 'F2':_FN_KEYS, 'F3':_FN_KEYS, 'F4':_FN_KEYS,
              'A':_ARC_KEYS, 'C':_CIRCLE_KEYS, 'P':_POLY_KEYS, 'S':_RECT_KEYS, 'T':_TEXT_KEYS, 'X':_PIN_KEYS}
 
-    def __init__(self, data, comments):
+    def __init__(self, data, comments, documentation):
         self.comments = comments
         self.fplist = []
         self.aliases = []
@@ -106,6 +151,12 @@ class Component(object):
         self.reference = self.definition['reference']
         self.pins = self.draw['pins']
 
+        # get documentation
+        try:
+            self.documentation = documentation.components[self.name]
+        except KeyError:
+            self.documentation = {}
+
     def getPinsByName(self, name):
         pins = []
         for pin in self.pins:
@@ -132,6 +183,7 @@ class Component(object):
 
         return pins
 
+
 class SchLib(object):
     """
     A class to parse Schematic Libraries Files Format of the KiCad
@@ -146,6 +198,8 @@ class SchLib(object):
                 f = open(filename, 'w')
                 self.header = ['EESchema-LIBRARY Version 2.3\n', '#encoding utf-8\n']
                 return
+
+        documentation = Documentation(filename)
 
         f = open(filename)
         self.header = [f.readline()]
@@ -172,7 +226,7 @@ class SchLib(object):
                 component_data.append(line)
                 if line.startswith('ENDDEF'):
                     building_component = False
-                    self.components.append(Component(component_data, comments))
+                    self.components.append(Component(component_data, comments, documentation))
                     comments = []
 
     def getComponentByName(self, name):
