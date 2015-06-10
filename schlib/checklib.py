@@ -58,6 +58,10 @@ for libfile in args.libfiles:
                             printer.red('pin: %s (%s), length %s' %
                                        (pin['name'], pin['num'], pin['length']), indentation=4)
 
+                    if rule.name == 'Rule 3.8' and args.verbose:
+                        if rule.only_datasheet_missing:
+                            printer.brown('[warn] Please provide a datasheet link if it isn\'t a generic component', indentation=4)
+
             if args.fix:
                 rule.fix()
 

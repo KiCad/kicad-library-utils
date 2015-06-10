@@ -1,2 +1,2 @@
 
-__all__ = ["rule3_1", "rule3_2", "rule3_6"]
+__all__ = ["rule3_1", "rule3_2", "rule3_6", "rule3_8"]
