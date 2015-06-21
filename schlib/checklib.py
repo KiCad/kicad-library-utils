@@ -11,6 +11,7 @@ parser.add_argument('libfiles', nargs='+')
 parser.add_argument('-c', '--component', help='check only a specific component (implicitly verbose)', action='store')
 parser.add_argument('--fix', help='fix the violations if possible', action='store_true')
 parser.add_argument('--nocolor', help='does not use colors to show the output', action='store_true')
+parser.add_argument('--enable-extra', help='enable extra checking', action='store_true')
 parser.add_argument('-v', '--verbose', help='show status of all components and extra information about the violation', action='count')
 args = parser.parse_args()
 
@@ -25,6 +26,12 @@ for f in dir():
     if f.startswith('rule'):
         all_rules.append(globals()[f].Rule)
 
+# gel all extra checking
+all_ec = []
+for f in dir():
+    if f.startswith('EC'):
+        all_ec.append(globals()[f].Rule)
+
 for libfile in args.libfiles:
     lib = SchLib(libfile)
     n_components = 0
@@ -36,6 +43,7 @@ for libfile in args.libfiles:
 
         printer.green('checking component: %s' % component.name)
 
+        # check the rules
         n_violations = 0
         for rule in all_rules:
             rule = rule(component)
@@ -65,6 +73,18 @@ for libfile in args.libfiles:
             if args.fix:
                 rule.fix()
 
+        # extra checking
+        if args.enable_extra:
+            for ec in all_ec:
+                ec = ec(component)
+                if ec.check():
+                    n_violations += 1
+                    printer.yellow('Violating ' +  ec.name, indentation=2)
+
+                if args.fix:
+                    ec.fix()
+
+        # check the number of violations
         if n_violations == 0:
             printer.light_green('No violations found', indentation=2)
 
