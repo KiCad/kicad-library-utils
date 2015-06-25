@@ -13,6 +13,7 @@ class Documentation(object):
         dir_path = os.path.dirname(os.path.realpath(filename))
         filename = os.path.splitext(os.path.basename(filename))
         filename = os.path.join(dir_path, filename[0] + '.dcm')
+        self.filename = filename
 
         if not os.path.isfile(filename):
             return
@@ -29,7 +30,8 @@ class Documentation(object):
         description = None
         keywords = None
         datasheet = None
-        for line in f.readlines():
+        f.seek(0)
+        for i, line in enumerate(f.readlines()):
             line = line.replace('\n', '')
             if line.startswith('$CMP '):
                 name = line[5:]
@@ -46,7 +48,9 @@ class Documentation(object):
                 self.components[name] = {
                      'description':description,
                      'keywords':keywords,
-                     'datasheet':datasheet}
+                     'datasheet':datasheet,
+                     'lines_range':{'start':i-5, 'end':i}}
+
 
 class Component(object):
     """
@@ -193,13 +197,14 @@ class SchLib(object):
         self.header = []
         self.components = []
 
+        documentation = Documentation(filename)
+        self.documentation_filename = documentation.filename
+
         if create:
             if not os.path.isfile(filename):
                 f = open(filename, 'w')
                 self.header = ['EESchema-LIBRARY Version 2.3\n', '#encoding utf-8\n']
                 return
-
-        documentation = Documentation(filename)
 
         f = open(filename)
         self.header = [f.readline()]
