@@ -20,8 +20,7 @@ class Rule(KLCRule):
         self.violating_fields = []
         for field in self.component.fields:
             text_size = int(field['text_size'])
-            namekey = 'reference' if 'reference' in field else 'name'
-            if (text_size != 50) and (field[namekey] != '""'):
+            if (text_size != 50):
                 self.violating_fields.append(field)
 
         self.violating_texts = []
