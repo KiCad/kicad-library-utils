@@ -81,6 +81,9 @@ for libfile in args.libfiles:
                     n_violations += 1
                     printer.yellow('Violating ' +  ec.name, indentation=2)
 
+                    if args.verbose:
+                        printer.light_blue(ec.description, indentation=4, max_width=100)
+
                 if args.fix:
                     ec.fix()
 
