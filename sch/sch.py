@@ -77,7 +77,6 @@ class Component(object):
 class Sheet(object):
     """
     A class to parse sheets of Schematic Files Format of the KiCad
-    TODO: Need to be done, currently just stores the raw data read from file
     """
     _S_KEYS = ['topLeftPosx', 'topLeftPosy','botRightPosx', 'botRightPosy']
     _U_KEYS = ['uniqID']
