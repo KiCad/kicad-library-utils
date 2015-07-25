@@ -79,8 +79,34 @@ class Sheet(object):
     A class to parse sheets of Schematic Files Format of the KiCad
     TODO: Need to be done, currently just stores the raw data read from file
     """
+    _S_KEYS = ['topLeftPosx', 'topLeftPosy','botRightPosx', 'botRightPosy']
+    _U_KEYS = ['uniqID']
+    _F_KEYS = ['id', 'value', 'IOState', 'side', 'posx', 'posy', 'size']
+
+    _KEYS = {'S':_S_KEYS, 'U':_U_KEYS, 'F':_F_KEYS}
     def __init__(self, data):
-        self.raw_data = data
+        self.shape = {}
+        self.unit = {}
+        self.fields = []
+        for line in data:
+            line = line.replace('\n', '')
+            s = shlex.shlex(line)
+            s.whitespace_split = True
+            s.commenters = ''
+            s.quotes = '"'
+            line = list(s)
+            # select the keys list and default values array
+            if line[0] in self._KEYS:
+                key_list = self._KEYS[line[0]]
+                values = line[1:] + ['' for n in range(len(key_list) - len(line[1:]))]
+            if line[0] == 'S':
+                self.shape = dict(zip(key_list,values))
+            elif line[0] == 'U':
+                self.unit = dict(zip(key_list,values))
+            elif line[0][0] == 'F':
+                key_list = self._F_KEYS
+                values = line + ['' for n in range(len(key_list) - len(line))]
+                self.fields.append(dict(zip(key_list,values)))
 
 class Bitmap(object):
     """
@@ -185,7 +211,24 @@ class Schematic(object):
 
         # Sheets
         for sheet in self.sheets:
-            to_write += sheet.raw_data
+            to_write += ['$Sheet\n']
+            if sheet.shape:
+                line = 'S '
+                for key in sheet._S_KEYS:
+                    line+= sheet.shape[key] + ' '
+                to_write += [line.rstrip() + '\n']
+            if sheet.unit:
+                line = 'U '
+                for key in sheet._U_KEYS:
+                    line += sheet.unit[key] + ' '
+                to_write += [line.rstrip() + '\n']
+
+            for field in sheet.fields:
+                line = ''
+                for key in sheet._F_KEYS:
+                    line += field[key] + ' '
+                to_write += [line.rstrip() + '\n']
+            to_write += ['$EndSheet\n']
 
         # Components
         for component in self.components:
