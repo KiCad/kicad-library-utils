@@ -59,7 +59,7 @@ class Component(object):
 
     _DEF_KEYS = ['name','reference','unused','text_offset','draw_pinnumber','draw_pinname','unit_count','units_locked','option_flag']
     _F0_KEYS = ['reference','posx','posy','text_size','text_orient','visibility','htext_justify','vtext_justify']
-    _FN_KEYS = ['name','posx','posy','text_size','text_orient','visibility','htext_justify','vtext_justify']
+    _FN_KEYS = ['name','posx','posy','text_size','text_orient','visibility','htext_justify','vtext_justify','fieldname']
     _ARC_KEYS = ['posx','posy','radius','start_angle','end_angle','unit','convert','thickness','fill','startx','starty','endx','endy']
     _CIRCLE_KEYS = ['posx','posy','radius','unit','convert','thickness','fill']
     _POLY_KEYS = ['point_count','unit','convert','thickness','points','fill']
@@ -70,9 +70,8 @@ class Component(object):
     _DRAW_KEYS = {'arcs':_ARC_KEYS, 'circles':_CIRCLE_KEYS, 'polylines':_POLY_KEYS, 'rectangles':_RECT_KEYS, 'texts':_TEXT_KEYS, 'pins':_PIN_KEYS}
     _DRAW_ELEMS = {'arcs':'A', 'circles':'C', 'polylines':'P', 'rectangles':'S', 'texts':'T', 'pins':'X'}
 
-    _KEYS = {'DEF':_DEF_KEYS, 'F0':_F0_KEYS, 'F1':_FN_KEYS, 'F2':_FN_KEYS, 'F3':_FN_KEYS, 'F4':_FN_KEYS,
+    _KEYS = {'DEF':_DEF_KEYS, 'F0':_F0_KEYS, 'F':_FN_KEYS,
              'A':_ARC_KEYS, 'C':_CIRCLE_KEYS, 'P':_POLY_KEYS, 'S':_RECT_KEYS, 'T':_TEXT_KEYS, 'X':_PIN_KEYS}
-
     def __init__(self, data, comments, documentation):
         self.comments = comments
         self.fplist = []
@@ -99,6 +98,7 @@ class Component(object):
                 self.fields.append(dict(zip(self._F0_KEYS,values)))
 
             elif line[0][0] == 'F':
+                values = line[1:] + ['' for n in range(len(self._FN_KEYS) - len(line[1:]))]
                 self.fields.append(dict(zip(self._FN_KEYS,values)))
 
             elif line[0] == 'ALIAS':
