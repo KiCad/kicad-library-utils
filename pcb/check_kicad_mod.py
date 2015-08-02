@@ -46,3 +46,6 @@ for filename in args.kicad_mod_files:
         printer.light_green('No violations found', indentation=2)
     elif args.fix:
         module.save()
+
+if args.fix:
+    printer.light_red('Please, resave the files using KiCad to keep indentation standard.')
