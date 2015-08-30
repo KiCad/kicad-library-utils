@@ -19,6 +19,7 @@ class Rule(KLCRule):
             * recommended_name_alignment
             * recommended_fp_pos
             * recommended_fp_alignment
+            * fp_is_missing
         """
 
         # check if component has just one rectangle
@@ -82,10 +83,15 @@ class Rule(KLCRule):
 
         # get the current footprint infos and compare them to recommended ones
         fp_need_fix = False
-        pos = (int(self.component.fields[2]['posx']), int(self.component.fields[2]['posy']))
-        if (pos != self.recommended_fp_pos or
-            self.component.fields[2]['htext_justify'] != self.recommended_fp_alignment):
+        self.fp_is_missing = False
+        if len(self.component.fields) >= 3:
+            pos = (int(self.component.fields[2]['posx']), int(self.component.fields[2]['posy']))
+            if (pos != self.recommended_fp_pos or
+                self.component.fields[2]['htext_justify'] != self.recommended_fp_alignment):
+                fp_need_fix = True
+        else:
             fp_need_fix = True
+            self.fp_is_missing = True
 
         return True if (ref_need_fix or name_need_fix or fp_need_fix) else False
 
@@ -102,6 +108,7 @@ class Rule(KLCRule):
             self.component.fields[1]['posy'] = str(self.recommended_name_pos[1])
             self.component.fields[1]['htext_justify'] = self.recommended_name_alignment
 
-            self.component.fields[2]['posx'] = str(self.recommended_fp_pos[0])
-            self.component.fields[2]['posy'] = str(self.recommended_fp_pos[1])
-            self.component.fields[2]['htext_justify'] = self.recommended_fp_alignment
+            if not self.fp_is_missing:
+                self.component.fields[2]['posx'] = str(self.recommended_fp_pos[0])
+                self.component.fields[2]['posy'] = str(self.recommended_fp_pos[1])
+                self.component.fields[2]['htext_justify'] = self.recommended_fp_alignment

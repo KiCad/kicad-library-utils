@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 
 from rules.rule import *
+import re
 
 class Rule(KLCRule):
     """
     Create the methods check and fix to use with the kicad lib files.
     """
     def __init__(self, component):
-        super(Rule, self).__init__(component, 'EC01 - Extra Checking', 'Check if pins named *GND*, *VCC* or *VDD* have power input pin type.')
+        super(Rule, self).__init__(component, 'EC01 - Extra Checking',
+                                   'Check pins names against pin types.')
 
     def check(self):
         """
@@ -22,6 +24,12 @@ class Rule(KLCRule):
                 'VDD' in pin['name'].upper()):
                 if pin['electrical_type'] != 'W':
                     self.probably_wrong_pin_types.append(pin)
+
+            # check if name contains overlining
+            m = re.search('(\~)(.*)(\~)', pin['name'])
+            if m and pin['pin_type'] == 'I':
+                self.probably_wrong_pin_types.append(pin)
+
         return False if len(self.probably_wrong_pin_types) == 0 else True
 
     def fix(self):

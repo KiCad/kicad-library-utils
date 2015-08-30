@@ -68,7 +68,8 @@ for libfile in args.libfiles:
 
                     if rule.name == 'Rule 3.8' and args.verbose:
                         if rule.only_datasheet_missing:
-                            printer.brown('[warn] Please provide a datasheet link if it isn\'t a generic component', indentation=4)
+                            printer.brown("[warn] Please provide a datasheet link if it isn't a generic component",
+                                          indentation=4)
 
             if args.fix:
                 rule.fix()
@@ -83,6 +84,16 @@ for libfile in args.libfiles:
 
                     if args.verbose:
                         printer.light_blue(ec.description, indentation=4, max_width=100)
+
+                        if ec.name == 'EC01 - Extra Checking':
+                            for pin in ec.probably_wrong_pin_types:
+                                printer.red('pin %s (%s): %s' %
+                                        (pin['name'], pin['num'], pin['electrical_type']), indentation=4)
+
+                        if ec.name == 'EC03 - Extra Checking':
+                            if ec.fp_is_missing:
+                                printer.brown("[warn] Symbol doesn't have footprint field, please re-save it using KiCad",
+                                              indentation=4)
 
                 if args.fix:
                     ec.fix()
