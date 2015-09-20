@@ -9,7 +9,11 @@ SPECIAL_PIN_MAPPING = {"VSS/TH": ["VSS/TH"],
                        "PB2/BOOT1": ["PB2", "BOOT1"],
                        "PC14OSC32_IN": ["PC14"],
                        "PC15OSC32_OUT": ["PC15"], 
-                       "PF11BOOT0": ["PF11"]}
+                       "PF11BOOT0": ["PF11"],
+                       "OSC_IN": [""],
+                       "OSC_OUT": [""]}
+
+SPECIAL_TYPES_MAPPING = {"RCC_OSC_IN": "Clock", "RCC_OSC_OUT": "Clock"}
 
 def unique(items):
     found = set([])
@@ -31,10 +35,6 @@ class pin:
             if (len(splname2) > 1 and splname2[1] != ""):
                 realname = splname2[0]
             altf = []
-
-            #if (len(splname) > 1):
-            #    print(name + " -> " + realname + " " + str(altf))
-
         else:
             realname = SPECIAL_PIN_MAPPING[name][0]
             altf = SPECIAL_PIN_MAPPING[name][1:]
@@ -46,11 +46,17 @@ class pin:
         self.altfunctions = altf
         self.drawn = False  # Whether this pin has already been included in the component or not
 
-    def createPintext(self):
-        s = ""
-        for alt in self.altfunctions:
-            s += alt + "/"
-        s += self.name
+    def createPintext(self, left):
+        if (left):
+            if (self.name == ""):
+                s = "/".join(self.altfunctions)
+            else:
+                s = "/".join(self.altfunctions + [self.name])
+        else:
+            if (self.name == ""):
+                s = "/".join(self.altfunctions)
+            else:
+                s = "/".join([self.name] + self.altfunctions)
         self.pintext = s.replace(" ","")
 
 class device:
@@ -89,11 +95,11 @@ class device:
                 altfunction = signal.get("Name")
                 if(not altfunction == "GPIO"):   # No need to add GPIO as alt function
                     newpin.altfunctions.append(altfunction)
-            newpin.createPintext()  # Have the pins generate their text
+                if(altfunction in SPECIAL_TYPES_MAPPING):
+                    newpin.pintype = SPECIAL_TYPES_MAPPING[altfunction]
             self.pins.append(newpin)
         if(self.root.get("HasPowerPad") == "true"):    # Special case for the thermal pad
             powerpadpin = pin("Th", "VSS/TH", "Power")
-            powerpadpin.createPintext()
             self.pins.append(powerpadpin)
 
         
@@ -191,7 +197,10 @@ class device:
 
     def createComponent(self):
         # s contains the entire component in a single string
-        pinlength = 100
+        if (len(self.pins) < 100):
+            pinlength = 100
+        else:
+            pinlength = 200
 
         ports = {}
         portpins = {}
@@ -210,13 +219,28 @@ class device:
                     portcount += 1
                     portpins[port] = {} # Same as above
                 portpins[port][int(pin.name[2:])] = pin
-            elif(pin.pintype == "I/O" and len(pin.name) > 4):
-                maxleftstringlen = max(maxleftstringlen, len(pin.pintext))
-       
+
+        portkeys = sorted(list(ports.keys()))
+
+        leftportcount = 0
+        rightportcount = 0
+        leftpincount = 0
+        rightpincount = 0
+
+        for port in reversed(portkeys):
+            rightportcount += 1
+            rightpincount += ports[port]
+            if (rightpincount >= int((pincount + 16) / 2)):
+                break;
+
+        leftportcount = portcount - rightportcount
+        leftpincount = pincount - rightpincount
+
         maxstringlen = 0
         powerpins = {"VDD": {}, "VSS": {}}
         for pin in self.pins:
             if(pin.pintype == "Power"):
+                pin.createPintext(False)
                 maxstringlen = max(maxstringlen, len(pin.name))
                 if(pin.name.startswith("VDD")):
                     powerpins["VDD"][pin.pinnumber] = pin
@@ -224,15 +248,31 @@ class device:
                     powerpins["VSS"][pin.pinnumber] = pin
         
         padding = math.ceil(round(maxstringlen*50)/100)*100 + 100   # This will add padding on top of the horizontal pins for the vertical pins
-        boxheight = (pincount - 1) * 100 + (portcount - 1) * 100 + padding * 2  # height in mils 
+        porth = max(leftpincount + leftportcount + 16, rightpincount + rightportcount)
+        boxheight = porth * 100 + padding * 2  # height in mils 
         if((boxheight/2)%100 > 0):
             boxheight += 100
-        
-        maxstringlen = 0
-        for pin in self.pins:
-            maxstringlen = max(maxstringlen, len(pin.pintext))
 
-        boxwidth = maxstringlen * 48 + maxleftstringlen * 48
+        maxrightstringlen = 0
+        maxleftstringlen = 0
+
+        i = 0
+        for port in portkeys:
+            for pin in portpins[port]:
+                if (i >= leftportcount):
+                    portpins[port][pin].createPintext(True)
+                    maxrightstringlen = max(maxrightstringlen, len(portpins[port][pin].pintext))
+                else:
+                    portpins[port][pin].createPintext(False)
+                    maxleftstringlen = max(maxleftstringlen, len(portpins[port][pin].pintext))
+            i = i + 1
+
+        for pin in self.pins:
+            if(pin.pintype == "Clock"):
+                pin.createPintext(False)
+                maxleftstringlen = max(maxleftstringlen, len(pin.pintext))
+
+        boxwidth = maxrightstringlen * 48 + maxleftstringlen * 48
         boxwidth = math.floor(boxwidth/100)*100 # Round to 100
         if((boxwidth/2)%100 > 0):
             boxwidth += 100
@@ -248,17 +288,47 @@ class device:
         s += "F3 \"~\" 0 0 50 H V C CNN\r\n"
         s += "DRAW\r\n"
         # Start drawing rectangles and pins
-        # Start to iterate through ports alphabetically
+
+        # Draw right side ports in bottom-top order, starting from bottom
+        portcounter = 0
+        portposition = 0
         positioncounter = 0
-        portkeys = sorted(list(ports.keys()))
-        for port in portkeys:
+        rightportkeys =  portkeys[leftportcount:]
+        for port in rightportkeys:
             pinnumbers = sorted(list(portpins[port].keys()))
+            if (portcounter == 0):
+                portposition = len(pinnumbers)
+            elif (portcounter < leftportcount):
+                portposition += 17
+            else:
+                portposition += len(pinnumbers) + 1
+            positioncounter = 0
             for pinnumber in pinnumbers:
                 pin = portpins[port][pinnumber]
-                s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(boxwidth/2 + pinlength)) + " " + str(round(boxheight/2 - positioncounter*100 - padding)) + " " + str(pinlength) + " L 50 50 1 1 I\r\n"
+                s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(boxwidth/2 + pinlength)) + " " + str(round(-boxheight/2 + (portposition - positioncounter)*100 + padding)) + " " + str(pinlength) + " L 50 50 1 1 I\r\n"
                 positioncounter += 1
                 pin.drawn = True
-            positioncounter += 1    # Create gap between 2 ports
+            portcounter += 1
+
+        # Draw left side ports in top-button order, starting from bottom
+        portcounter = 0
+        portposition = 0
+        leftportkeys = reversed(portkeys[0:leftportcount])
+        for port in leftportkeys:
+            pinnumbers = sorted(list(portpins[port].keys()))
+            if (portcounter == 0):
+                portposition = len(pinnumbers)
+            elif (portcounter < rightportcount):
+                portposition += 17
+            else:
+                portposition += len(pinnumbers) + 1
+            positioncounter = 0
+            for pinnumber in pinnumbers:
+                pin = portpins[port][pinnumber]
+                s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(-boxwidth/2 - pinlength)) + " " + str(round(-boxheight/2 + (portposition - positioncounter)*100 + padding)) + " " + str(pinlength) + " R 50 50 1 1 I\r\n"
+                positioncounter += 1
+                pin.drawn = True
+            portcounter += 1
         
         # Draw VDD pins on top of component
         vddkeys = list(powerpins["VDD"].keys())
@@ -299,6 +369,7 @@ class device:
         # Draw Reset pin
         for pin in self.pins:
             if(pin.pintype == "Reset"):
+                pin.createPintext(False)
                 s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(-boxwidth/2 - pinlength)) + " " + str(round(boxheight/2) - leftpincounter * 100 - padding) + " " + str(pinlength) + " R 50 50 1 1 I\r\n"
                 pin.drawn = True
                 leftpincounter += 1
@@ -307,6 +378,7 @@ class device:
         # Draw boot pin
         for pin in self.pins:
             if(pin.pintype == "Boot"):
+                pin.createPintext(False)
                 s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(-boxwidth/2 - pinlength)) + " " + str(round(boxheight/2) - leftpincounter * 100 - padding) + " " + str(pinlength) + " R 50 50 1 1 I\r\n"
                 pin.drawn = True
                 leftpincounter += 1
@@ -315,9 +387,11 @@ class device:
         # Draw remaining power pins
         for pin in self.pins:
             if(pin.pintype == "Power" and pin.drawn == False):
+                pin.createPintext(False)
                 s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(-boxwidth/2 - pinlength)) + " " + str(round(boxheight/2) - leftpincounter * 100 - padding) + " " + str(pinlength) + " R 50 50 1 1 I\r\n"
                 pin.drawn = True
                 leftpincounter += 1
+        leftpincounter += 1
 
         # Remaining pins
         remainingpins = []
@@ -325,10 +399,10 @@ class device:
             if(not pin.drawn):
                 remainingpins.append(pin)
         
-        leftpincounter = 0
         remainingpins.sort(key = lambda x: x.name)
         for pin in remainingpins:
-            s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(-boxwidth/2 - pinlength)) + " " + str(round(-leftpincounter * 100)) + " " + str(pinlength) + " R 50 50 1 1 I\r\n"
+            pin.createPintext(False)
+            s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(-boxwidth/2 - pinlength)) + " " + str(round(boxheight/2) - leftpincounter * 100 - padding) + " " + str(pinlength) + " R 50 50 1 1 I\r\n"
             leftpincounter += 1
 
         s += "S -" + str(round(boxwidth/2)) + " -" + str(round(boxheight/2)) + " " + str(round(boxwidth/2)) + " " + str(round(boxheight/2)) + " 0 1 10 f\r\n"
