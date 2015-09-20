@@ -4,6 +4,13 @@ import sys,os,math
 from lxml import etree
 import re
 
+SPECIAL_PIN_MAPPING = {"VSS/TH": ["VSS/TH"],
+                       "PC13-ANTI_TAMP": ["PC13", "ANTI_TAMP"],
+                       "PB2/BOOT1": ["PB2", "BOOT1"],
+                       "PC14OSC32_IN": ["PC14"],
+                       "PC15OSC32_OUT": ["PC15"], 
+                       "PF11BOOT0": ["PF11"]}
+
 def unique(items):
     found = set([])
     keep = []
@@ -17,10 +24,26 @@ def unique(items):
 
 class pin:
     def __init__(self, pinnumber, name, pintype):
+        if not (name in SPECIAL_PIN_MAPPING):
+            splname = name.split("/");
+            realname = splname[0]
+            splname2 = splname[0].split("-")
+            if (len(splname2) > 1 and splname2[1] != ""):
+                realname = splname2[0]
+            altf = []
+
+            #if (len(splname) > 1):
+            #    print(name + " -> " + realname + " " + str(altf))
+
+        else:
+            realname = SPECIAL_PIN_MAPPING[name][0]
+            altf = SPECIAL_PIN_MAPPING[name][1:]
+
         self.pinnumber = pinnumber
-        self.name = name
+        self.name = realname
+        self.fullname = name
         self.pintype = pintype
-        self.altfunctions = []
+        self.altfunctions = altf
         self.drawn = False  # Whether this pin has already been included in the component or not
 
     def createPintext(self):
@@ -32,6 +55,7 @@ class pin:
 
 class device:
     def __init__(self, xmlfile, pdfdir):
+        print(xmlfile)
         self.xmlfile = xmlfile
         self.pdfdir = pdfdir
         self.name = ""
@@ -39,9 +63,9 @@ class device:
         self.pins = []
 
         self.readxml()
-        self.readpdf()
+        #self.readpdf()
         self.createComponent()
-        self.createDocu()
+        #self.createDocu()
 
     def readxml(self):
         self.tree = etree.parse(self.xmlfile)
@@ -89,7 +113,10 @@ class device:
         self.ram = self.root.xpath("a:Ram", namespaces=self.ns)[0].text
         self.io = self.root.xpath("a:IONb", namespaces=self.ns)[0].text
         self.flash = self.root.xpath("a:Flash", namespaces=self.ns)[0].text
-        self.voltage = [self.root.xpath("a:Voltage", namespaces=self.ns)[0].get("Min", default="--"), self.root.xpath("a:Voltage", namespaces=self.ns)[0].get("Max", default="--")]
+        try:
+            self.voltage = [self.root.xpath("a:Voltage", namespaces=self.ns)[0].get("Min", default="--"), self.root.xpath("a:Voltage", namespaces=self.ns)[0].get("Max", default="--")]
+        except:
+            self.voltage = ["--", "--"] # Some devices don't have a voltage specification also
 
     def readpdf(self):
         self.pdf = "NOSHEET"
@@ -173,7 +200,7 @@ class device:
         maxleftstringlen = 0
         # Count amount of different Ports and how many I/O pins they contain
         for pin in self.pins:
-            if(pin.pintype == "I/O" and len(pin.name) <= 4 and pin.name.startswith("P")):    # Avoid counting oscillator pins
+            if(pin.pintype == "I/O" and pin.name.startswith("P")):    # Avoid counting oscillator pins
                 pincount += 1
                 port = pin.name[1]
                 try:
@@ -254,7 +281,8 @@ class device:
         vssvalues = []
         for pin in list(powerpins["VSS"].values()):
             vssvalues.append(pin.name)
-        vssvalues, vsskeys = zip(*sorted(zip(vssvalues,vsskeys)))
+        if len(vsskeys) > 0: # Some packages (like UFQFPN32) has no dedicated VSS pins, only bottom pad
+            vssvalues, vsskeys = zip(*sorted(zip(vssvalues,vsskeys)))
         counter = 0
         for key in vsskeys:
             pin = powerpins["VSS"][key]
@@ -331,24 +359,24 @@ def main():
     elif(os.path.isdir(args[1]) and os.path.isdir(args[2])):
 
         lib = open("stm32.lib", "w")
-        docu = open("stm32.dcm", "w")
+        #docu = open("stm32.dcm", "w")
 
         #TODO: Add date and time of file generation to header
         lib.write("EESchema-LIBRARY Version 2.3\r\n#encoding utf-8\r\n")
-        docu.write("EESchema-DOCLIB  Version 2.0\r\n#\r\n")
+        #docu.write("EESchema-DOCLIB  Version 2.0\r\n#\r\n")
 
-        files = []
-        for (dirpath, dirnames, filenames) in os.walk(args[2]):
-            files.extend(filenames)
-            break
+        #files = []
+        #for (dirpath, dirnames, filenames) in os.walk(args[2]):
+        #    files.extend(filenames)
+        #    break
         
 
-        for pdffile in files:
-            pdffile = os.path.join(args[2], pdffile)
-            pdfparsedfile = pdffile + ".par"
-            if(not os.path.isfile(pdfparsedfile) and pdffile.endswith(".pdf")):
-                print("Converting: " + pdffile)
-                os.system("pdf2txt.py -o " + pdfparsedfile + " " + pdffile)
+        #for pdffile in files:
+        #    pdffile = os.path.join(args[2], pdffile)
+        #    pdfparsedfile = pdffile + ".par"
+        #    if(not os.path.isfile(pdfparsedfile) and pdffile.endswith(".pdf")):
+        #        print("Converting: " + pdffile)
+        #        os.system("pdf2txt.py -o " + pdfparsedfile + " " + pdffile)
 
         files = []
         for (dirpath, dirnames, filenames) in os.walk(args[1]):
@@ -358,13 +386,13 @@ def main():
         for xmlfile in files:
             mcu = device(os.path.join(args[1], xmlfile), args[2])
             lib.write(mcu.componentstring)
-            docu.write(mcu.docustring)
+        #    docu.write(mcu.docustring)
 
         lib.write("#\r\n# End Library\r\n")
         lib.close()
 
-        docu.write("#\r\n#End Doc Library")
-        docu.close()
+        #docu.write("#\r\n#End Doc Library")
+        #docu.close()
     else:
         printHelp()
 
