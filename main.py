@@ -67,11 +67,12 @@ class device:
         self.name = ""
         self.package = ""
         self.pins = []
+        self.aliases = []
 
         self.readxml()
-        #self.readpdf()
+        self.readpdf()
         self.createComponent()
-        #self.createDocu()
+        self.createDocu()
 
     def readxml(self):
         self.tree = etree.parse(self.xmlfile)
@@ -79,7 +80,19 @@ class device:
 
         self.ns = {"a": self.root.nsmap[None]}  # I hate XML
 
-        self.name = self.root.get("RefName")
+        name = self.root.get("RefName")
+
+        als = re.search(r"^(.+)\((.+)\)(.+)$", name)
+        if (als):
+            pre = als.group(1)
+            post = als.group(3)
+            s = als.group(2).split("-")
+            self.name = pre + s[0] + post
+            for a in s[1:]:
+                self.aliases.append(pre + a + post)
+        else:
+            self.name = name
+
         self.package = self.root.get("Package")
         
         self.bga = False
@@ -115,14 +128,21 @@ class device:
         try:
             self.freq = self.root.xpath("a:Frequency", namespaces=self.ns)[0].text
         except:
-            self.freq = "--"    # Some devices don't have a frequency specification... thanks obama!
+            self.freq = None    # Some devices don't have a frequency specification... thanks obama!
         self.ram = self.root.xpath("a:Ram", namespaces=self.ns)[0].text
         self.io = self.root.xpath("a:IONb", namespaces=self.ns)[0].text
         self.flash = self.root.xpath("a:Flash", namespaces=self.ns)[0].text
         try:
             self.voltage = [self.root.xpath("a:Voltage", namespaces=self.ns)[0].get("Min", default="--"), self.root.xpath("a:Voltage", namespaces=self.ns)[0].get("Max", default="--")]
         except:
-            self.voltage = ["--", "--"] # Some devices don't have a voltage specification also
+            self.voltage = None # Some devices don't have a voltage specification also
+
+    def xcompare(self, x, y):
+        l = min(len(x), len(y))
+        for i in range(0, l):
+            if ((x[i] != 'x') and (y[i] != 'x') and (x[i] != y[i])):
+                return False
+        return True
 
     def readpdf(self):
         self.pdf = "NOSHEET"
@@ -132,10 +152,6 @@ class device:
             break
 
         s = self.name
-        if("(" in s and ")" in s):
-            paren = s[s.find("(")+1:s.find(")")]    # Get device options contained in parenthesis
-            s = s.replace("("+paren+")","o")    # Replace the parenthesis with a lower case 'o'
-            paren = paren.split("-")    # Paren contains different options
 
         #print("NEW: " + s)
         candidatestring = {}
@@ -143,7 +159,7 @@ class device:
             if(pdf.endswith(".pdf.par")):   # Find all processed PDF files and open them for evaluation
                 p = open(os.path.join(self.pdfdir, pdf), "r")
                 for line in p:
-                    if(line.find(s[:9]) >= 0):
+                    if(line.find(s[:8]) >= 0):
                         candidatenames = line.rstrip().translate(str.maketrans(","," ")).split()    # Remove newline and commas and then split string
                         for candidatename in candidatenames:
                             candidatestring[candidatename] = pdf    # Associate file with every device name
@@ -152,26 +168,19 @@ class device:
         #print(candidatestring)  # TODO: CONTINUE HERE!!!!
         keystokeep = []
         for key in candidatestring:
-            pdfstr = candidatestring[key]
-            indices = [m.start() for m in re.finditer('x', key)]
-            tempname = list(s)
-            tempkey = list(key)
-            for ind in indices:
-                tempname[ind] = "r"
-                tempkey[ind] = "r"
-            mods = "".join(tempname).replace("r","")
-            modkey = "".join(tempkey).replace("r","")
-            #print(s + " " + key)
-            #print(mods + " " + modkey)
-
-            if(mods.find("o") > 0):
-                for option in paren:
-                    temps = mods.replace("o",option)
-                    #print(temps)
-                    if(temps.startswith(modkey)):
-                        keystokeep.append(key)
-            elif(mods.startswith(modkey)):
-                keystokeep.append(key)
+            # Some heuristic here
+            minussplit = key.split("-")
+            variants = minussplit[0].split("/")
+            if (len(minussplit) > 1):
+                suffix = "x" + "x".join(minussplit[1:])
+            else:
+                suffix = ""
+            strings = [suffix + variants[0]]
+            for var in variants[1:]:
+                strings.append(strings[0][:-len(var)] + var + suffix)
+            for string in strings:
+                if self.xcompare(s, string):
+                    keystokeep.append(key)
         
         winners = []    # I got too tired of this
         for key in unique(keystokeep):
@@ -188,6 +197,7 @@ class device:
                 if(winner == firstwinner):
                     self.pdf = winner[:-4]
                 else:
+                    print("Multiple datasheet determined for this device: " + self.name + "(" + str(winners) + ")")
                     self.pdf = "NOSHEET"
                     break
         
@@ -229,8 +239,8 @@ class device:
 
         for port in reversed(portkeys):
             rightportcount += 1
-            rightpincount += ports[port]
-            if (rightpincount >= int((pincount + 16) / 2)):
+            rightpincount += ports[port] + 1
+            if (rightpincount >= int((pincount + 12) / 2)):
                 break;
 
         leftportcount = portcount - rightportcount
@@ -286,6 +296,8 @@ class device:
         s += "F1 \"" + self.name + "\" " + str(round(boxwidth/2)) + " " + str(round(boxheight/2) + 25) + " 50 H V R B\r\n"
         s += "F2 \"" + self.package + "\" " + str(round(boxwidth/2)) + " " + str(round(boxheight/2) - 25) + " 50 H V R T\r\n"
         s += "F3 \"~\" 0 0 50 H V C CNN\r\n"
+        if (len(self.aliases) > 0):
+            s += "ALIAS " + " ".join(self.aliases) + "\r\n"
         s += "DRAW\r\n"
         # Start drawing rectangles and pins
 
@@ -416,12 +428,19 @@ class device:
         if(self.pdf == "NOSHEET"):
             pdfprefix = ""
             self.pdf = ""
+        names = [self.name] + self.aliases
         s = ""
-        s += "$CMP " + self.name.upper() + "\r\n"
-        s += "D Core: " + self.core + " Package: " + self.package + " Flash: " + self.flash + "kB Ram: " + self.ram + "kB Frequency: " + self.freq + "MHz Voltage: " + self.voltage[0] + ".." + self.voltage[1] + "V IO-pins: " + self.io + "\r\n"
-        s += "K " + " ".join([self.core, self.family, self.line]) + "\r\n"
-        s += "F " + pdfprefix + self.pdf + "\r\n"   # TODO: Add docfiles to devices, maybe url to docfiles follows pattern?
-        s += "$ENDCMP\r\n"
+        for name in names:
+            s += "$CMP " + name + "\r\n"
+            s += "D Core: " + self.core + " Package: " + self.package + " Flash: " + self.flash + "KB Ram: " + self.ram + "KB "
+            if self.freq:
+                s += "Frequency: " + self.freq + "MHz "
+            if self.voltage:
+                s += "Voltage: " + self.voltage[0] + ".." + self.voltage[1] + "V "
+            s += "IO-pins: " + self.io + "\r\n"
+            s += "K " + " ".join([self.core, self.family, self.line]) + "\r\n"
+            s += "F " + pdfprefix + self.pdf + "\r\n"   # TODO: Add docfiles to devices, maybe url to docfiles follows pattern?
+            s += "$ENDCMP\r\n"
         self.docustring = s
 
 
@@ -433,24 +452,24 @@ def main():
     elif(os.path.isdir(args[1]) and os.path.isdir(args[2])):
 
         lib = open("stm32.lib", "w")
-        #docu = open("stm32.dcm", "w")
+        docu = open("stm32.dcm", "w")
 
         #TODO: Add date and time of file generation to header
         lib.write("EESchema-LIBRARY Version 2.3\r\n#encoding utf-8\r\n")
-        #docu.write("EESchema-DOCLIB  Version 2.0\r\n#\r\n")
+        docu.write("EESchema-DOCLIB  Version 2.0\r\n#\r\n")
 
-        #files = []
-        #for (dirpath, dirnames, filenames) in os.walk(args[2]):
-        #    files.extend(filenames)
-        #    break
+        files = []
+        for (dirpath, dirnames, filenames) in os.walk(args[2]):
+            files.extend(filenames)
+            break
         
 
-        #for pdffile in files:
-        #    pdffile = os.path.join(args[2], pdffile)
-        #    pdfparsedfile = pdffile + ".par"
-        #    if(not os.path.isfile(pdfparsedfile) and pdffile.endswith(".pdf")):
-        #        print("Converting: " + pdffile)
-        #        os.system("pdf2txt.py -o " + pdfparsedfile + " " + pdffile)
+        for pdffile in files:
+            pdffile = os.path.join(args[2], pdffile)
+            pdfparsedfile = pdffile + ".par"
+            if(not os.path.isfile(pdfparsedfile) and pdffile.endswith(".pdf")):
+                print("Converting: " + pdffile)
+                os.system("pdf2txt.py -o " + pdfparsedfile + " " + pdffile)
 
         files = []
         for (dirpath, dirnames, filenames) in os.walk(args[1]):
@@ -460,13 +479,13 @@ def main():
         for xmlfile in files:
             mcu = device(os.path.join(args[1], xmlfile), args[2])
             lib.write(mcu.componentstring)
-        #    docu.write(mcu.docustring)
+            docu.write(mcu.docustring)
 
         lib.write("#\r\n# End Library\r\n")
         lib.close()
 
-        #docu.write("#\r\n#End Doc Library")
-        #docu.close()
+        docu.write("#\r\n#End Doc Library")
+        docu.close()
     else:
         printHelp()
 
