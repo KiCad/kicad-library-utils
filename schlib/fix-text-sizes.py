@@ -21,11 +21,20 @@ class CheckComponent(object):
         self.header_printed = False
 
         self.fieldsToFix = []
+        self.pinTextsToFix = []
+        self.pinNumsToFix = []
 
-        # text sizes have to be 50mils
+        # field text sizes have to be 50mils
         for field in component.fields:
             if int(field['text_size']) != 50:
                 self.fieldsToFix.append(field)
+        
+        # pin text sizes have to be 50mils
+        for pin in component.pins:
+            if int(pin['name_text_size']) > 50:
+                self.pinTextsToFix.append(pin)
+            if int(pin['num_text_size']) > 50:
+                self.pinNumsToFix.append(pin)
 
         self.prerequisites_ok = True
 
@@ -40,17 +49,41 @@ class CheckComponent(object):
             (field['text_size'], 50))
         
         field['text_size'] = "50"
+        
+    def resize_pin_name_text(self, pin):
+        self.print_header()
+        print('\t\t[resize] pin name text size: %s -> %i' %
+            (pin['name_text_size'], 50))
+        
+        pin['name_text_size'] = "50"
+        
+    def resize_pin_num_text(self, pin):
+        self.print_header()
+        print('\t\t[resize] pin num text size: %s -> %i' %
+            (pin['num_text_size'], 50))
+        
+        pin['num_text_size'] = "50"
 
 def resize_component_fields(component):
     component = CheckComponent(component)
 
-    # The only case that needs fixing is a text size different than 50mils
-    if len(component.fieldsToFix):
-        for field in component.fieldsToFix:
-            size = int(field['text_size'])
-
-            if size != 0:
-                component.resize_field(field)
+    # The 1st case that needs fixing is a field text size different than 50mils
+    for field in component.fieldsToFix:
+        size = int(field['text_size'])
+        if size != 0:
+            component.resize_field(field)
+    
+    # The 2nd case that needs fixing is a pin text size over 50mils
+    for pin in component.pinTextsToFix:
+        size = int(pin['name_text_size'])
+        if size != 0:
+            component.resize_pin_name_text(pin)
+            
+    # The 3rd case that needs fixing is a pin num size over 50mils
+    for pin in component.pinNumsToFix:
+        size = int(pin['num_text_size'])
+        if size != 0:
+            component.resize_pin_num_text(pin)
 
     return component.header_printed
 
