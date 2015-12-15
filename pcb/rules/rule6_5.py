@@ -37,32 +37,86 @@ class Rule(KLCRule):
             elif 'center' in graph:
                 for pad in module.pads:
                     padComplex=complex(pad['pos']['x'],pad['pos']['y'])
+                    padOffset=0+0j
+                    if 'offset' in pad['drill']:
+                        if 'x' in pad['drill']['offset']:
+                            padOffset=complex(pad['drill']['offset']['x'],pad['drill']['offset']['y'])                        
+                    aristasPad={}
+                    aristasPad[0]=complex(pad['size']['x']/2,pad['size']['y']/2)+padComplex+padOffset
+                    aristasPad[1]=complex(-pad['size']['x']/2,-pad['size']['y']/2)+padComplex+padOffset
+                    aristasPad[2]=complex(pad['size']['x']/2,-pad['size']['y']/2)+padComplex+padOffset
+                    aristasPad[3]=complex(-pad['size']['x']/2,pad['size']['y']/2)+padComplex+padOffset
+                    
+                    vectorR=cmath.rect(1,cmath.pi/180*pad['pos']['orientation'])
+                    for i in range(4):
+                        aristasPad[i]=(aristasPad[i]-padComplex)*vectorR+padComplex
                     centerComplex=complex(graph['center']['x'],graph['center']['y'])
                     endComplex=complex(graph['end']['x'],graph['end']['y'])
                     radius=abs(endComplex-centerComplex)
-                    distance=radius+pad['size']['x']/2+0.225
-                    if abs(centerComplex-padComplex)<distance and abs(centerComplex-padComplex)>abs(-radius+pad['size']['x']/2+0.225):
-                        self.intersections.append({'pad':pad,'graph':graph})
+                    if 'circle' in pad['shape']:
+                        distance=radius+pad['size']['x']/2+0.075
+                        if abs(centerComplex-padComplex)<distance and abs(centerComplex-padComplex)>abs(-radius+pad['size']['x']/2+0.075):
+                            self.intersections.append({'pad':pad,'graph':graph})              
+                    else:
+                        for i in range(4):
+                            if abs(centerComplex-aristasPad[i])>radius:
+                                self.intersections.append({'pad':pad,'graph':graph})
+                                break
             else:
                 for pad in module.pads:
                     padComplex=complex(pad['pos']['x'],pad['pos']['y'])
+                    padOffset=0+0j
+                    if 'offset' in pad['drill']:
+                        if 'x' in pad['drill']['offset']:
+                            padOffset=complex(pad['drill']['offset']['x'],pad['drill']['offset']['y'])                        
+                    aristasPad={}
+                    aristasPad[0]=complex(pad['size']['x']/2,pad['size']['y']/2)+padComplex+padOffset
+                    aristasPad[1]=complex(-pad['size']['x']/2,-pad['size']['y']/2)+padComplex+padOffset
+                    aristasPad[2]=complex(pad['size']['x']/2,-pad['size']['y']/2)+padComplex+padOffset
+                    aristasPad[3]=complex(-pad['size']['x']/2,pad['size']['y']/2)+padComplex+padOffset
+                    
+                    vectorR=cmath.rect(1,cmath.pi/180*pad['pos']['orientation'])
+                    for i in range(4):
+                        aristasPad[i]=(aristasPad[i]-padComplex)*vectorR+padComplex
                     startComplex=complex(graph['start']['x'],graph['start']['y'])
                     endComplex=complex(graph['end']['x'],graph['end']['y'])
                     if endComplex.imag>startComplex.imag:
                         vector=endComplex-startComplex
                         padComplex=padComplex-startComplex
+                        for i in range(4):
+                            aristasPad[i]=aristasPad[i]-startComplex
                     else:
                         vector=startComplex-endComplex
                         padComplex=padComplex-endComplex
+                        for i in range(4):
+                            aristasPad[i]=aristasPad[i]-endComplex
                     length=abs(vector)
                     vectorR=cmath.rect(1,-cmath.phase(vector))
                     padComplex=padComplex*vectorR
-                    distance=cmath.sqrt((pad['size']['x']/2+0.225)**2-(padComplex.imag)**2).real
-                    padMin=padComplex.real-distance
-                    padMax=padComplex.real+distance 
-                    if (padMin<length and padMin>0) or (padMax<length and padMax>0)or (padMax>length and padMin<0) :
-                        if abs(padComplex.imag)<(pad['size']['x']/2+0.225):
+                    for i in range(4):
+                            aristasPad[i]=aristasPad[i]*vectorR
+                    if 'circle' in pad['shape']:
+                        distance=cmath.sqrt((pad['size']['x']/2)**2-(padComplex.imag)**2).real
+                        padMinX=padComplex.real-distance
+                        padMaxX=padComplex.real+distance
+                    else:
+                        padMinX=min(aristasPad[0].real,aristasPad[1].real,aristasPad[2].real,aristasPad[3].real)
+                        padMaxX=max(aristasPad[0].real,aristasPad[1].real,aristasPad[2].real,aristasPad[3].real)
+                    if (padMinX<length and padMinX>0) or (padMaxX<length and padMaxX>0)or (padMaxX>length and padMinX<0) :
+                        if 'circle' in pad['shape']:
+                            distance=pad['size']['x']/2
+                            padMin=padComplex.imag-distance
+                            padMax=padComplex.imag+distance
+                        else:
+                            padMin=min(aristasPad[0].imag,aristasPad[1].imag,aristasPad[2].imag,aristasPad[3].imag)
+                            padMax=max(aristasPad[0].imag,aristasPad[1].imag,aristasPad[2].imag,aristasPad[3].imag)
+                        try:
+                            differentSign=padMax/padMin
+                        except:
+                            differentSign=padMin/padMax
+                        if (differentSign<0) or (abs(padMax)<0.075) or (abs(padMin)<0.075):
                             self.intersections.append({'pad':pad,'graph':graph})
+                        
         
         return True if (len(self.bad_width) or len(self.intersections)) else False
     
