@@ -15,6 +15,9 @@ SPECIAL_PIN_MAPPING = {"VSS/TH": ["VSS/TH"],
 
 SPECIAL_TYPES_MAPPING = {"RCC_OSC_IN": "Clock", "RCC_OSC_OUT": "Clock"}
 
+PIN_TYPES_MAPPING = {"Power": "W", "I/O": "B", "Reset": "I", "Boot": "I", 
+                     "MonoIO": "B", "NC": "N", "Clock": "I"}
+
 def unique(items):
     found = set([])
     keep = []
@@ -317,7 +320,7 @@ class device:
             positioncounter = 0
             for pinnumber in pinnumbers:
                 pin = portpins[port][pinnumber]
-                s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(boxwidth/2 + pinlength)) + " " + str(round(-boxheight/2 + (portposition - positioncounter)*100 + padding)) + " " + str(pinlength) + " L 50 50 1 1 I\r\n"
+                s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(boxwidth/2 + pinlength)) + " " + str(round(-boxheight/2 + (portposition - positioncounter)*100 + padding)) + " " + str(pinlength) + " L 50 50 1 1 " + PIN_TYPES_MAPPING[pin.pintype] + "\r\n"
                 positioncounter += 1
                 pin.drawn = True
             portcounter += 1
@@ -337,7 +340,7 @@ class device:
             positioncounter = 0
             for pinnumber in pinnumbers:
                 pin = portpins[port][pinnumber]
-                s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(-boxwidth/2 - pinlength)) + " " + str(round(-boxheight/2 + (portposition - positioncounter)*100 + padding)) + " " + str(pinlength) + " R 50 50 1 1 I\r\n"
+                s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(-boxwidth/2 - pinlength)) + " " + str(round(-boxheight/2 + (portposition - positioncounter)*100 + padding)) + " " + str(pinlength) + " R 50 50 1 1 " + PIN_TYPES_MAPPING[pin.pintype] + "\r\n"
                 positioncounter += 1
                 pin.drawn = True
             portcounter += 1
@@ -354,7 +357,7 @@ class device:
             offset = 50
             if(len(vddkeys)%2):
                 offset = 0
-            s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(-((len(vddkeys)-1) * 100)/2 + counter * 100 + offset)) + " " + str(round(boxheight/2) + pinlength) + " " + str(pinlength) + " D 50 50 1 1 I\r\n"
+            s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(-((len(vddkeys)-1) * 100)/2 + counter * 100 + offset)) + " " + str(round(boxheight/2) + pinlength) + " " + str(pinlength) + " D 50 50 1 1 " + PIN_TYPES_MAPPING[pin.pintype] + "\r\n"
             counter += 1
             pin.drawn = True
 
@@ -371,7 +374,7 @@ class device:
             offset = 50
             if(len(vsskeys)%2):
                 offset = 0
-            s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(-((len(vsskeys)-1) * 100)/2 + counter * 100 + offset)) + " " + str(-round(boxheight/2) - pinlength) + " " + str(pinlength) + " U 50 50 1 1 I\r\n"
+            s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(-((len(vsskeys)-1) * 100)/2 + counter * 100 + offset)) + " " + str(-round(boxheight/2) - pinlength) + " " + str(pinlength) + " U 50 50 1 1 " + PIN_TYPES_MAPPING[pin.pintype] + "\r\n"
             counter += 1
             pin.drawn = True
 
@@ -382,7 +385,7 @@ class device:
         for pin in self.pins:
             if(pin.pintype == "Reset"):
                 pin.createPintext(False)
-                s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(-boxwidth/2 - pinlength)) + " " + str(round(boxheight/2) - leftpincounter * 100 - padding) + " " + str(pinlength) + " R 50 50 1 1 I\r\n"
+                s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(-boxwidth/2 - pinlength)) + " " + str(round(boxheight/2) - leftpincounter * 100 - padding) + " " + str(pinlength) + " R 50 50 1 1 " + PIN_TYPES_MAPPING[pin.pintype] + "\r\n"
                 pin.drawn = True
                 leftpincounter += 1
         leftpincounter += 1 # Create gap between Reset and Boot
@@ -391,7 +394,7 @@ class device:
         for pin in self.pins:
             if(pin.pintype == "Boot"):
                 pin.createPintext(False)
-                s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(-boxwidth/2 - pinlength)) + " " + str(round(boxheight/2) - leftpincounter * 100 - padding) + " " + str(pinlength) + " R 50 50 1 1 I\r\n"
+                s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(-boxwidth/2 - pinlength)) + " " + str(round(boxheight/2) - leftpincounter * 100 - padding) + " " + str(pinlength) + " R 50 50 1 1 " + PIN_TYPES_MAPPING[pin.pintype] + "\r\n"
                 pin.drawn = True
                 leftpincounter += 1
         leftpincounter += 1
@@ -400,7 +403,7 @@ class device:
         for pin in self.pins:
             if(pin.pintype == "Power" and pin.drawn == False):
                 pin.createPintext(False)
-                s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(-boxwidth/2 - pinlength)) + " " + str(round(boxheight/2) - leftpincounter * 100 - padding) + " " + str(pinlength) + " R 50 50 1 1 I\r\n"
+                s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(-boxwidth/2 - pinlength)) + " " + str(round(boxheight/2) - leftpincounter * 100 - padding) + " " + str(pinlength) + " R 50 50 1 1 " + PIN_TYPES_MAPPING[pin.pintype] + "\r\n"
                 pin.drawn = True
                 leftpincounter += 1
         leftpincounter += 1
@@ -414,7 +417,7 @@ class device:
         remainingpins.sort(key = lambda x: x.name)
         for pin in remainingpins:
             pin.createPintext(False)
-            s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(-boxwidth/2 - pinlength)) + " " + str(round(boxheight/2) - leftpincounter * 100 - padding) + " " + str(pinlength) + " R 50 50 1 1 I\r\n"
+            s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(round(-boxwidth/2 - pinlength)) + " " + str(round(boxheight/2) - leftpincounter * 100 - padding) + " " + str(pinlength) + " R 50 50 1 1 " + PIN_TYPES_MAPPING[pin.pintype] + "\r\n"
             leftpincounter += 1
 
         s += "S -" + str(round(boxwidth/2)) + " -" + str(round(boxheight/2)) + " " + str(round(boxwidth/2)) + " " + str(round(boxheight/2)) + " 0 1 10 f\r\n"
@@ -478,8 +481,9 @@ def main():
 
         for xmlfile in files:
             mcu = device(os.path.join(args[1], xmlfile), args[2])
-            lib.write(mcu.componentstring)
-            docu.write(mcu.docustring)
+            if(mcu.pdf != ""):
+                lib.write(mcu.componentstring)
+                docu.write(mcu.docustring)
 
         lib.write("#\r\n# End Library\r\n")
         lib.close()
