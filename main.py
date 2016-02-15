@@ -118,14 +118,17 @@ class device:
                     newpin.pintype = SPECIAL_TYPES_MAPPING[altfunction]
             self.pins.append(newpin)
         if(self.root.get("HasPowerPad") == "true"):    # Special case for the thermal pad
-            powerpadpin = pin("Th", "VSS/TH", "Power")
+            # Some heuristic here
+            packPinCountR = re.search(r"^[a-zA-Z]+([0-9]+)$", self.package)
+            powerpinnumber = int(packPinCountR.group(1)) + 1
+            print("Device " + name + " with powerpad, package " + self.package + ", power pin: " + str(powerpinnumber))
+            powerpadpin = pin(powerpinnumber, "VSS", "Power")
             self.pins.append(powerpadpin)
 
         
         if(not self.bga):
             for apin in self.pins:
-                if(not apin.name == "VSS/TH"):
-                    apin.pinnumber = int(apin.pinnumber)
+                apin.pinnumber = int(apin.pinnumber)
 
         # Parse information for documentation
         self.core = self.root.xpath("a:Core", namespaces=self.ns)[0].text
@@ -384,15 +387,15 @@ class device:
             if len(pin.pintext) > bottomMaxLen:
                 bottomMaxLen = len(pin.pintext)
         
-        self.yTopMargin = math.ceil((topMaxLen * 46 + 50) / 100)
-        self.yBottomMargin = math.ceil((bottomMaxLen * 46 + 50) / 100) - 1
+        self.yTopMargin = math.ceil((topMaxLen * 47 + 75) / 100)
+        self.yBottomMargin = math.ceil((bottomMaxLen * 47 + 75) / 100)
                 
-        self.boxHeight = maxSize * 100 + (self.yTopMargin + self.yBottomMargin) * 100
-        self.boxHeight = math.floor(self.boxHeight / 100) * 100
-        if (self.boxHeight / 2) % 100 > 0:
-            self.boxHeight += 100
+        self.boxHeight = (maxSize - 2 + self.yTopMargin + self.yBottomMargin) * 100
+        #self.boxHeight = math.floor(self.boxHeight / 100) * 100
+        #if (self.boxHeight / 2) % 100 > 0:
+        #    self.boxHeight += 100
             
-        self.boxWidth = (maxXSize + 2) * 46 + 100
+        self.boxWidth = (maxXSize + 1) * 47 + 100
         self.boxWidth = math.floor(self.boxWidth / 100) * 100
         if (self.boxWidth / 2) % 100 > 0:
             self.boxWidth += 100
@@ -408,36 +411,39 @@ class device:
         else:
             pinlength = 200
             
+        yOffset = math.ceil(self.boxHeight / 100 / 2) * 100
+            
         s = ""
         s += "#\r\n"
         s += "# " + self.name.upper() + "\r\n"
         s += "#\r\n"
         s += "DEF " + self.name + " U 0 40 Y Y 1 L N\r\n"
-        s += "F0 \"U\" " + str(round(- self.boxWidth / 2)) + " " + str(round(self.boxHeight / 2) + 25) + " 50 H V L B\r\n"
-        s += "F1 \"" + self.name + "\" " + str(round(self.boxWidth / 2)) + " " + str(round(self.boxHeight / 2) + 25) + " 50 H V R B\r\n"
-        s += "F2 \"" + self.package + "\" " + str(round(self.boxWidth / 2)) + " " + str(round(self.boxHeight / 2) - 25) + " 50 H V R T\r\n"
+        s += "F0 \"U\" " + str(round(- self.boxWidth / 2)) + " " + str(round(yOffset) + 25) + " 50 H V L B\r\n"
+        s += "F1 \"" + self.name + "\" " + str(round(self.boxWidth / 2)) + " " + str(round(yOffset) + 25) + " 50 H V R B\r\n"
+        s += "F2 \"" + self.package + "\" " + str(round(self.boxWidth / 2)) + " " + str(round(yOffset) - 25) + " 50 H V R T\r\n"
         s += "F3 \"~\" 0 0 50 H V C CNN\r\n"
         if (len(self.aliases) > 0):
             s += "ALIAS " + " ".join(self.aliases) + "\r\n"
         s += "DRAW\r\n"
         
+        
         y = 0
         for pin in self.rightPins:
             pin.createPintext(True)
-            s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(int(self.boxWidth / 2 + pinlength)) + " " + str(round(self.boxHeight / 2 - (pin.y + self.yTopMargin) * 100)) + " " + str(pinlength) + " L 50 50 1 1 " + PIN_TYPES_MAPPING[pin.pintype] + "\r\n"
+            s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(int(self.boxWidth / 2 + pinlength)) + " " + str(round(yOffset - (pin.y + self.yTopMargin) * 100)) + " " + str(pinlength) + " L 50 50 1 1 " + PIN_TYPES_MAPPING[pin.pintype] + "\r\n"
             y += 1
                 
         for pin in self.leftPins:
             pin.createPintext(False)
-            s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(int(- self.boxWidth / 2 - pinlength)) + " " + str(round(self.boxHeight / 2 - (pin.y + self.yTopMargin) * 100)) + " " + str(pinlength) + " R 50 50 1 1 " + PIN_TYPES_MAPPING[pin.pintype] + "\r\n"
+            s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(int(- self.boxWidth / 2 - pinlength)) + " " + str(round(yOffset - (pin.y + self.yTopMargin) * 100)) + " " + str(pinlength) + " R 50 50 1 1 " + PIN_TYPES_MAPPING[pin.pintype] + "\r\n"
             
         for pin in self.topPins:    
-            s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(int(pin.x * 100)) + " " + str(int(self.boxHeight / 2 + pinlength)) + " " + str(pinlength) + " D 50 50 1 1 " + PIN_TYPES_MAPPING[pin.pintype] + "\r\n"
+            s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(int(pin.x * 100)) + " " + str(int(yOffset + pinlength)) + " " + str(pinlength) + " D 50 50 1 1 " + PIN_TYPES_MAPPING[pin.pintype] + "\r\n"
             
         for pin in self.bottomPins:
-            s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(int(pin.x * 100)) + " " + str(int(- self.boxHeight / 2 - pinlength)) + " " + str(pinlength) + " U 50 50 1 1 " + PIN_TYPES_MAPPING[pin.pintype] + "\r\n"
+            s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(int(pin.x * 100)) + " " + str(int(yOffset - self.boxHeight - pinlength)) + " " + str(pinlength) + " U 50 50 1 1 " + PIN_TYPES_MAPPING[pin.pintype] + "\r\n"
         
-        s += "S -" + str(round(self.boxWidth / 2)) + " -" + str(round(self.boxHeight / 2)) + " " + str(round(self.boxWidth / 2)) + " " + str(round(self.boxHeight / 2)) + " 0 1 10 f\r\n"
+        s += "S -" + str(round(self.boxWidth / 2)) + " " + str(int(yOffset - self.boxHeight)) + " " + str(int(self.boxWidth / 2)) + " " + str(int(yOffset)) + " 0 1 10 f\r\n"
         s += "ENDDRAW\r\n"
         s += "ENDDEF\r\n"
 
