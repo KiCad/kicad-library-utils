@@ -18,6 +18,9 @@ SPECIAL_TYPES_MAPPING = {"RCC_OSC_IN": "Clock", "RCC_OSC_OUT": "Clock"}
 PIN_TYPES_MAPPING = {"Power": "W", "I/O": "B", "Reset": "I", "Boot": "I", 
                      "MonoIO": "B", "NC": "N", "Clock": "I"}
 
+BOOT1_FIX_PARTS = {r"^STM32F10\d.+$", r"^STM32F2\d\d.+$", r"^STM32F4\d\d.+$", 
+                   r"^STM32L1\d\d.+$"}
+
 def unique(items):
     found = set([])
     keep = []
@@ -116,6 +119,15 @@ class device:
                     newpin.altfunctions.append(altfunction)
                 if(altfunction in SPECIAL_TYPES_MAPPING):
                     newpin.pintype = SPECIAL_TYPES_MAPPING[altfunction]
+                    
+            if newpin.name == "PB2":
+                for pre in BOOT1_FIX_PARTS:
+                    if re.search(pre, name) and (not ("BOOT1" in newpin.altfunctions)):
+                        print("Fixing PB2/BOOT1 for part " + name)
+                        print("  " + newpin.name + " " + str(newpin.altfunctions))
+                        newpin.altfunctions.insert(0, "BOOT1")
+                    
+                    
             self.pins.append(newpin)
         if(self.root.get("HasPowerPad") == "true"):    # Special case for the thermal pad
             # Some heuristic here
@@ -501,6 +513,8 @@ def main():
         for (dirpath, dirnames, filenames) in os.walk(args[1]):
             files.extend(filenames)
             break
+        
+        files.sort()
 
         for xmlfile in files:
             mcu = device(os.path.join(args[1], xmlfile), args[2])
