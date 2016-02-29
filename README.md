@@ -37,6 +37,11 @@ KiCad utilities
 
 **checkruleX_Y.py**: Each checkrule script checks your correspondent rule and prints out a report informing what is in disagreement with the [KiCad Library Convention](https://github.com/KiCad/kicad-library/wiki/Kicad-Library-Convention).
 
+## stm32-librarygen directory
+
+Automatic STM32 library generation from pin files provided by ST.
+
+Detailed information can be found in **stm32-librarygen/README.md**
 
 How to use
 ==========
@@ -83,7 +88,7 @@ How to use
 
     # run the following command to see other options
     ./check_kicad_mod.py -h
-
+    
 
 Notice
 ======
