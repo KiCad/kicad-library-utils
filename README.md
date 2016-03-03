@@ -19,6 +19,8 @@ KiCad utilities
 
 **move_part.py**: Script to move components between libraries.
 
+**autogen/stm32**: Automatic STM32 library generation from pin files provided by ST. Detailed information can be found in **autogen/stm32/README.md**
+
 ## sch directory
 
 **sch.py**: A python class to parse Schematic Files Format of the KiCad.
@@ -36,12 +38,6 @@ KiCad utilities
 **check_kicad_mod.py**: Such script invokes each checkrule script testing the requested module file.
 
 **checkruleX_Y.py**: Each checkrule script checks your correspondent rule and prints out a report informing what is in disagreement with the [KiCad Library Convention](https://github.com/KiCad/kicad-library/wiki/Kicad-Library-Convention).
-
-## stm32-librarygen directory
-
-Automatic STM32 library generation from pin files provided by ST.
-
-Detailed information can be found in **stm32-librarygen/README.md**
 
 How to use
 ==========
