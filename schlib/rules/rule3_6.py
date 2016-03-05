@@ -21,13 +21,14 @@ class Rule(KLCRule):
             text_size = int(field['text_size'])
             if (text_size != 50):
                 self.violating_fields.append(field)
-                keys=field.keys()
-                message=""
-                if("reference" in keys):
-                    message+=field["reference"]
+                if("reference" in field.keys()):
+                    message=field["reference"][1:-1]
+                elif (len(field["name"])>2):
+                    message=field["name"][1:-1]
                 else:
-                    message+=field["name"]
-                self.verboseOut(Verbosity.HIGH, Severity.ERROR,"field: "+message+" size"+field["text_size"])
+                    message="UNKNOWN"
+                message+=(" at posx {0} posy {1}".format(field["posx"],field["posy"]))
+                self.verboseOut(Verbosity.HIGH, Severity.ERROR,"field: {0} size {1}".format(message,field["text_size"]) )
 
 
         self.violating_pins = []
@@ -36,8 +37,7 @@ class Rule(KLCRule):
             num_text_size = int(pin['num_text_size'])
             if (name_text_size != 50) or (num_text_size != 50):
                 self.violating_pins.append(pin)
-                self.verboseOut(Verbosity.HIGH, Severity.ERROR, 'pin: %s (%s), text size %s, number size %s' %
-                           (pin['name'], pin['num'], pin['name_text_size'], pin['num_text_size']))
+                self.verboseOut(Verbosity.HIGH, Severity.ERROR, 'pin: {0} ({1}), text size {2}, number size {3}'.format(pin['name'], pin['num'], pin['name_text_size'], pin['num_text_size']))
 
         if (len(self.violating_fields) > 0 or
             len(self.violating_pins) > 0):
