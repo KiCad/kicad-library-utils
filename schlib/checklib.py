@@ -55,19 +55,20 @@ for libfile in args.libfiles:
 
                 if args.fix:
                     rule.fix()
-            if args.verbose:
-                for msg in rule.messageBuffer:
-                    if msg[1] <= args.verbose:
-                        if msg[2]==0:#Serverity.INFO
-                            printer.gray(msg[0], indentation=4)
-                        elif msg[2]==1:#Serverity.WARNING
-                            printer.brown(msg[0], indentation=4)
-                        elif msg[2]==2:#Serverity.ERROR
-                            printer.red(msg[0], indentation=4)
-                        elif msg[2]==3:#Serverity.SUCCESS
-                            printer.green(msg[0], indentation=4)
-                        else:
-                            printer.red("unknown severity: "+msg[2])
+
+                if args.verbose:
+                    for msg in rule.messageBuffer:
+                        if msg[1] <= args.verbose:
+                            if msg[2]==0:#Serverity.INFO
+                                printer.gray(msg[0], indentation=4)
+                            elif msg[2]==1:#Serverity.WARNING
+                                printer.brown(msg[0], indentation=4)
+                            elif msg[2]==2:#Serverity.ERROR
+                                printer.red(msg[0], indentation=4)
+                            elif msg[2]==3:#Serverity.SUCCESS
+                                printer.green(msg[0], indentation=4)
+                            else:
+                                printer.red("unknown severity: "+msg[2])
 
         # extra checking
         if args.enable_extra:
