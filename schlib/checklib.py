@@ -53,26 +53,21 @@ for libfile in args.libfiles:
                 if args.verbose:
                     printer.light_blue(rule.description, indentation=4, max_width=100)
 
-                    # example of customized printing feedback by checking the rule name
-                    # and a specific variable of the rule
-                    # note that the following text will only be printed when verbosity level is greater than 1
-                    if rule.name == 'Rule 3.1' and args.verbose > 1:
-                        for pin in rule.violating_pins:
-                            printer.red('pin: %s (%s), posx %s, posy %s' %
-                                       (pin['name'], pin['num'], pin['posx'], pin['posy']), indentation=4)
-
-                    if rule.name == 'Rule 3.2' and args.verbose > 1:
-                        for pin in rule.violating_pins:
-                            printer.red('pin: %s (%s), length %s' %
-                                       (pin['name'], pin['num'], pin['length']), indentation=4)
-
-                    if rule.name == 'Rule 3.8' and args.verbose:
-                        if rule.only_datasheet_missing:
-                            printer.brown("[warn] Please provide a datasheet link if it isn't a generic component",
-                                          indentation=4)
-
-            if args.fix:
-                rule.fix()
+                if args.fix:
+                    rule.fix()
+            if args.verbose:
+                for msg in rule.messageBuffer:
+                    if msg[1] <= args.verbose:
+                        if msg[2]==0:#Serverity.INFO
+                            printer.gray(msg[0], indentation=4)
+                        elif msg[2]==1:#Serverity.WARNING
+                            printer.brown(msg[0], indentation=4)
+                        elif msg[2]==2:#Serverity.ERROR
+                            printer.red(msg[0], indentation=4)
+                        elif msg[2]==3:#Serverity.SUCCESS
+                            printer.green(msg[0], indentation=4)
+                        else:
+                            printer.red("unknown severity: "+msg[2])
 
         # extra checking
         if args.enable_extra:

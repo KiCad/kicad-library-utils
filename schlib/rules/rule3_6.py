@@ -21,6 +21,14 @@ class Rule(KLCRule):
             text_size = int(field['text_size'])
             if (text_size != 50):
                 self.violating_fields.append(field)
+                keys=field.keys()
+                message=""
+                if("reference" in keys):
+                    message+=field["reference"]
+                else:
+                    message+=field["name"]
+                self.verboseOut(Verbosity.HIGH, Severity.ERROR,"field: "+message+" size"+field["text_size"])
+
 
         self.violating_pins = []
         for pin in self.component.pins:
@@ -28,6 +36,8 @@ class Rule(KLCRule):
             num_text_size = int(pin['num_text_size'])
             if (name_text_size != 50) or (num_text_size != 50):
                 self.violating_pins.append(pin)
+                self.verboseOut(Verbosity.HIGH, Severity.ERROR, 'pin: %s (%s), text size %s, number size %s' %
+                           (pin['name'], pin['num'], pin['name_text_size'], pin['num_text_size']))
 
         if (len(self.violating_fields) > 0 or
             len(self.violating_pins) > 0):
@@ -39,10 +49,16 @@ class Rule(KLCRule):
         """
         Proceeds the fixing of the rule, if possible.
         """
-        if self.check():
-            for field in self.violating_fields:
-                field['text_size'] = '50'
+        self.verboseOut(Verbosity.HIGH, Severity.INFO,"Fixing...")
+        for field in self.violating_fields:
+            field['text_size'] = '50'
 
-            for pin in self.violating_pins:
-                pin['name_text_size'] = '50'
-                pin['num_text_size'] = '50'
+        for pin in self.violating_pins:
+            pin['name_text_size'] = '50'
+            pin['num_text_size'] = '50'
+        if self.check():
+            self.verboseOut(Verbosity.HIGH, Severity.ERROR,"...could't be fixed")
+        else:
+            self.verboseOut(Verbosity.HIGH, Severity.SUCCESS,"everything fixed")
+
+

@@ -21,6 +21,8 @@ class Rule(KLCRule):
             if length == 0: continue
             if (length < 100) or (length % 50 != 0):
                 self.violating_pins.append(pin)
+                self.verboseOut(Verbosity.HIGH, Severity.ERROR, 'pin: %s (%s), posx %s, posy %s' %
+                           (pin['name'], pin['num'], pin['posx'], pin['posy']))
 
         return True if len(self.violating_pins) > 0 else False
 
@@ -28,6 +30,5 @@ class Rule(KLCRule):
         """
         Proceeds the fixing of the rule, if possible.
         """
-        if self.check():
-            pass
-            # TODO
+        self.verboseOut(Verbosity.NORMAL, Severity.INFO, "FIX: not yet supported" )
+        # TODO
