@@ -75,7 +75,7 @@ class Component(object):
     def __init__(self, data, comments, documentation):
         self.comments = comments
         self.fplist = []
-        self.aliases = []
+        self.aliases = {}
         building_fplist = False
         building_draw = False
         for line in data:
@@ -102,7 +102,8 @@ class Component(object):
                 self.fields.append(dict(zip(self._FN_KEYS,values)))
 
             elif line[0] == 'ALIAS':
-                self.aliases = [alias for alias in line[1:]]
+                for alias in line[1:]:
+                    self.aliases[alias]=self.getDocumentation(documentation,alias)
 
             elif line[0] == '$FPLIST':
                 building_fplist = True
@@ -156,10 +157,13 @@ class Component(object):
         self.pins = self.draw['pins']
 
         # get documentation
+        self.documentation = self.getDocumentation(documentation,self.name)
+
+    def getDocumentation(self,documentation,name):
         try:
-            self.documentation = documentation.components[self.name]
+            return documentation.components[name]
         except KeyError:
-            self.documentation = {}
+            return {}
 
     def getPinsByName(self, name):
         pins = []
