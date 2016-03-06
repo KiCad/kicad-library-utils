@@ -21,6 +21,7 @@ class Rule(KLCRule):
             posy = int(pin['posy'])
             if (posx % 100) != 0 or (posy % 100) != 0:
                 self.violating_pins.append(pin)
+                self.verboseOut(Verbosity.HIGH, Severity.ERROR, 'pin: {0} ({1}), {2}'.format(pin['name'], pin['num'], positionFormater(pin)))
 
         return True if len(self.violating_pins) > 0 else False
 
@@ -28,6 +29,5 @@ class Rule(KLCRule):
         """
         Proceeds the fixing of the rule, if possible.
         """
-        if self.check():
-            pass
-            # TODO
+        self.verboseOut(Verbosity.NORMAL, Severity.INFO, "FIX: not yet supported" )
+        # TODO

@@ -6,6 +6,21 @@ from schlib import *
 from print_color import *
 from rules import *
 
+def processVerboseOutput(messageBuffer):
+    if args.verbose:
+        for msg in messageBuffer:
+            if msg[1] <= args.verbose:
+                if msg[2]==0:#Severity.INFO
+                    printer.gray(msg[0], indentation=4)
+                elif msg[2]==1:#Severity.WARNING
+                    printer.brown(msg[0], indentation=4)
+                elif msg[2]==2:#Severity.ERROR
+                    printer.red(msg[0], indentation=4)
+                elif msg[2]==3:#Severity.SUCCESS
+                    printer.green(msg[0], indentation=4)
+                else:
+                    printer.red("unknown severity: "+msg[2], indentation=4)
+
 parser = argparse.ArgumentParser(description='Execute checkrule scripts checking 3.* KLC rules in the libraries')
 parser.add_argument('libfiles', nargs='+')
 parser.add_argument('-c', '--component', help='check only a specific component (implicitly verbose)', action='store')
@@ -53,26 +68,10 @@ for libfile in args.libfiles:
                 if args.verbose:
                     printer.light_blue(rule.description, indentation=4, max_width=100)
 
-                    # example of customized printing feedback by checking the rule name
-                    # and a specific variable of the rule
-                    # note that the following text will only be printed when verbosity level is greater than 1
-                    if rule.name == 'Rule 3.1' and args.verbose > 1:
-                        for pin in rule.violating_pins:
-                            printer.red('pin: %s (%s), posx %s, posy %s' %
-                                       (pin['name'], pin['num'], pin['posx'], pin['posy']), indentation=4)
+                if args.fix:
+                    rule.fix()
 
-                    if rule.name == 'Rule 3.2' and args.verbose > 1:
-                        for pin in rule.violating_pins:
-                            printer.red('pin: %s (%s), length %s' %
-                                       (pin['name'], pin['num'], pin['length']), indentation=4)
-
-                    if rule.name == 'Rule 3.8' and args.verbose:
-                        if rule.only_datasheet_missing:
-                            printer.brown("[warn] Please provide a datasheet link if it isn't a generic component",
-                                          indentation=4)
-
-            if args.fix:
-                rule.fix()
+                processVerboseOutput(rule.messageBuffer)
 
         # extra checking
         if args.enable_extra:
@@ -85,18 +84,10 @@ for libfile in args.libfiles:
                     if args.verbose:
                         printer.light_blue(ec.description, indentation=4, max_width=100)
 
-                        if ec.name == 'EC01 - Extra Checking':
-                            for pin in ec.probably_wrong_pin_types:
-                                printer.red('pin %s (%s): %s' %
-                                        (pin['name'], pin['num'], pin['electrical_type']), indentation=4)
+                    if args.fix:
+                        ec.fix()
 
-                        if ec.name == 'EC03 - Extra Checking':
-                            if ec.fp_is_missing:
-                                printer.brown("[warn] Symbol doesn't have footprint field, please re-save it using KiCad",
-                                              indentation=4)
-
-                if args.fix:
-                    ec.fix()
+                    processVerboseOutput(ec.messageBuffer)
 
         # check the number of violations
         if n_violations == 0:

@@ -16,27 +16,32 @@ class Rule(KLCRule):
             * only_datasheet_missing
         """
 
-        self.only_datasheet_missing = False
+        self.only_datasheet_missing=False #unused, remove?
 
-        if not self.component.documentation: return True
+        if not self.component.documentation:
+            self.verboseOut(Verbosity.HIGH,Severity.ERROR,"missing whole documentation (description, keywords, datasheet)")
+            return True
 
-        if (not self.component.documentation['description'] or
+        elif (not self.component.documentation['description'] or
             not self.component.documentation['keywords'] or
             not self.component.documentation['datasheet']):
 
-            if (self.component.documentation['description'] and
-                self.component.documentation['keywords'] and
-                not self.component.documentation['datasheet']):
-                self.only_datasheet_missing = True
-
+            if (not self.component.documentation['description']):
+                self.verboseOut(Verbosity.HIGH,Severity.ERROR,"missing description")
+            if (not self.component.documentation['keywords']):
+                self.verboseOut(Verbosity.HIGH,Severity.ERROR,"missing keywords")
+            if (not self.component.documentation['datasheet']):
+                self.verboseOut(Verbosity.HIGH,Severity.WARNING,"missing datasheet, please provide a datasheet link if it isn't a generic component")
+                if (self.component.documentation['description'] and
+                    self.component.documentation['keywords']):
+                    self.only_datasheet_missing=True
             return True
 
-        return False
+        else:
+            return False
 
     def fix(self):
         """
         Proceeds the fixing of the rule, if possible.
         """
-        if self.check():
-            # Can't fix that!
-            pass
+        self.verboseOut(Verbosity.NORMAL, Severity.INFO, "FIX: not supported" )
