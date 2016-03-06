@@ -64,10 +64,16 @@ class Rule(KLCRule):
                             abs(centerComplex - padComplex) > abs(-radius + pad['size']['x'] / 2 + 0.075)):
                             self.intersections.append({'pad':pad, 'graph':graph})
                     else:
+                        # if there are edges inside and outside the circle, we have an intersection
+                        edgesInside = []
+                        edgesOutside = []
                         for i in range(4):
-                            if abs(centerComplex - edgesPad[i]) > radius:
-                                self.intersections.append({'pad':pad, 'graph':graph})
-                                break
+                            if abs(centerComplex - edgesPad[i]) < radius:
+                                edgesInside.append(edgesPad[i])
+                            else:
+                                edgesOutside.append(edgesPad[i])
+                        if edgesInside and edgesOutside:
+                            self.intersections.append({'pad':pad, 'graph':graph})
             else:
                 for pad in module.pads:
                     padComplex = complex(pad['pos']['x'], pad['pos']['y'])
