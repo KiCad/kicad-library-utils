@@ -56,9 +56,6 @@ class Rule(KLCRule):
         for pin in self.violating_pins:
             pin['name_text_size'] = '50'
             pin['num_text_size'] = '50'
-        if self.check():
-            self.verboseOut(Verbosity.HIGH, Severity.ERROR,"...could't be fixed")
-        else:
-            self.verboseOut(Verbosity.HIGH, Severity.SUCCESS,"everything fixed")
+        self.recheck()
 
 
