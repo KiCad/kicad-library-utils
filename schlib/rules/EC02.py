@@ -27,6 +27,7 @@ class Rule(KLCRule):
                 # if group 2 is empty there are only letters in the pin name
                 if m.group(2) == '':
                     self.wrong_pin_numbers.append(pin)
+                    self.verboseOut(Verbosity.HIGH, Severity.WARNING, "pin: {0} number {1} is not valid, should contain at least 1 number".format(pin['name'], pin['num']))
 
         return False if len(self.wrong_pin_numbers) == 0 else True
 
@@ -34,5 +35,4 @@ class Rule(KLCRule):
         """
         Proceeds the fixing of the rule, if possible.
         """
-        if self.check():
-            pass
+        self.verboseOut(Verbosity.NORMAL, Severity.INFO, "FIX: not supported" )
