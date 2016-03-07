@@ -64,10 +64,16 @@ class Rule(KLCRule):
                             abs(centerComplex - padComplex) > abs(-radius + pad['size']['x'] / 2 + 0.075)):
                             self.intersections.append({'pad':pad, 'graph':graph})
                     else:
+                        # if there are edges inside and outside the circle, we have an intersection
+                        edgesInside = []
+                        edgesOutside = []
                         for i in range(4):
-                            if abs(centerComplex - edgesPad[i]) > radius:
-                                self.intersections.append({'pad':pad, 'graph':graph})
-                                break
+                            if abs(centerComplex - edgesPad[i]) < radius:
+                                edgesInside.append(edgesPad[i])
+                            else:
+                                edgesOutside.append(edgesPad[i])
+                        if edgesInside and edgesOutside:
+                            self.intersections.append({'pad':pad, 'graph':graph})
             else:
                 for pad in module.pads:
                     padComplex = complex(pad['pos']['x'], pad['pos']['y'])
@@ -110,9 +116,22 @@ class Rule(KLCRule):
                         padMinX = padComplex.real - distance
                         padMaxX = padComplex.real + distance
                     else:
-                        padMinX = min(edgesPad[0].real, edgesPad[1].real, edgesPad[2].real, edgesPad[3].real)
-                        padMaxX = max(edgesPad[0].real, edgesPad[1].real, edgesPad[2].real, edgesPad[3].real)
-
+                        edges = [[0,3],[0,2],[2,1],[1,3]] #lines of the rectangle pads
+                        x0 = [] #vector of value the x to y=0
+                        for edge in edges:
+                            x1 = edgesPad[edge[0]].real
+                            x2 = edgesPad[edge[1]].real
+                            y1 = edgesPad[edge[0]].imag
+                            y2 = edgesPad[edge[1]].imag
+                            if y1 != y2:
+                                x = -y1 / (y2 - y1) * (x2 - x1) + x1
+                                if x < max(x1, x2) and x > min(x1, x2):
+                                    x0.append(x)
+                        if x0:
+                            padMinX = min(x0)
+                            padMaxX = max(x0)
+                        else:
+                            continue
                     if ((padMinX < length and padMinX > 0) or
                         (padMaxX < length and padMaxX > 0) or
                         (padMaxX > length and padMinX < 0)) :
