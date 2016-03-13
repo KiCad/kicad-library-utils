@@ -318,13 +318,9 @@ class SchLib(object):
                 keys_list = Component._DRAW_KEYS[elem[0]]# 'A' -> keys of all properties of arc
                 line = elem[0] + ' '# 'arcs' -> 'A'
                 for k in keys_list:
-                    if k == 'italic':
-                        line += ' '#for unknown reason, KiCad adds space in front of Italic/Normal parameter (https://github.com/KiCad/kicad-source-mirror/blob/master/eeschema/lib_text.cpp#L77)
                     if k == 'points':
-                        points=item['points']
-                        for i in range(0,len(points)-1,2):
-                            # x and y pairs have spaces on both sides -> "... x1 y1  x2 y2 ..."
-                            line += ' {0} {1} '.format(points[i],points[i+1])
+                        for i in item['points']:
+                            line += '{0} '.format(i)
                     else:
                         line += item[k] + ' '
 
