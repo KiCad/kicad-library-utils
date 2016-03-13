@@ -67,15 +67,16 @@ class Component(object):
     _TEXT_KEYS = ['direction','posx','posy','text_size','text_type','unit','convert','text', 'italic', 'bold', 'hjustify', 'vjustify']
     _PIN_KEYS = ['name','num','posx','posy','length','direction','name_text_size','num_text_size','unit','convert','electrical_type','pin_type']
 
-    _DRAW_KEYS = {'arcs':_ARC_KEYS, 'circles':_CIRCLE_KEYS, 'polylines':_POLY_KEYS, 'rectangles':_RECT_KEYS, 'texts':_TEXT_KEYS, 'pins':_PIN_KEYS}
-    _DRAW_ELEMS = {'arcs':'A', 'circles':'C', 'polylines':'P', 'rectangles':'S', 'texts':'T', 'pins':'X'}
+    _DRAW_KEYS = {'A':_ARC_KEYS, 'C':_CIRCLE_KEYS, 'P':_POLY_KEYS, 'S':_RECT_KEYS, 'T':_TEXT_KEYS, 'X':_PIN_KEYS}
+    # _DRAW_ELEMS = {'arcs':'A', 'circles':'C', 'polylines':'P', 'rectangles':'S', 'texts':'T', 'pins':'X'}
 
     _KEYS = {'DEF':_DEF_KEYS, 'F0':_F0_KEYS, 'F':_FN_KEYS,
              'A':_ARC_KEYS, 'C':_CIRCLE_KEYS, 'P':_POLY_KEYS, 'S':_RECT_KEYS, 'T':_TEXT_KEYS, 'X':_PIN_KEYS}
     def __init__(self, data, comments, documentation):
         self.comments = comments
         self.fplist = []
-        self.aliases = []
+        self.aliases = {}
+        self.aliasesOrdered =[]
         building_fplist = False
         building_draw = False
         for line in data:
@@ -102,7 +103,9 @@ class Component(object):
                 self.fields.append(dict(zip(self._FN_KEYS,values)))
 
             elif line[0] == 'ALIAS':
-                self.aliases = [alias for alias in line[1:]]
+                for alias in line[1:]:
+                    self.aliasesOrdered.append(alias)
+                    self.aliases[alias]=self.getDocumentation(documentation,alias)
 
             elif line[0] == '$FPLIST':
                 building_fplist = True
@@ -121,6 +124,7 @@ class Component(object):
                     'texts':[],
                     'pins':[]
                 }
+                self.drawOrdered=[]#list of draw elements references, needed to preserve line ordering
 
             elif line[0] == 'ENDDRAW':
                 building_draw = False
@@ -132,9 +136,11 @@ class Component(object):
                 elif building_draw:
                     if line[0] == 'A':
                         self.draw['arcs'].append(dict(zip(self._ARC_KEYS,values)))
+                        self.drawOrdered.append(['A',self.draw['arcs'][-1]])
                     if line[0] == 'C':
                         self.draw['circles'].append(dict(zip(self._CIRCLE_KEYS,values)))
-                    if line[0] == 'P':
+                        self.drawOrdered.append(['C',self.draw['circles'][-1]])
+                    if line[0] == 'P':#mixing X an Y points into 1 list in not handy
                         n_points = int(line[1])
                         points = line[5:5+(2*n_points)]
                         values = line[1:5] + [points]
@@ -143,12 +149,17 @@ class Component(object):
                         else:
                             values += ['']
                         self.draw['polylines'].append(dict(zip(self._POLY_KEYS,values)))
+                        self.drawOrdered.append(['P',self.draw['polylines'][-1]])
                     if line[0] == 'S':
                         self.draw['rectangles'].append(dict(zip(self._RECT_KEYS,values)))
+                        self.drawOrdered.append(['S',self.draw['rectangles'][-1]])
                     if line[0] == 'T':
                         self.draw['texts'].append(dict(zip(self._TEXT_KEYS,values)))
+                        self.drawOrdered.append(['T',self.draw['texts'][-1]])
                     if line[0] == 'X':
                         self.draw['pins'].append(dict(zip(self._PIN_KEYS,values)))
+                        self.drawOrdered.append(['X',self.draw['pins'][-1]])
+
 
         # define some shortcuts
         self.name = self.definition['name']
@@ -156,10 +167,13 @@ class Component(object):
         self.pins = self.draw['pins']
 
         # get documentation
+        self.documentation = self.getDocumentation(documentation,self.name)
+
+    def getDocumentation(self,documentation,name):
         try:
-            self.documentation = documentation.components[self.name]
+            return documentation.components[name]
         except KeyError:
-            self.documentation = {}
+            return {}
 
     def getPinsByName(self, name):
         pins = []
@@ -282,7 +296,7 @@ class SchLib(object):
             # ALIAS
             if len(component.aliases) > 0:
                 line = 'ALIAS '
-                for alias in component.aliases:
+                for alias in component.aliasesOrdered:
                     line += alias + ' '
 
                 line = line.rstrip() + '\n'
@@ -299,19 +313,19 @@ class SchLib(object):
 
             # DRAW
             to_write.append('DRAW\n')
-            for elem in component.draw.items():
-                for item in component.draw[elem[0]]:
-                    keys_list = Component._DRAW_KEYS[elem[0]]
-                    line = Component._DRAW_ELEMS[elem[0]] + ' '
-                    for k in keys_list:
-                        if k == 'points':
-                            for i in item['points']:
-                                line += i + ' '
-                        else:
-                            line += item[k] + ' '
+            for elem in component.drawOrdered:
+                item=elem[1]
+                keys_list = Component._DRAW_KEYS[elem[0]]# 'A' -> keys of all properties of arc
+                line = elem[0] + ' '# 'arcs' -> 'A'
+                for k in keys_list:
+                    if k == 'points':
+                        for i in item['points']:
+                            line += '{0} '.format(i)
+                    else:
+                        line += item[k] + ' '
 
-                    line = line.rstrip() + '\n'
-                    to_write.append(line)
+                line = line.rstrip() + '\n'
+                to_write.append(line)
 
             # ENDDRAW
             to_write.append('ENDDRAW\n')
