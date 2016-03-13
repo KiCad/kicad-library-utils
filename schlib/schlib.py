@@ -309,8 +309,10 @@ class SchLib(object):
                     line = Component._DRAW_ELEMS[elem[0]] + ' '
                     for k in keys_list:
                         if k == 'points':
-                            for i in item['points']:
-                                line += i + ' '
+                            points=item['points']
+                            for i in range(0,len(points)-1,2):
+                                # x and y pairs have spaces on both sides -> "... x1 y1  x2 y2 ..."
+                                line += ' {0} {1} '.format(points[i],points[i+1])
                         else:
                             line += item[k] + ' '
 
