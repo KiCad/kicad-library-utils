@@ -21,6 +21,8 @@ PIN_TYPES_MAPPING = {"Power": "W", "I/O": "B", "Reset": "I", "Boot": "I",
 BOOT1_FIX_PARTS = {r"^STM32F10\d.+$", r"^STM32F2\d\d.+$", r"^STM32F4\d\d.+$", 
                    r"^STM32L1\d\d.+$"}
 
+POWER_PAD_FIX_PACKAGES = {"UFQFPN28", "UFQFPN32", "UFQFPN48", "VFQFPN36"}
+
 def unique(items):
     found = set([])
     keep = []
@@ -103,7 +105,7 @@ class device:
             self.name = name
 
         self.package = self.root.get("Package")
-        
+
         self.bga = False
         for child in self.root.xpath("a:Pin", namespaces=self.ns):
             # Create object and read attributes
@@ -129,14 +131,23 @@ class device:
                     
                     
             self.pins.append(newpin)
-        if(self.root.get("HasPowerPad") == "true"):    # Special case for the thermal pad
+
+        self.hasPowerPad = False
+
+        if self.root.get("HasPowerPad") == "true":
+            self.hasPowerPad = True
+        else:
+            if self.package in POWER_PAD_FIX_PACKAGES:
+                print("Absent powerpad detected in part " + self.name)
+                self.hasPowerPad = True
+
+        if(self.hasPowerPad == True):    # Special case for the thermal pad
             # Some heuristic here
             packPinCountR = re.search(r"^[a-zA-Z]+([0-9]+)$", self.package)
             powerpinnumber = int(packPinCountR.group(1)) + 1
             print("Device " + name + " with powerpad, package " + self.package + ", power pin: " + str(powerpinnumber))
             powerpadpin = pin(powerpinnumber, "VSS", "Power")
             self.pins.append(powerpadpin)
-
         
         if(not self.bga):
             for apin in self.pins:
