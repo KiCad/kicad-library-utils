@@ -4,8 +4,15 @@ from __future__ import print_function
 
 import argparse
 from kicad_mod import *
+import sys, os
+#point to the correct location for the print_color script
+sys.path.append(os.path.join(sys.path[0],'..','schlib'))
+
 from print_color import *
 from rules import *
+
+#enable windows wildcards
+from glob import glob
 
 parser = argparse.ArgumentParser()
 parser.add_argument('kicad_mod_files', nargs='+')
@@ -22,7 +29,12 @@ for f in dir():
     if f.startswith('rule'):
         all_rules.append(globals()[f].Rule)
 
-for filename in args.kicad_mod_files:
+files = []
+
+for f in args.kicad_mod_files:
+    files += glob(f)
+        
+for filename in files:
     module = KicadMod(filename)
     printer.green('checking module: %s' % module.name)
 
