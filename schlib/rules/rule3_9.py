@@ -20,7 +20,6 @@ class Rule(KLCRule):
         
         #look for duplicate pins
         for pin in self.component.pins:
-            print("Pin:",pin['num'],pin['name'])
             found = False
             for p in pins:
                 if p['num'] == pin['num'] and not p['name'] == pin['name']:
