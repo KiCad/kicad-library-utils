@@ -6,6 +6,9 @@ from schlib import *
 from print_color import *
 from rules import *
 
+#enable windows wildcards
+from glob import glob
+
 def processVerboseOutput(messageBuffer):
     if args.verbose:
         for msg in messageBuffer:
@@ -47,7 +50,13 @@ for f in dir():
     if f.startswith('EC'):
         all_ec.append(globals()[f].Rule)
 
+#grab list of libfiles (even on windows!)
+libfiles = []
+
 for libfile in args.libfiles:
+    libfiles += glob(libfile)
+
+for libfile in libfiles:
     lib = SchLib(libfile)
     n_components = 0
     printer.purple('library: %s' % libfile)
