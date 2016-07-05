@@ -9,36 +9,41 @@ class Documentation(object):
     A class to parse documentation files (dcm) of Schematic Libraries Files Format of the KiCad
     """
     line_keys = {
-        'header':'EESchema-DOCLI',
+        'header':'EESchema-DOCLIB',
         'start':'$CMP ',
         'description':'D ',
         'keywords':'K ',
         'datasheet':'F ',
         'end':'$ENDCMP',
     }
-    header_full = "EESchema-DOCLIB  Version 2.0" #used for new dcm files
 
     def __init__(self, filename, create = False):
         self.filename = filename
         self.components = OrderedDict()
+        self.validFile = False
+        self.header = None
 
         if create:
             if os.path.lexists(self.filename):
                 sys.stderr.write("File already exists!\n")
                 return
+            else:
+                self.validFile = True
+                self.header=["EESchema-DOCLIB  Version 2.0\n"] #used for new dcm files
 
         else:
             if not os.path.isfile(self.filename):
                 sys.stderr.write("Not a file\n")
                 return
             else:
+                self.validFile = True
                 self.__parse()
 
     def __parse(self):
         f = open(self.filename, 'r')
-        self.header = f.readline()
+        self.header = [f.readline()]
 
-        if self.header and not Documentation.line_keys['header'] in self.header:
+        if self.header and not self.line_keys['header'] in self.header[0]:
             self.header=None
             sys.stderr.write('The file is not a KiCad Documentation Library File\n')
             return False
@@ -65,30 +70,32 @@ class Documentation(object):
         return True
 
     def save(self, filename=None):
-        # check whether it has header, what means that schlib file was loaded fine
-        if not self.header: return
+        if not self.validFile: return False
 
         if not filename: filename = self.filename
 
-        f = open(filename, 'w')
 
-        to_write=[]
-        to_write.append(Documentation.header_full+'\n')
+
+        to_write=self.header
         for name,doc in self.components.items():
             to_write.append('#\n')#just spacer (no even in dcm format specification, but used everywhere)
-            to_write.append(Documentation.line_keys['start']+name+'\n')
+            to_write.append(self.line_keys['start']+name+'\n')
             for key in doc.keys():
                 if(doc[key]!=None):
-                    to_write.append( Documentation.line_keys[key]+doc[key]+'\n')
-            to_write.append(Documentation.line_keys['end']+'\n')
+                    to_write.append( self.line_keys[key]+doc[key]+'\n')
+            to_write.append(self.line_keys['end']+'\n')
         to_write.append("#\n")#again, spacer^^
         to_write.append("#End Doc Library\n")
 
+        f = open(filename, 'w')
         f.writelines(to_write)
         f.close()
 
     def remove(self, name):
         del self.components[name]
+
+    def add(self, name, doc):
+        self.components[name]=doc
 
 
 
@@ -245,31 +252,35 @@ class SchLib(object):
     A class to parse Schematic Libraries Files Format of the KiCad
     """
 
-    header_full=['EESchema-LIBRARY Version 2.3\n','#encoding utf-8\n']
     line_keys={
         'header':'EESchema-LIBRARY',
     }
 
     def __init__(self, filename, create=False):
         self.filename = filename
-        self.header = []
+        self.header = None
         self.components = []
+        self.validFile = False
 
-        self.documentation = Documentation(self.__lib_to_dcm_filename(self.filename))
+        self.documentation = Documentation(self.libToDcmFilename(self.filename))
 
         if create:
             if os.path.lexists(self.filename):
                 sys.stderr.write("File already exists!\n")
                 return
+            else:
+                self.validFile = True
+                self.header=['EESchema-LIBRARY Version 2.3\n','#encoding utf-8\n']
 
         else:
             if not os.path.isfile(self.filename):
                 sys.stderr.write("Not a file\n")
                 return
             else:
+                self.validFile = True
                 self.__parse()
 
-    def __lib_to_dcm_filename(self,filename):
+    def libToDcmFilename(self,filename):
         dir_path = os.path.dirname(os.path.realpath(filename))
         filename = os.path.splitext(os.path.basename(filename))
         return os.path.join(dir_path, filename[0] + '.dcm')
@@ -279,7 +290,6 @@ class SchLib(object):
         self.header = [f.readline()]
 
         if self.header and not SchLib.line_keys['header'] in self.header[0]:
-            self.header = None
             sys.stderr.write('The file is not a KiCad Schematic Library File\n')
             return False
 
@@ -314,22 +324,29 @@ class SchLib(object):
 
     def removeComponent(self, name):
         component = self.getComponentByName(name)
-        for alias in component.aliases:
+        for alias in component.aliases.keys():
             self.documentation.remove(alias)
         self.documentation.remove(name)
         self.components.remove(component)
         return component
 
+    def addComponent(self, component):
+        if not component in self.components:
+            self.components.append(component)
+            self.documentation.add(component.name, component.documentation)
+            for alias in component.aliases.keys():
+                self.documentation.add(alias, component.aliases[alias])
+
     def save(self, filename=None):
-        # check whether it has header, what means that schlib file was loaded fine
-        if not self.header: return
+        if not self.validFile: return False
 
         if not filename: filename = self.filename
 
-        self.documentation.save(self.__lib_to_dcm_filename(filename))
+        self.documentation.save(self.libToDcmFilename(filename))
+
 
         # insert the header
-        to_write = self.header_full
+        to_write = self.header
 
         # insert the components
         for component in self.components:
