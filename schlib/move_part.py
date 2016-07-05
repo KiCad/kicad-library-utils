@@ -35,40 +35,12 @@ for comp in dst_lib.components:
         sys.exit(1)
 
 # append component to destination and save
-dst_lib.components.append(component)
+dst_lib.addComponent(component)
 dst_lib.save()
 
 # remove component from source and save
-src_lib.components.remove(component)
+src_lib.removeComponent(component.name)
 src_lib.save()
-
-if component.documentation:
-    i = component.documentation['lines_range']['start']
-    j = component.documentation['lines_range']['end'] + 1
-
-# remove documentation from source
-src_lines = []
-try:
-    f = open(src_lib.documentation_filename, 'r')
-    src_lines = f.readlines()
-    f = open(src_lib.documentation_filename, 'w')
-    f.writelines(src_lines[:i] + src_lines[j:])
-    f.close()
-except FileNotFoundError:
-    pass
-
-# add documentation to destination
-if src_lines:
-    try:
-        f = open(dst_lib.documentation_filename, 'r')
-        dst_lines = f.readlines()
-    except FileNotFoundError:
-        dst_lines = ['EESchema-DOCLIB  Version 2.0\n', '#\n', '#End Doc Library\n']
-
-    dst_lines[-2:-2] = src_lines[i:j]
-    f = open(dst_lib.documentation_filename, 'w')
-    f.writelines(dst_lines)
-    f.close()
 
 print('Component "%s" moved.'  % (args.name))
 print('Please, before commit use git diff to check if everything is ok.')
