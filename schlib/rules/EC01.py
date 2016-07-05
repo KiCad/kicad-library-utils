@@ -18,16 +18,40 @@ class Rule(KLCRule):
             * probably_wrong_pin_types
             * double_inverted_pins
         """
+        #Power Output Pins should be 'W'
+        POWER_PINS = ['gnd','vcc','vdd','ground',]
+        
+        #Input Pins should be "I" or ""
+        INPUT_PINS = ['sdi','clk','clock',]
+        
+        #Output pins should be "O"
+        OUTPUT_PINS = ['sdo',]
+        
+        #Bidirectional pins should be "B"
+        BIDIR_PINS = ['sda',]
+        
+        tests = {
+            "W" : POWER_PINS,
+            "I" : INPUT_PINS,
+            "O" : OUTPUT_PINS,
+            "B" : BIDIR_PINS,
+            }
+        
         self.probably_wrong_pin_types = []
         self.double_inverted_pins = []
         for pin in self.component.pins:
-            if ('GND' in pin['name'].upper() or
-                'VCC' in pin['name'].upper() or
-                'VDD' in pin['name'].upper()):
-                if pin['electrical_type'] != 'W':
+            
+            name = pin['name'].lower()
+            etype = pin['electrical_type']
+            
+            #run each test
+            for pin_type in tests.keys():
+                pins = tests[pin_type]
+                
+                if any([p in name for p in pins]) and not etype == pin_type:
                     self.probably_wrong_pin_types.append(pin)
-                    self.verboseOut(Verbosity.HIGH,Severity.WARNING,'pin {0} ({1}): {2} ({3}), expected: W ({4})'.format(pin['name'], pin['num'], pin['electrical_type'],pinElecticalTypeToStr(pin['electrical_type']),pinElecticalTypeToStr("W")))
-
+                    self.verboseOut(Verbosity.HIGH,Severity.WARNING,'pin {0} ({1}): {2} ({3}), expected: {4} ({5})'.format(pin['name'], pin['num'], pin['electrical_type'],pinElecticalTypeToStr(pin['electrical_type']),pin_type,pinElecticalTypeToStr(pin_type)))
+            
             # check if name contains overlining
             m = re.search('(\~)(.+)', pin['name'])
             if m and pin['pin_type'] == 'I':
