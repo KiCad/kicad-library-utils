@@ -17,22 +17,19 @@ class Documentation(object):
         'end':'$ENDCMP',
     }
     header_full = "EESchema-DOCLIB  Version 2.0" #used for new dcm files
-    def __init__(self, filename, new = False):
+
+    def __init__(self, filename, create = False):
+        self.filename = filename
         self.components = OrderedDict()
 
-        dir_path = os.path.dirname(os.path.realpath(filename))
-        filename = os.path.splitext(os.path.basename(filename))
-        filename = os.path.join(dir_path, filename[0] + '.dcm')
-        self.filename = filename
-
-        if new:
-            if os.path.lexists(filename):
-                sys.stderr.write("File already exists!")
+        if create:
+            if os.path.lexists(self.filename):
+                sys.stderr.write("File already exists!\n")
                 return
 
         else:
-            if not os.path.isfile(filename):
-                sys.stderr.write("Not a file")
+            if not os.path.isfile(self.filename):
+                sys.stderr.write("Not a file\n")
                 return
             else:
                 self.__parse()
@@ -64,9 +61,16 @@ class Documentation(object):
             elif line.startswith(Documentation.line_keys['end']):
                 self.components[name] = OrderedDict([('description',description), ('keywords',keywords), ('datasheet',datasheet)])
             #FIXME: we do not handle comments except separators around components
+        f.close()
+        return True
 
-    def save(self):
-        f = open(self.filename, 'w')
+    def save(self, filename=None):
+        # check whether it has header, what means that schlib file was loaded fine
+        if not self.header: return
+
+        if not filename: filename = self.filename
+
+        f = open(filename, 'w')
 
         to_write=[]
         to_write.append(Documentation.header_full+'\n')
@@ -81,6 +85,10 @@ class Documentation(object):
         to_write.append("#End Doc Library\n")
 
         f.writelines(to_write)
+        f.close()
+
+    def remove(self, name):
+        del self.components[name]
 
 
 
@@ -236,33 +244,50 @@ class SchLib(object):
     """
     A class to parse Schematic Libraries Files Format of the KiCad
     """
+
+    header_full=['EESchema-LIBRARY Version 2.3\n','#encoding utf-8\n']
+    line_keys={
+        'header':'EESchema-LIBRARY',
+    }
+
     def __init__(self, filename, create=False):
         self.filename = filename
         self.header = []
         self.components = []
 
-        documentation = Documentation(filename)
-        self.documentation_filename = documentation.filename
+        self.documentation = Documentation(self.__lib_to_dcm_filename(self.filename))
 
         if create:
-            if not os.path.isfile(filename):
-                f = open(filename, 'w')
-                self.header = ['EESchema-LIBRARY Version 2.3\n', '#encoding utf-8\n']
+            if os.path.lexists(self.filename):
+                sys.stderr.write("File already exists!\n")
                 return
 
-        f = open(filename)
+        else:
+            if not os.path.isfile(self.filename):
+                sys.stderr.write("Not a file\n")
+                return
+            else:
+                self.__parse()
+
+    def __lib_to_dcm_filename(self,filename):
+        dir_path = os.path.dirname(os.path.realpath(filename))
+        filename = os.path.splitext(os.path.basename(filename))
+        return os.path.join(dir_path, filename[0] + '.dcm')
+
+    def __parse(self):
+        f = open(self.filename, 'r')
         self.header = [f.readline()]
 
-        if self.header and not 'EESchema-LIBRARY' in self.header[0]:
+        if self.header and not SchLib.line_keys['header'] in self.header[0]:
             self.header = None
             sys.stderr.write('The file is not a KiCad Schematic Library File\n')
-            return
+            return False
 
         self.header.append(f.readline())
         building_component = False
 
         comments = []
-        for i, line in enumerate(f.readlines()):
+        for line in f.readlines():
             if line.startswith('#'):
                 comments.append(line)
 
@@ -275,8 +300,10 @@ class SchLib(object):
                 component_data.append(line)
                 if line.startswith('ENDDEF'):
                     building_component = False
-                    self.components.append(Component(component_data, comments, documentation))
+                    self.components.append(Component(component_data, comments, self.documentation))
                     comments = []
+        f.close()
+        return True
 
     def getComponentByName(self, name):
         for component in self.components:
@@ -285,14 +312,24 @@ class SchLib(object):
 
         return None
 
+    def removeComponent(self, name):
+        component = self.getComponentByName(name)
+        for alias in component.aliases:
+            self.documentation.remove(alias)
+        self.documentation.remove(name)
+        self.components.remove(component)
+        return component
+
     def save(self, filename=None):
         # check whether it has header, what means that schlib file was loaded fine
         if not self.header: return
 
         if not filename: filename = self.filename
 
+        self.documentation.save(self.__lib_to_dcm_filename(filename))
+
         # insert the header
-        to_write = self.header
+        to_write = self.header_full
 
         # insert the components
         for component in self.components:
@@ -369,3 +406,4 @@ class SchLib(object):
 
         f = open(filename, 'w')
         f.writelines(to_write)
+        f.close()
