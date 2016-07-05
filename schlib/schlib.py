@@ -107,8 +107,7 @@ class Component(object):
     def __init__(self, data, comments, documentation):
         self.comments = comments
         self.fplist = []
-        self.aliases = {}
-        self.aliasesOrdered =[]
+        self.aliases = OrderedDict()
         building_fplist = False
         building_draw = False
         for line in data:
@@ -136,7 +135,6 @@ class Component(object):
 
             elif line[0] == 'ALIAS':
                 for alias in line[1:]:
-                    self.aliasesOrdered.append(alias)
                     self.aliases[alias]=self.getDocumentation(documentation,alias)
 
             elif line[0] == '$FPLIST':
@@ -328,7 +326,7 @@ class SchLib(object):
             # ALIAS
             if len(component.aliases) > 0:
                 line = 'ALIAS '
-                for alias in component.aliasesOrdered:
+                for alias in component.aliases.keys():
                     line += alias + ' '
 
                 line = line.rstrip() + '\n'
