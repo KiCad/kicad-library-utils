@@ -2,54 +2,86 @@
 
 import sys, shlex
 import os.path
+from collections import OrderedDict
 
 class Documentation(object):
     """
     A class to parse documentation files (dcm) of Schematic Libraries Files Format of the KiCad
     """
-    def __init__(self, filename):
-        self.components = {}
+    line_keys = {
+        'header':'EESchema-DOCLI',
+        'start':'$CMP ',
+        'description':'D ',
+        'keywords':'K ',
+        'datasheet':'F ',
+        'end':'$ENDCMP',
+    }
+    header_full = "EESchema-DOCLIB  Version 2.0" #used for new dcm files
+    def __init__(self, filename, new = False):
+        self.components = OrderedDict()
 
         dir_path = os.path.dirname(os.path.realpath(filename))
         filename = os.path.splitext(os.path.basename(filename))
         filename = os.path.join(dir_path, filename[0] + '.dcm')
         self.filename = filename
 
-        if not os.path.isfile(filename):
-            return
+        if new:
+            if os.path.lexists(filename):
+                sys.stderr.write("File already exists!")
+                return
 
-        f = open(filename)
+        else:
+            if not os.path.isfile(filename):
+                sys.stderr.write("Not a file")
+                return
+            else:
+                self.__parse()
+
+    def __parse(self):
+        f = open(self.filename, 'r')
         self.header = f.readline()
 
-        if self.header and not 'EESchema-DOCLIB' in self.header:
-            self.header = None
+        if self.header and not Documentation.line_keys['header'] in self.header:
+            self.header=None
             sys.stderr.write('The file is not a KiCad Documentation Library File\n')
-            return
+            return False
 
         name = None
-        description = None
-        keywords = None
-        datasheet = None
         f.seek(0)
-        for i, line in enumerate(f.readlines()):
+        for line in f.readlines():
             line = line.replace('\n', '')
-            if line.startswith('$CMP '):
+            if line.startswith(Documentation.line_keys['start']):
                 name = line[5:]
-                description = None
                 keywords = None
+                description = None
                 datasheet = None
-            elif line.startswith('D '):
+            elif line.startswith(Documentation.line_keys['description']):
                 description = line[2:]
-            elif line.startswith('K '):
+            elif line.startswith(Documentation.line_keys['keywords']):
                 keywords = line[2:]
-            elif line.startswith('F '):
+            elif line.startswith(Documentation.line_keys['datasheet']):
                 datasheet = line[2:]
-            elif line.startswith('$ENDCMP'):
-                self.components[name] = {
-                     'description':description,
-                     'keywords':keywords,
-                     'datasheet':datasheet,
-                     'lines_range':{'start':i-5, 'end':i}}
+            elif line.startswith(Documentation.line_keys['end']):
+                self.components[name] = OrderedDict([('description',description), ('keywords',keywords), ('datasheet',datasheet)])
+            #FIXME: we do not handle comments except separators around components
+
+    def save(self):
+        f = open(self.filename, 'w')
+
+        to_write=[]
+        to_write.append(Documentation.header_full+'\n')
+        for name,doc in self.components.items():
+            to_write.append('#\n')#just spacer (no even in dcm format specification, but used everywhere)
+            to_write.append(Documentation.line_keys['start']+name+'\n')
+            for key in doc.keys():
+                if(doc[key]!=None):
+                    to_write.append( Documentation.line_keys[key]+doc[key]+'\n')
+            to_write.append(Documentation.line_keys['end']+'\n')
+        to_write.append("#\n")#again, spacer^^
+        to_write.append("#End Doc Library\n")
+
+        f.writelines(to_write)
+
 
 
 class Component(object):
