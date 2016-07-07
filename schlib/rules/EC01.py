@@ -63,9 +63,9 @@ class Rule(KLCRule):
                         pin['name'],
                         pin['num'],
                         pin['electrical_type'],
-                        pinElecticalTypeToStr(pin['electrical_type']),
+                        pinElectricalTypeToStr(pin['electrical_type']),
                         pin_type,
-                        pinElecticalTypeToStr(pin_type)))
+                        pinElectricalTypeToStr(pin_type)))
             
             # check if name contains overlining
             m = re.search('(\~)(.+)', pin['name'])

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #this should go to separate file
-def pinElecticalTypeToStr(pinEType):
+def pinElectricalTypeToStr(pinEType):
     pinMap={"I":"INPUT",\
     "O":"OUTPUT",\
     "B":"BIDI",\
