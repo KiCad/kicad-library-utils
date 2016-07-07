@@ -83,8 +83,18 @@ class Rule(KLCRule):
         for pin in self.probably_wrong_pin_types:
         
             for pin_type in self.tests.keys():
-                pass
-                #pin['electrical_type'] = 'W'
+                pin_names = self.tests[pin_type]
+                
+                #we have found the 'correct' pin type...
+                if pin['name'].lower() in pin_names:
+                    self.verboseOut(Verbosity.HIGH, Severity.WARNING, 'changing pin {0} ({1} - {2}) to ({3} - {4})'.format(
+                        pin['name'],
+                        pin['electrical_type'],
+                        pinElectricalTypeToStr(pin['electrical_type']),
+                        pin_type,
+                        pinElectricalTypeToStr(pin_type)))
+                    
+                    pin['electrical_type'] = pin_type
 
         for pin in self.double_inverted_pins:
             pin['pin_type']="" #reset pin type (removes dot at the base of pin)
