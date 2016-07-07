@@ -15,27 +15,36 @@ class Rule(KLCRule):
         Determines if any symbol pins are duplicated
         """
         
-        pins = []
+        #dict of pins
+        pins = {}
+        
         duplicates = []
         
         #look for duplicate pins
         for pin in self.component.pins:
-            found = False
-            for p in pins:
-                if p['num'] == pin['num']:
-                    self.verboseOut(Verbosity.NORMAL, Severity.WARNING, "Pin {n} is duplicated".format(n=pin['num']))
-                    self.verboseOut(Verbosity.HIGH, Severity.ERROR, 'pin: {0} ({1})'.format(pin['name'], pin['num']))
-                    self.verboseOut(Verbosity.HIGH, Severity.ERROR, 'pin: {0} ({1})'.format(p['name'], p['num']))
-                    found = True
-                    break
-                    
-            if not found:
-                pins.append(pin)
-
+        
+            pin_number = pin['num']
+            pin_name = pin['name']
+            
+            #Check if there is already a match for this pin number
+            if pin_number in pins.keys():
+                pins[pin_number].append(pin_name)
             else:
-                duplicates.append(pin)
-           
-        return len(duplicates) > 0
+                pins[pin_number] = [pin_name]
+                
+        duplicate = False
+                
+        for number in pins.keys():
+            pin_list = pins[number]
+            
+            if len(pin_list) > 1:
+                duplicate = True
+                self.verboseOut(Verbosity.NORMAL, Severity.WARNING, "Pin {n} is duplicated".format(n=number))
+                
+                for name in pin_list:
+                    self.verboseOut(Verbosity.HIGH, Severity.ERROR, "{n} - {name}".format(n = number, name = name))
+            
+        return duplicate
 
     def fix(self):
         """
