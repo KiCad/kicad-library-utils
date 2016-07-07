@@ -13,7 +13,7 @@ class Rule(KLCRule):
     
     PASSIVE_PINS = []
     
-    #Input Pins should be "I" or ""
+    #Input Pins should be "I"
     INPUT_PINS = ['sdi','clk','clock','~cs','cs']
     
     #Output pins should be "O"
