@@ -14,16 +14,16 @@ class Rule(KLCRule):
     PASSIVE_PINS = []
     
     #Input Pins should be "I"
-    INPUT_PINS = ['sdi','^cl(oc)*k(in)*$','^~*cs~*$',]
+    INPUT_PINS = ['^sdi','^cl(oc)*k(in)*$','^~*cs~*$',]
     
     #Output pins should be "O"
-    OUTPUT_PINS = ['sdo','^cl(oc)*kout$']
+    OUTPUT_PINS = ['^sdo$','^cl(oc)*kout$']
     
     #Bidirectional pins should be "B"
-    BIDIR_PINS = ['sda',]
+    BIDIR_PINS = ['^sda$',]
     
     #No-connect pins should be "N"
-    NC_PINS = ["nc","dnc"]
+    NC_PINS = ["^nc$","^dnc$"]
     
     tests = {
         "W" : POWER_INPUTS,
@@ -35,11 +35,8 @@ class Rule(KLCRule):
         "N" : NC_PINS,
         }
         
-    #check if a pin name fits within a list of possible pins
-    #first check raw matches and then check regex
+    #check if a pin name fits within a list of possible pins (using regex testing)
     def test(self, pinName, nameList):
-        if pinName.lower() in nameList:
-            return True
             
         for name in nameList:
             if re.search(name,pinName,flags=re.IGNORECASE) is not None:
