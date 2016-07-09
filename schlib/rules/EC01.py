@@ -22,6 +22,9 @@ class Rule(KLCRule):
     #Bidirectional pins should be "B"
     BIDIR_PINS = ['sda',]
     
+    #No-connect pins should be "N"
+    NC_PINS = []
+    
     tests = {
         "W" : POWER_INPUTS,
         "w" : POWER_OUTPUTS,
@@ -29,6 +32,7 @@ class Rule(KLCRule):
         "I" : INPUT_PINS,
         "O" : OUTPUT_PINS,
         "B" : BIDIR_PINS,
+        "N" : NC_PINS,
         }
 
     """
