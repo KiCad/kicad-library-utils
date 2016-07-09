@@ -28,9 +28,9 @@ class Rule(KLCRule):
             
             #Check if there is already a match for this pin number
             if pin_number in pins.keys():
-                pins[pin_number].append(pin_name)
+                pins[pin_number].append(pin)
             else:
-                pins[pin_number] = [pin_name]
+                pins[pin_number] = [pin]
                 
         duplicate = False
                 
@@ -41,8 +41,12 @@ class Rule(KLCRule):
                 duplicate = True
                 self.verboseOut(Verbosity.NORMAL, Severity.WARNING, "Pin {n} is duplicated".format(n=number))
                 
-                for name in pin_list:
-                    self.verboseOut(Verbosity.HIGH, Severity.ERROR, "{n} - {name}".format(n = number, name = name))
+                for pin in pin_list:
+                    self.verboseOut(Verbosity.HIGH, Severity.ERROR, "{n} - {name} @ {x},{y}".format(
+                        n = pin['num'],
+                        name = pin['name'],
+                        x = pin['posx'],
+                        y = pin['posy']))
             
         return duplicate
 
