@@ -14,7 +14,7 @@ class Rule(KLCRule):
     PASSIVE_PINS = []
     
     #Input Pins should be "I"
-    INPUT_PINS = ['^sdi','^cl(oc)*k(in)*$','^~*cs~*$',]
+    INPUT_PINS = ['^sdi$','^cl(oc)*k(in)*$','^~*cs~*$',]
     
     #Output pins should be "O"
     OUTPUT_PINS = ['^sdo$','^cl(oc)*kout$']
