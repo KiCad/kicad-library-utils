@@ -20,7 +20,7 @@ class Rule(KLCRule):
     OUTPUT_PINS = ['^sdo$','^cl(oc)*kout$']
     
     #Bidirectional pins should be "B"
-    BIDIR_PINS = ['^sda$',]
+    BIDIR_PINS = ['^sda$','^s*dio$',]
     
     #No-connect pins should be "N"
     NC_PINS = ["^nc$","^dnc$"]
