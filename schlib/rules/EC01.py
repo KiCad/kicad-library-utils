@@ -6,15 +6,15 @@ import re
 class Rule(KLCRule):
 
     #Power Input Pins should be 'W'
-    POWER_INPUTS = ['gnd','vcc','vdd','ground','vbat','vss','vaa','vin','vi']
+    POWER_INPUTS = ['^[ad]*g(rou)*nd$','^[ad]*v(aa|cc|dd|ss|bat|in)$',]
     
     #Power Output Pins should be 'w'
-    POWER_OUTPUTS = []
+    POWER_OUTPUTS = ['^vout$']
     
     PASSIVE_PINS = []
     
     #Input Pins should be "I"
-    INPUT_PINS = ['sdi','clk','clock','~cs','cs']
+    INPUT_PINS = ['sdi','cl(oc)*k(in)*','~*cs',]
     
     #Output pins should be "O"
     OUTPUT_PINS = ['sdo',]
@@ -23,7 +23,7 @@ class Rule(KLCRule):
     BIDIR_PINS = ['sda',]
     
     #No-connect pins should be "N"
-    NC_PINS = []
+    NC_PINS = ["nc","dnc"]
     
     tests = {
         "W" : POWER_INPUTS,
@@ -34,6 +34,18 @@ class Rule(KLCRule):
         "B" : BIDIR_PINS,
         "N" : NC_PINS,
         }
+        
+    #check if a pin name fits within a list of possible pins
+    #first check raw matches and then check regex
+    def test(self, pinName, nameList):
+        if pinName.lower() in nameList:
+            return True
+            
+        for name in nameList:
+            if re.search(name,pinName,flags=re.IGNORECASE) is not None:
+                return True
+                
+        return False
 
     """
     Create the methods check and fix to use with the kicad lib files.
@@ -61,7 +73,7 @@ class Rule(KLCRule):
             for pin_type in self.tests.keys():
                 pins = self.tests[pin_type]
                 
-                if any([p in name for p in pins]) and not etype == pin_type:
+                if self.test(name, pins) and not etype == pin_type:
                     self.probably_wrong_pin_types.append(pin)
                     self.verboseOut(Verbosity.HIGH,Severity.WARNING,'pin {0} ({1}): {2} ({3}), expected: {4} ({5})'.format(
                         pin['name'],
@@ -90,7 +102,7 @@ class Rule(KLCRule):
                 pin_names = self.tests[pin_type]
                 
                 #we have found the 'correct' pin type...
-                if pin['name'].lower() in pin_names:
+                if self.test(pin['name'],pin_names):
                     self.verboseOut(Verbosity.HIGH, Severity.WARNING, 'changing pin {0} ({1} - {2}) to ({3} - {4})'.format(
                         pin['name'],
                         pin['electrical_type'],
