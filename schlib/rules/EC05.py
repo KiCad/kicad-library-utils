@@ -42,7 +42,7 @@ class Rule(KLCRule):
                 self.verboseOut(Verbosity.NORMAL, Severity.WARNING, "Pin {n} is duplicated".format(n=number))
                 
                 for pin in pin_list:
-                    self.verboseOut(Verbosity.NORMAL, Severity.WARNING, "{n} - {name} @ {x},{y}".format(
+                    self.verboseOut(Verbosity.HIGH, Severity.WARNING, "{n} - {name} @ {x},{y}".format(
                         n = pin['num'],
                         name = pin['name'],
                         x = pin['posx'],
