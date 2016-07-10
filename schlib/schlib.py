@@ -92,10 +92,12 @@ class Documentation(object):
         f.close()
 
     def remove(self, name):
-        del self.components[name]
+        if name in self.components.keys():#delete only if it exists
+            del self.components[name]
 
     def add(self, name, doc):
-        self.components[name]=doc
+        if doc:#do not create empty records
+            self.components[name]=doc
 
 
 
