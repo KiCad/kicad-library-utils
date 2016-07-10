@@ -27,6 +27,7 @@ def processVerboseOutput(messageBuffer):
 parser = argparse.ArgumentParser(description='Execute checkrule scripts checking 3.* KLC rules in the libraries')
 parser.add_argument('libfiles', nargs='+')
 parser.add_argument('-c', '--component', help='check only a specific component (implicitly verbose)', action='store')
+parser.add_argument('-r','--rule',help='Select a particular rule (or rules) to check against (default = all rules). Use comma separated values to select multiple rules. e.g. "-r 3.1,EC02"')
 parser.add_argument('--fix', help='fix the violations if possible', action='store_true')
 parser.add_argument('--nocolor', help='does not use colors to show the output', action='store_true')
 parser.add_argument('--enable-extra', help='enable extra checking', action='store_true')
@@ -38,17 +39,31 @@ printer = PrintColor(use_color = not args.nocolor)
 # force to be verbose if is looking for a specific component
 if not args.verbose and args.component: args.verbose = 1
 
+#user can select various rules
+#in the format -r=3.1 or --rule=3.1,EC01,EC05
+if args.rule:
+    selected_rules = args.rule.split(',')
+else:
+    #ALL rules are used
+    selected_rules = None
+
 # get all rules
 all_rules = []
 for f in dir():
     if f.startswith('rule'):
-        all_rules.append(globals()[f].Rule)
+        #f is of the format rule3_1 (user may have speicified a rule like 3.1)
+        if (selected_rules == None) or (f[4:].replace("_",".") in selected_rules):
+            all_rules.append(globals()[f].Rule)
 
 # gel all extra checking
 all_ec = []
 for f in dir():
     if f.startswith('EC'):
-        all_ec.append(globals()[f].Rule)
+        if (selected_rules is None) or (f.lower() in [r.lower() for r in selected_rules]):
+            all_ec.append(globals()[f].Rule)
+            #force --enable-extra on if an EC rule is selected
+            if selected_rules is not None:
+                args.enable_extra = True
 
 #grab list of libfiles (even on windows!)
 libfiles = []
