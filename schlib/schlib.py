@@ -79,6 +79,7 @@ class Component(object):
         self.aliasesOrdered =[]
         building_fplist = False
         building_draw = False
+        building_fields = False
         for line in data:
             line = line.replace('\n', '')
             s = shlex.shlex(line)
@@ -92,15 +93,8 @@ class Component(object):
                 values = line[1:] + ['' for n in range(len(key_list) - len(line[1:]))]
 
             if line[0] == 'DEF':
+                building_fields = True
                 self.definition = dict(zip(self._DEF_KEYS,values))
-
-            elif line[0] == 'F0':
-                self.fields = []
-                self.fields.append(dict(zip(self._F0_KEYS,values)))
-
-            elif line[0][0] == 'F':
-                values = line[1:] + ['' for n in range(len(self._FN_KEYS) - len(line[1:]))]
-                self.fields.append(dict(zip(self._FN_KEYS,values)))
 
             elif line[0] == 'ALIAS':
                 for alias in line[1:]:
@@ -108,6 +102,7 @@ class Component(object):
                     self.aliases[alias]=self.getDocumentation(documentation,alias)
 
             elif line[0] == '$FPLIST':
+                building_fields = False
                 building_fplist = True
                 self.fplist = []
 
@@ -159,6 +154,16 @@ class Component(object):
                     if line[0] == 'X':
                         self.draw['pins'].append(dict(zip(self._PIN_KEYS,values)))
                         self.drawOrdered.append(['X',self.draw['pins'][-1]])
+
+                elif building_fields:
+                    if line[0] == 'F0':
+                        self.fields = []
+                        self.fields.append(dict(zip(self._F0_KEYS,values)))
+
+                    elif line[0][0] == 'F':
+                        values = line[1:] + ['' for n in range(len(self._FN_KEYS) - len(line[1:]))]
+                        self.fields.append(dict(zip(self._FN_KEYS,values)))
+
 
 
         # define some shortcuts
