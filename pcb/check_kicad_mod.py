@@ -59,6 +59,7 @@ for filename in files:
             rule.fix()
 
     if n_violations == 0 and not args.silent:
+        printer.green('checking module: {mod}'.format(mod = module.name))
         printer.light_green('No violations found', indentation=2)
     elif args.fix:
         module.save()
