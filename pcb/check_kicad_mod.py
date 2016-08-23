@@ -35,7 +35,11 @@ for f in args.kicad_mod_files:
     files += glob(f)
         
 for filename in files:
-    module = KicadMod(filename)
+    try:
+        module = KicadMod(filename)
+    except:
+        printer.red('could not parse module: %s' % filename)
+        continue
     printer.green('checking module: %s' % module.name)
 
     n_violations = 0
