@@ -7,7 +7,7 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad lib files.
     """
     def __init__(self, component):
-        super(Rule, self).__init__(component, 'EC05 - Extra Checking', 'Pin numbers should not be duplicated.')
+        super(Rule, self).__init__(component, 'EC05 - Extra Checking', 'Pin numbers should not be duplicated, and all pins should be present')
 
     def check(self):
         """
@@ -18,12 +18,10 @@ class Rule(KLCRule):
         #dict of pins
         pins = {}
         
-        duplicates = []
-        
         #look for duplicate pins
         for pin in self.component.pins:
         
-            pin_number = pin['num']
+            pin_number = int(pin['num'])
             pin_name = pin['name']
             
             #Check if there is already a match for this pin number
@@ -48,7 +46,16 @@ class Rule(KLCRule):
                         x = pin['posx'],
                         y = pin['posy']))
             
-        return duplicate
+        
+        missing = False
+        
+        #check for missing pins within the range of pins
+        for i in range(1, max(pins.keys()) + 1):
+            if i not in pins:
+                self.verboseOut(Verbosity.NORMAL, Severity.WARNING, "Pin {n} is missing".format(n=i))
+                missing = True
+                
+        return duplicate or missing
 
     def fix(self):
         """
