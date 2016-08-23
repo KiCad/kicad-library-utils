@@ -5,13 +5,13 @@ from __future__ import print_function
 import argparse
 from kicad_mod import *
 import sys, os
-#point to the correct location for the print_color script
-sys.path.append(os.path.join(sys.path[0],'..','schlib'))
+# point to the correct location for the print_color script
+sys.path.append(os.path.join(sys.path[0], '..', 'schlib'))
 
 from print_color import *
 from rules import *
 
-#enable windows wildcards
+# enable windows wildcards
 from glob import glob
 
 parser = argparse.ArgumentParser()
@@ -21,7 +21,9 @@ parser.add_argument('--nocolor', help='does not use colors to show the output', 
 parser.add_argument('-v', '--verbose', help='show status of all modules and extra information about the violation', action='store_true')
 args = parser.parse_args()
 
-printer = PrintColor(use_color = not args.nocolor)
+printer = PrintColor(use_color=not args.nocolor)
+
+exit_code = 0
 
 # get all rules
 all_rules = []
@@ -33,9 +35,14 @@ files = []
 
 for f in args.kicad_mod_files:
     files += glob(f)
-        
+
 for filename in files:
-    module = KicadMod(filename)
+    try:
+        module = KicadMod(filename)
+    except:
+        printer.red('could not parse module: %s' % filename)
+        exit_code += 1
+        continue
     printer.green('checking module: %s' % module.name)
 
     n_violations = 0
@@ -43,7 +50,7 @@ for filename in files:
         rule = rule(module)
         if rule.check():
             n_violations += 1
-            printer.yellow('Violating ' +  rule.name, indentation=2)
+            printer.yellow('Violating ' + rule.name, indentation=2)
             if args.verbose:
                 printer.light_blue(rule.description, indentation=4, max_width=100)
 
@@ -56,8 +63,12 @@ for filename in files:
 
     if n_violations == 0:
         printer.light_green('No violations found', indentation=2)
-    elif args.fix:
-        module.save()
+    else:
+        exit_code += 1
+        if args.fix:
+            module.save()
 
 if args.fix:
     printer.light_red('Please, resave the files using KiCad to keep indentation standard.')
+
+sys.exit(exit_code)

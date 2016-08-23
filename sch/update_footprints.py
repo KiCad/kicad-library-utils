@@ -37,16 +37,16 @@ for f in args.sch_file:
 
     for component in sch.components:
         # check if is power related component
-        if ('#PWR' in component.fields[0]['ref'] or
-            'PWR_FLAG' in component.fields[1]['ref']):
+        if '#PWR' in component.fields[0]['ref'] or\
+           'PWR_FLAG' in component.fields[1]['ref']:
             continue
 
         # component reference
-        comp_ref = component.fields[0]['ref'].replace('"','')
+        comp_ref = component.fields[0]['ref'].replace('"', '')
 
         # search the component in the BOM items and get the PN
         for item in bom:
-            item_refs = item[ref_col].replace(' ','').split(',')
+            item_refs = item[ref_col].replace(' ', '').split(',')
             if item[fp_col] and comp_ref in item_refs:
                 # set component footprint
                 component.fields[2]['ref'] = '"' + item[fp_col] + '"'
