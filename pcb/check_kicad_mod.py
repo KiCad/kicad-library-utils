@@ -23,6 +23,8 @@ args = parser.parse_args()
 
 printer = PrintColor(use_color = not args.nocolor)
 
+return_val = 0
+
 # get all rules
 all_rules = []
 for f in dir():
@@ -39,6 +41,7 @@ for filename in files:
         module = KicadMod(filename)
     except:
         printer.red('could not parse module: %s' % filename)
+        return_val = 1
         continue
     printer.green('checking module: %s' % module.name)
 
@@ -47,6 +50,7 @@ for filename in files:
         rule = rule(module)
         if rule.check():
             n_violations += 1
+            return_val = 1
             printer.yellow('Violating ' +  rule.name, indentation=2)
             if args.verbose:
                 printer.light_blue(rule.description, indentation=4, max_width=100)
@@ -65,3 +69,5 @@ for filename in files:
 
 if args.fix:
     printer.light_red('Please, resave the files using KiCad to keep indentation standard.')
+
+quit(return_val)
