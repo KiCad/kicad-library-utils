@@ -29,7 +29,7 @@ def processVerboseOutput(messageBuffer):
 parser = argparse.ArgumentParser(description='Execute checkrule scripts checking 3.* KLC rules in the libraries')
 parser.add_argument('libfiles', nargs='+')
 parser.add_argument('-c', '--component', help='check only a specific component (implicitly verbose)', action='store')
-parser.add_argument('-p', '--pattern', help='Check multiply components by matching a regular expression', action='store')
+parser.add_argument('-p', '--pattern', help='Check multiple components by matching a regular expression', action='store')
 parser.add_argument('-r','--rule',help='Select a particular rule (or rules) to check against (default = all rules). Use comma separated values to select multiple rules. e.g. "-r 3.1,EC02"')
 parser.add_argument('--fix', help='fix the violations if possible', action='store_true')
 parser.add_argument('--nocolor', help='does not use colors to show the output', action='store_true')
