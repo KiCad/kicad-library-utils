@@ -5,6 +5,7 @@ import argparse
 import sys
 from schlib import *
 from print_color import *
+import re
 from rules import *
 
 #enable windows wildcards
@@ -28,11 +29,13 @@ def processVerboseOutput(messageBuffer):
 parser = argparse.ArgumentParser(description='Execute checkrule scripts checking 3.* KLC rules in the libraries')
 parser.add_argument('libfiles', nargs='+')
 parser.add_argument('-c', '--component', help='check only a specific component (implicitly verbose)', action='store')
+parser.add_argument('-p', '--pattern', help='Check multiply components by matching a regular expression', action='store')
 parser.add_argument('-r','--rule',help='Select a particular rule (or rules) to check against (default = all rules). Use comma separated values to select multiple rules. e.g. "-r 3.1,EC02"')
 parser.add_argument('--fix', help='fix the violations if possible', action='store_true')
 parser.add_argument('--nocolor', help='does not use colors to show the output', action='store_true')
 parser.add_argument('--enable-extra', help='enable extra checking', action='store_true')
 parser.add_argument('-v', '--verbose', help='show status of all components and extra information about the violation', action='count')
+
 args = parser.parse_args()
 
 printer = PrintColor(use_color = not args.nocolor)
@@ -80,7 +83,19 @@ for libfile in libfiles:
     printer.purple('library: %s' % libfile)
     for component in lib.components:
         # skip components with non matching names
-        if args.component and args.component != component.name: continue
+        
+        match = True
+        
+        #simple match
+        if args.component:
+            match = match and args.component.lower() == component.name.lower()
+            
+        #regular expression match
+        if args.pattern:
+            match = match and re.search(args.pattern, component.name, flags=re.IGNORECASE)
+            
+        if not match: continue
+        
         n_components += 1
 
         printer.green('checking component: %s' % component.name)
