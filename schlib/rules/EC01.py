@@ -57,6 +57,7 @@ class Rule(KLCRule):
             * probably_wrong_pin_types
             * double_inverted_pins
         """
+        fail = False
         
         self.probably_wrong_pin_types = []
         self.double_inverted_pins = []
@@ -66,12 +67,14 @@ class Rule(KLCRule):
             name = pin['name'].lower()
             etype = pin['electrical_type']
             
-            #run each test
+            #Check that the pin names match the (best guess) pin types
             for pin_type in self.tests.keys():
                 pins = self.tests[pin_type]
                 
                 if self.test(name, pins) and not etype == pin_type:
+                    fail = True
                     self.probably_wrong_pin_types.append(pin)
+                    
                     self.verboseOut(Verbosity.HIGH,Severity.WARNING,'pin {0} ({1}): {2} ({3}), expected: {4} ({5})'.format(
                         pin['name'],
                         pin['num'],
@@ -83,11 +86,23 @@ class Rule(KLCRule):
             # check if name contains overlining
             m = re.search('(\~)(.+)', pin['name'])
             if m and pin['pin_type'] == 'I':
+                fail = True
                 self.double_inverted_pins.append(pin)
                 self.verboseOut(Verbosity.HIGH,Severity.WARNING,'pin {0} ({1}): double inversion (overline + pin type:Inverting)'.format(pin['name'], pin['num']))
 
-        return False if len(self.probably_wrong_pin_types)+len(self.double_inverted_pins) == 0 else True
-
+            # check if pin names are empty
+            if len(pin['name']) == 0 or pin['name'] == '~':
+                fail = True
+                self.verboseOut(Verbosity.HIGH, Severity.WARNING, "pin {n} does not have a name".format(n=pin['num']))
+                
+            # check if NC pins are visible
+            if self.test(pin['name'], self.NC_PINS):
+                fail = True
+                if not pin['pin_type'].startswith('N'):
+                    self.verboseOut(Verbosity.HIGH, Severity.WARNING, "pin {name} ({n}) is no-connect, should be set to invisible".format(n=pin['num'],name=pin['name']))
+                
+        return fail
+        
     def fix(self):
         """
         Proceeds the fixing of the rule, if possible.
