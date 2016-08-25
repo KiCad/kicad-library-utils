@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import argparse
+import sys
 from schlib import *
 from print_color import *
 from rules import *
@@ -71,6 +72,8 @@ libfiles = []
 for libfile in args.libfiles:
     libfiles += glob(libfile)
 
+exit_code = 0
+
 for libfile in libfiles:
     lib = SchLib(libfile)
     n_components = 0
@@ -116,6 +119,10 @@ for libfile in libfiles:
         # check the number of violations
         if n_violations == 0:
             printer.light_green('No violations found', indentation=2)
+        else:
+            exit_code += 1
 
     if args.fix:
         lib.save()
+
+sys.exit(exit_code);

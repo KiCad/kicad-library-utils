@@ -38,23 +38,23 @@ for f in args.sch_file:
 
     for component in sch.components:
         # check if is power related component
-        if ('#PWR' in component.fields[0]['ref'] or
-            'PWR_FLAG' in component.fields[1]['ref']):
+        if '#PWR' in component.fields[0]['ref'] or\
+           'PWR_FLAG' in component.fields[1]['ref']:
             continue
 
         # create or get the PN field
         for field in component.fields:
-            if field['name'].replace('"','') == args.pn_field_name:
+            if field['name'].replace('"', '') == args.pn_field_name:
                 break
         else:
-            field = component.addField({'name':'"%s"' % args.pn_field_name, 'ref':'"~"'})
+            field = component.addField({'name': '"%s"' % args.pn_field_name, 'ref': '"~"'})
 
         # component reference
-        comp_ref = component.fields[0]['ref'].replace('"','')
+        comp_ref = component.fields[0]['ref'].replace('"', '')
 
         # search the component in the BOM items and get the PN
         for item in bom:
-            item_refs = item[ref_col].replace(' ','').split(',')
+            item_refs = item[ref_col].replace(' ', '').split(',')
             if item[pn_col] and comp_ref in item_refs:
                 field['ref'] = '"' + item[pn_col] + '"'
                 break
