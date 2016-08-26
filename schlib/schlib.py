@@ -3,6 +3,7 @@
 import sys, shlex
 import os.path
 from collections import OrderedDict
+import hashlib
 
 class Documentation(object):
     """
@@ -128,7 +129,11 @@ class Component(object):
         building_fplist = False
         building_draw = False
         building_fields = False
+        
+        checksum_data = ''
+        
         for line in data:
+            checksum_data += line
             line = line.replace('\n', '')
             s = shlex.shlex(line)
             s.whitespace_split = True
@@ -211,7 +216,10 @@ class Component(object):
                         values = line[1:] + ['' for n in range(len(self._FN_KEYS) - len(line[1:]))]
                         self.fields.append(dict(zip(self._FN_KEYS,values)))
 
-
+        #perform checksum calculation
+        x = checksum_data.encode('utf-8')
+        md5 = hashlib.md5(x)
+        self.checksum = md5.hexdigest()
 
         # define some shortcuts
         self.name = self.definition['name']
