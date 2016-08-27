@@ -78,7 +78,11 @@ exit_code = 0
 for libfile in libfiles:
     lib = SchLib(libfile)
     n_components = 0
-    printer.purple('library: %s' % libfile)
+    
+    # Print the library name if multiple libraries have been passed
+    if len(libfiles) > 1:
+        printer.purple('library: %s' % libfile)
+    
     for component in lib.components:
         # skip components with non matching names
         if args.component and args.component != component.name: continue
