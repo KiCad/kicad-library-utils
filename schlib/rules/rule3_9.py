@@ -40,7 +40,7 @@ class Rule(KLCRule):
                     self.verboseOut(Verbosity.HIGH, Severity.ERROR, fp_desc + "should be of the format Library:Footprint")
                     
                 # Footprint name cannot contain any illegal pathname characters
-                invalid = '\/*?:"<>|'
+                invalid = '\/*?"<>|'
                 if any([i in fp_name for i in invalid]):
                     fail = True
                     self.verboseOut(Verbosity.HIGH, Severity.ERROR, fp_desc + "contains illegal filename characters")
