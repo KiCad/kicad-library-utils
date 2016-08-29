@@ -23,11 +23,12 @@ parser.add_argument("--check", help="Perform KLC check on updated/added componen
 args = parser.parse_args()
 
 def KLCCheck(component):
-    call = "python checklib.py {lib} -c={cmp} --enable-extra -vv -s".format(
+    call = "python checklib.py {lib} -c={cmp} --enable-extra -s".format(
                 lib = args.new,
                 cmp = component
                 )
-    os.system(call)
+    
+    return os.system(call)
 
 printer = PrintColor()
 
@@ -48,6 +49,8 @@ for c in old_lib.components:
 deleted = []
 added = []
 updated = []
+
+errors = 0
     
 # First, see if any components have been deleted (in OLD but not in NEW)
 for name in old_chk.keys():
@@ -78,7 +81,8 @@ if len(updated) > 0:
 
         # perform KLC check on component
         if args.check:
-            KLCCheck(name)
+            if KLCCheck(name) is not 0:
+                errors += 1
             
 # Display any added components
 if len(added) > 0:
@@ -88,4 +92,8 @@ if len(added) > 0:
         
         # Perform KLC check on component
         if args.check:
-            KLCCheck(name)
+            if KLCCheck(name) is not 0:
+                errors += 1
+
+# Return the number of errors found ( zero if --check is not set )                
+sys.exit(errors)
