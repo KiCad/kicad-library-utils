@@ -96,9 +96,9 @@ class Rule(KLCRule):
                 self.verboseOut(Verbosity.HIGH, Severity.WARNING, "pin {n} does not have a name".format(n=pin['num']))
                 
             # check if NC pins are visible
-            if self.test(pin['name'], self.NC_PINS):
-                fail = True
+            if pin['electrical_type'] == 'N':
                 if not pin['pin_type'].startswith('N'):
+                    fail = True
                     self.verboseOut(Verbosity.HIGH, Severity.WARNING, "pin {name} ({n}) is no-connect, should be set to invisible".format(n=pin['num'],name=pin['name']))
                 
         return fail
