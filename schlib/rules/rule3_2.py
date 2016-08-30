@@ -7,7 +7,7 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad lib files.
     """
     def __init__(self, component):
-        super(Rule, self).__init__(component, 'Rule 3.2', 'For black-box symbols, pins have a length of 100mils. Large pin numbers can be accomodated by incrementing the width in steps of 50mil.')
+        super(Rule, self).__init__(component, 'Rule 3.2', 'For black-box symbols, pins have a length of 100mils. Large pin numbers can be accommodated by incrementing the width in steps of 50mil.')
 
     def check(self):
         """
