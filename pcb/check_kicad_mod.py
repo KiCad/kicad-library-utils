@@ -19,6 +19,8 @@ parser.add_argument('kicad_mod_files', nargs='+')
 parser.add_argument('--fix', help='fix the violations if possible', action='store_true')
 parser.add_argument('--nocolor', help='does not use colors to show the output', action='store_true')
 parser.add_argument('-v', '--verbose', help='show status of all modules and extra information about the violation', action='store_true')
+parser.add_argument('-s', '--silent', help='skip output for symbols passing all checks', action='store_true')
+
 args = parser.parse_args()
 
 printer = PrintColor(use_color=not args.nocolor)
@@ -49,6 +51,9 @@ for filename in files:
     for rule in all_rules:
         rule = rule(module)
         if rule.check():
+            #this is the first violation
+            if n_violations == 0:
+                printer.green('checking module: %s' % module.name)
             n_violations += 1
             printer.yellow('Violating ' + rule.name, indentation=2)
             if args.verbose:
@@ -61,7 +66,8 @@ for filename in files:
         if args.fix:
             rule.fix()
 
-    if n_violations == 0:
+    if n_violations == 0 and not args.silent:
+        printer.green('checking module: {mod}'.format(mod = module.name))
         printer.light_green('No violations found', indentation=2)
     else:
         exit_code += 1
