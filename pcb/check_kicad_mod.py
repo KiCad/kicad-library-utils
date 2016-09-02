@@ -45,7 +45,6 @@ for filename in files:
         printer.red('could not parse module: %s' % filename)
         exit_code += 1
         continue
-    printer.green('checking module: %s' % module.name)
 
     n_violations = 0
     for rule in all_rules:
