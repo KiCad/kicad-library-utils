@@ -18,6 +18,7 @@ parser = argparse.ArgumentParser(description="Compare two .lib files to determin
 
 parser.add_argument("new", help="New (updated) .lib file")
 parser.add_argument("original", help="Original .lib file for comparison")
+parser.add_argument("-v", "--verbose", help="Enable extra verbose output", action="store_true")
 parser.add_argument("--check", help="Perform KLC check on updated/added components", action='store_true')
 
 args = parser.parse_args()
@@ -69,28 +70,31 @@ for name in new_chk.keys():
         
 # Display any deleted components
 if len(deleted) > 0:
-    printer.light_red("Components Removed: {n}".format(n=len(deleted)))
+    if args.verbose:
+        printer.light_red("Components Removed: {n}".format(n=len(deleted)))
     for name in deleted:
-        printer.light_red(name)
-        
-# Display any updated components
-if len(updated) > 0:
-    printer.yellow("Components Updated: {n}".format(n=len(updated)))
-    for name in updated:
-        printer.yellow(name)
-
-        # perform KLC check on component
-        if args.check:
-            if KLCCheck(name) is not 0:
-                errors += 1
+        printer.light_red("- " + name)
             
 # Display any added components
 if len(added) > 0:
-    printer.light_green("Components Added: {n}".format(n=len(added)))
+    if args.verbose:
+        printer.light_green("Components Added: {n}".format(n=len(added)))
     for name in added:
-        printer.light_green(name)
+        printer.light_green("+ " + name)
         
         # Perform KLC check on component
+        if args.check:
+            if KLCCheck(name) is not 0:
+                errors += 1
+                
+# Display any updated components
+if len(updated) > 0:
+    if args.verbose:
+        printer.yellow("Components Updated: {n}".format(n=len(updated)))
+    for name in updated:
+        printer.yellow("# " + name)
+
+        # perform KLC check on component
         if args.check:
             if KLCCheck(name) is not 0:
                 errors += 1
