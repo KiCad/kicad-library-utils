@@ -19,6 +19,7 @@ parser = argparse.ArgumentParser(description="Compare two .lib files to determin
 
 parser.add_argument("--new", help="New (updated) .lib file")
 parser.add_argument("--original", help="Original .lib file for comparison")
+parser.add_argument("-v", "--verbose", help="Enable extra verbose output", action="store_true")
 parser.add_argument("--check", help="Perform KLC check on updated/added components", action='store_true')
 parser.add_argument("--nocolor", help="Does not use colors to show the output", action='store_true')
 args = parser.parse_args()
@@ -80,34 +81,36 @@ for old_lib_path, new_lib_path in zip(old_libs, new_libs):
         if not name in old_chk:
             added.append({'name': name, 'library': new_lib_path})
 
-# This isn't useful for the automated checking (currently).
 # Display any deleted components
-#if len(deleted) > 0:
-#    printer.light_red("Components Removed: {n}".format(n=len(deleted)))
-#    for component in deleted:
-#        printer.light_red(component['name'])
-        
+if len(deleted) > 0:
+    if args.verbose:
+        printer.light_red("Components Removed: {n}".format(n=len(deleted)))
+    for name in deleted:
+        printer.light_red("- " + name)
+            
+# Display any added components
+if len(added) > 0:
+    if args.verbose:
+        printer.light_green("Components Added: {n}".format(n=len(added)))
+    for component in added:
+        printer.light_green("+ " + component['name'])
+
+        # Perform KLC check on component
+        if args.check:
+            if KLCCheck(component['name'], component['library']) is not 0:
+                errors += 1
+                
 # Display any updated components
 if len(updated) > 0:
-    printer.yellow("Components Updated: {n}".format(n=len(updated)))
+    if args.verbose:
+        printer.yellow("Components Updated: {n}".format(n=len(updated)))
     for component in updated:
-        printer.yellow(component['name'])
+        printer.yellow("# " + component['name'])
 
         # perform KLC check on component
         if args.check:
             if KLCCheck(component['name'], component['library']) is not 0:
                 errors += 1
             
-# Display any added components
-if len(added) > 0:
-    printer.light_green("Components Added: {n}".format(n=len(added)))
-    for component in added:
-        printer.light_green(component['name'])
-        
-        # Perform KLC check on component
-        if args.check:
-            if KLCCheck(component['name'], component['library']) is not 0:
-                errors += 1
-
 # Return the number of errors found ( zero if --check is not set )                
 sys.exit(errors)
