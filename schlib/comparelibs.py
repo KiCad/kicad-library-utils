@@ -85,8 +85,8 @@ for old_lib_path, new_lib_path in zip(old_libs, new_libs):
 if len(deleted) > 0:
     if args.verbose:
         printer.light_red("Components Removed: {n}".format(n=len(deleted)))
-    for name in deleted:
-        printer.light_red("- " + name)
+    for component in deleted:
+        printer.light_red("- " + component['name'])
             
 # Display any added components
 if len(added) > 0:
