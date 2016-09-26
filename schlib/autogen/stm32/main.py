@@ -49,7 +49,7 @@ class pin:
 
         self.pinnumber = pinnumber
         self.name = realname
-        self.fullname = name
+        self.altNames = []
         self.pintype = pintype
         self.altfunctions = altf
         self.drawn = False  # Whether this pin has already been included in the component or not
@@ -60,14 +60,14 @@ class pin:
     def createPintext(self, left):
         if (left):
             if (self.name == ""):
-                s = "/".join(self.altfunctions)
+                s = "/".join(self.altfunctions + self.altNames)
             else:
-                s = "/".join(self.altfunctions + [self.name])
+                s = "/".join(self.altfunctions + self.altNames + [self.name])
         else:
             if (self.name == ""):
-                s = "/".join(self.altfunctions)
+                s = "/".join(self.altNames + self.altfunctions)
             else:
-                s = "/".join([self.name] + self.altfunctions)
+                s = "/".join([self.name] + self.altNames + self.altfunctions)
         self.pintext = s.replace(" ","")
 
 class device:
@@ -235,7 +235,22 @@ class device:
         
         if(self.pdf == "NOSHEET"):
             print("Datasheet could not be determined for this device: " + self.name)
+    
+    def runDRC(self):
+        pinNumMap = {}
+        removePins = []
+        for pin in self.pins:
+            if pin.pinnumber in pinNumMap:
+                print("Duplicated pin " + str(pin.pinnumber) + " in part " + self.name + ", merging")
+                mergedPin = pinNumMap[pin.pinnumber]
+                mergedPin.altNames.append(pin.name)
+                mergedPin.altfunctions += pin.altfunctions
+                removePins.append(pin)
+            pinNumMap[pin.pinnumber] = pin
             
+        for pin in removePins:
+            self.pins.remove(pin)
+    
     def processPins(self):
         #{"TOP": [], "BOTTOM": [], "RESET": [], "BOOT": [], "PWR": [], "OSC": [], "OTHER": [], "PORT": {}}
         self.resetPins = []
@@ -426,6 +441,7 @@ class device:
         #print(self.rightPins)
 
     def createComponent(self):
+        self.runDRC()
         self.processPins()
         
         # s contains the entire component in a single string

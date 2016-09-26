@@ -2,54 +2,104 @@
 
 import sys, shlex
 import os.path
+from collections import OrderedDict
+import hashlib
 
 class Documentation(object):
     """
     A class to parse documentation files (dcm) of Schematic Libraries Files Format of the KiCad
     """
-    def __init__(self, filename):
-        self.components = {}
+    line_keys = {
+        'header':'EESchema-DOCLIB',
+        'start':'$CMP ',
+        'description':'D ',
+        'keywords':'K ',
+        'datasheet':'F ',
+        'end':'$ENDCMP',
+    }
 
-        dir_path = os.path.dirname(os.path.realpath(filename))
-        filename = os.path.splitext(os.path.basename(filename))
-        filename = os.path.join(dir_path, filename[0] + '.dcm')
+    def __init__(self, filename, create = False):
         self.filename = filename
+        self.components = OrderedDict()
+        self.validFile = False
+        self.header = None
 
-        if not os.path.isfile(filename):
-            return
+        if create:
+            if os.path.lexists(self.filename):
+                sys.stderr.write("File already exists!\n")
+                return
+            else:
+                self.validFile = True
+                self.header=["EESchema-DOCLIB  Version 2.0\n"] #used for new dcm files
 
-        f = open(filename)
-        self.header = f.readline()
+        else:
+            if not os.path.isfile(self.filename):
+                sys.stderr.write("Not a file\n")
+                return
+            else:
+                self.validFile = True
+                self.__parse()
 
-        if self.header and not 'EESchema-DOCLIB' in self.header:
-            self.header = None
+    def __parse(self):
+        f = open(self.filename, 'r')
+        self.header = [f.readline()]
+
+        if self.header and not self.line_keys['header'] in self.header[0]:
+            self.header=None
             sys.stderr.write('The file is not a KiCad Documentation Library File\n')
-            return
+            return False
 
         name = None
-        description = None
-        keywords = None
-        datasheet = None
         f.seek(0)
-        for i, line in enumerate(f.readlines()):
+        for line in f.readlines():
             line = line.replace('\n', '')
-            if line.startswith('$CMP '):
+            if line.startswith(Documentation.line_keys['start']):
                 name = line[5:]
-                description = None
                 keywords = None
+                description = None
                 datasheet = None
-            elif line.startswith('D '):
+            elif line.startswith(Documentation.line_keys['description']):
                 description = line[2:]
-            elif line.startswith('K '):
+            elif line.startswith(Documentation.line_keys['keywords']):
                 keywords = line[2:]
-            elif line.startswith('F '):
+            elif line.startswith(Documentation.line_keys['datasheet']):
                 datasheet = line[2:]
-            elif line.startswith('$ENDCMP'):
-                self.components[name] = {
-                     'description':description,
-                     'keywords':keywords,
-                     'datasheet':datasheet,
-                     'lines_range':{'start':i-5, 'end':i}}
+            elif line.startswith(Documentation.line_keys['end']):
+                self.components[name] = OrderedDict([('description',description), ('keywords',keywords), ('datasheet',datasheet)])
+            #FIXME: we do not handle comments except separators around components
+        f.close()
+        return True
+
+    def save(self, filename=None):
+        if not self.validFile: return False
+
+        if not filename: filename = self.filename
+
+
+
+        to_write=self.header
+        for name,doc in self.components.items():
+            to_write.append('#\n')#just spacer (no even in dcm format specification, but used everywhere)
+            to_write.append(self.line_keys['start']+name+'\n')
+            for key in doc.keys():
+                if(doc[key]!=None):
+                    to_write.append( self.line_keys[key]+doc[key]+'\n')
+            to_write.append(self.line_keys['end']+'\n')
+        to_write.append("#\n")#again, spacer^^
+        to_write.append("#End Doc Library\n")
+
+        f = open(filename, 'w')
+        f.writelines(to_write)
+        f.close()
+
+    def remove(self, name):
+        if name in self.components.keys():#delete only if it exists
+            del self.components[name]
+
+    def add(self, name, doc):
+        if doc:#do not create empty records
+            self.components[name]=doc
+
 
 
 class Component(object):
@@ -75,11 +125,15 @@ class Component(object):
     def __init__(self, data, comments, documentation):
         self.comments = comments
         self.fplist = []
-        self.aliases = {}
-        self.aliasesOrdered =[]
+        self.aliases = OrderedDict()
         building_fplist = False
         building_draw = False
+        building_fields = False
+        
+        checksum_data = ''
+        
         for line in data:
+            checksum_data += line
             line = line.replace('\n', '')
             s = shlex.shlex(line)
             s.whitespace_split = True
@@ -92,22 +146,15 @@ class Component(object):
                 values = line[1:] + ['' for n in range(len(key_list) - len(line[1:]))]
 
             if line[0] == 'DEF':
+                building_fields = True
                 self.definition = dict(zip(self._DEF_KEYS,values))
-
-            elif line[0] == 'F0':
-                self.fields = []
-                self.fields.append(dict(zip(self._F0_KEYS,values)))
-
-            elif line[0][0] == 'F':
-                values = line[1:] + ['' for n in range(len(self._FN_KEYS) - len(line[1:]))]
-                self.fields.append(dict(zip(self._FN_KEYS,values)))
 
             elif line[0] == 'ALIAS':
                 for alias in line[1:]:
-                    self.aliasesOrdered.append(alias)
                     self.aliases[alias]=self.getDocumentation(documentation,alias)
 
             elif line[0] == '$FPLIST':
+                building_fields = False
                 building_fplist = True
                 self.fplist = []
 
@@ -160,6 +207,19 @@ class Component(object):
                         self.draw['pins'].append(dict(zip(self._PIN_KEYS,values)))
                         self.drawOrdered.append(['X',self.draw['pins'][-1]])
 
+                elif building_fields:
+                    if line[0] == 'F0':
+                        self.fields = []
+                        self.fields.append(dict(zip(self._F0_KEYS,values)))
+
+                    elif line[0][0] == 'F':
+                        values = line[1:] + ['' for n in range(len(self._FN_KEYS) - len(line[1:]))]
+                        self.fields.append(dict(zip(self._FN_KEYS,values)))
+
+        #perform checksum calculation
+        x = checksum_data.encode('utf-8')
+        md5 = hashlib.md5(x)
+        self.checksum = md5.hexdigest()
 
         # define some shortcuts
         self.name = self.definition['name']
@@ -206,33 +266,53 @@ class SchLib(object):
     """
     A class to parse Schematic Libraries Files Format of the KiCad
     """
+
+    line_keys={
+        'header':'EESchema-LIBRARY',
+    }
+
     def __init__(self, filename, create=False):
         self.filename = filename
-        self.header = []
+        self.header = None
         self.components = []
+        self.validFile = False
 
-        documentation = Documentation(filename)
-        self.documentation_filename = documentation.filename
+        self.documentation = Documentation(self.libToDcmFilename(self.filename))
 
         if create:
-            if not os.path.isfile(filename):
-                f = open(filename, 'w')
-                self.header = ['EESchema-LIBRARY Version 2.3\n', '#encoding utf-8\n']
+            if os.path.lexists(self.filename):
+                sys.stderr.write("File already exists!\n")
                 return
+            else:
+                self.validFile = True
+                self.header=['EESchema-LIBRARY Version 2.3\n','#encoding utf-8\n']
 
-        f = open(filename)
+        else:
+            if not os.path.isfile(self.filename):
+                sys.stderr.write("Not a file\n")
+                return
+            else:
+                self.validFile = True
+                self.__parse()
+
+    def libToDcmFilename(self,filename):
+        dir_path = os.path.dirname(os.path.realpath(filename))
+        filename = os.path.splitext(os.path.basename(filename))
+        return os.path.join(dir_path, filename[0] + '.dcm')
+
+    def __parse(self):
+        f = open(self.filename, 'r')
         self.header = [f.readline()]
 
-        if self.header and not 'EESchema-LIBRARY' in self.header[0]:
-            self.header = None
+        if self.header and not SchLib.line_keys['header'] in self.header[0]:
             sys.stderr.write('The file is not a KiCad Schematic Library File\n')
-            return
+            return False
 
         self.header.append(f.readline())
         building_component = False
 
         comments = []
-        for i, line in enumerate(f.readlines()):
+        for line in f.readlines():
             if line.startswith('#'):
                 comments.append(line)
 
@@ -245,8 +325,10 @@ class SchLib(object):
                 component_data.append(line)
                 if line.startswith('ENDDEF'):
                     building_component = False
-                    self.components.append(Component(component_data, comments, documentation))
+                    self.components.append(Component(component_data, comments, self.documentation))
                     comments = []
+        f.close()
+        return True
 
     def getComponentByName(self, name):
         for component in self.components:
@@ -255,11 +337,28 @@ class SchLib(object):
 
         return None
 
+    def removeComponent(self, name):
+        component = self.getComponentByName(name)
+        for alias in component.aliases.keys():
+            self.documentation.remove(alias)
+        self.documentation.remove(name)
+        self.components.remove(component)
+        return component
+
+    def addComponent(self, component):
+        if not component in self.components:
+            self.components.append(component)
+            self.documentation.add(component.name, component.documentation)
+            for alias in component.aliases.keys():
+                self.documentation.add(alias, component.aliases[alias])
+
     def save(self, filename=None):
-        # check whether it has header, what means that schlib file was loaded fine
-        if not self.header: return
+        if not self.validFile: return False
 
         if not filename: filename = self.filename
+
+        self.documentation.save(self.libToDcmFilename(filename))
+
 
         # insert the header
         to_write = self.header
@@ -296,7 +395,7 @@ class SchLib(object):
             # ALIAS
             if len(component.aliases) > 0:
                 line = 'ALIAS '
-                for alias in component.aliasesOrdered:
+                for alias in component.aliases.keys():
                     line += alias + ' '
 
                 line = line.rstrip() + '\n'
@@ -339,3 +438,4 @@ class SchLib(object):
 
         f = open(filename, 'w')
         f.writelines(to_write)
+        f.close()
