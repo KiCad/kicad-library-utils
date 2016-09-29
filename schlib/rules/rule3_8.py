@@ -16,7 +16,7 @@ class Rule(KLCRule):
             * only_datasheet_missing
         """
 
-        self.only_datasheet_missing=False #unused, remove?
+        self.only_datasheet_missing=False
 
         invalid_documentation=0
         #check part itself
@@ -50,7 +50,8 @@ class Rule(KLCRule):
                 if (documentation['description'] and
                     documentation['keywords']):
                     self.only_datasheet_missing=True
-            return True
+
+            return not self.only_datasheet_missing
 
         else:
             self.verboseOut(Verbosity.HIGH,Severity.SUCCESS," "*indentation+"documentation OK")
