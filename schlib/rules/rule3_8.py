@@ -53,7 +53,7 @@ class Rule(KLCRule):
                     self.only_datasheet_missing = True
 
             # counts as violation if only datasheet is missing and verbosity is high
-            if self.verbosity > Verbosity.NORMAL:
+            if self.verbosity and self.verbosity > Verbosity.NORMAL:
                 return True
 
             return not self.only_datasheet_missing
