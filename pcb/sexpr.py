@@ -5,6 +5,7 @@ from __future__ import print_function
 import re
 
 dbg = False
+float_render = "%.2f"
 
 term_regex = r'''(?mx)
     \s*(?:
@@ -48,6 +49,8 @@ def build_sexp(exp):
         out += '(' + ' '.join(build_sexp(x) for x in exp) + ')'
     elif type(exp) == type('') and re.search(r'[\s()]', exp):
         out += '"%s"' % repr(exp)[1:-1].replace('"', '\"')
+    elif type(exp) == float:
+        out += float_render % exp
     else:
         if exp == '':
             out += '""'
