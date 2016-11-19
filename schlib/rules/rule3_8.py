@@ -19,20 +19,21 @@ class Rule(KLCRule):
         self.only_datasheet_missing=False #unused, remove?
 
         invalid_documentation=0
+        
         #check part itself
-        if self.checkDocumentation(self.component.documentation): invalid_documentation+=1
+        if self.checkDocumentation(self.component.name, self.component.documentation): invalid_documentation+=1
 
         #check all its aliases too
         if self.component.aliases:
             for alias in self.component.aliases.keys():
                 self.verboseOut(Verbosity.HIGH,Severity.INFO,"checking alias: {0}".format(alias))
-                if self.checkDocumentation(self.component.aliases[alias], indentation=2):
+                if self.checkDocumentation(alias, self.component.aliases[alias], indentation=2):
                     invalid_documentation+=1
 
         return True if invalid_documentation>0 else False
 
 
-    def checkDocumentation(self, documentation, indentation=0):
+    def checkDocumentation(self, name, documentation, indentation=0):
         if not documentation:
             self.verboseOut(Verbosity.HIGH,Severity.ERROR," "*indentation+"missing whole documentation (description, keywords, datasheet)")
             return True
@@ -50,6 +51,10 @@ class Rule(KLCRule):
                 if (documentation['description'] and
                     documentation['keywords']):
                     self.only_datasheet_missing=True
+            return True
+            
+        elif name.lower() in documentation['description'].lower():
+            self.verboseOut(Verbosity.HIGH, Severity.WARNING, " "*indentation + "symbol name should not be included in description")
             return True
 
         else:
