@@ -66,6 +66,8 @@ class KLCRule(object):
     A base class to represent a KLC rule
     """
 
+    verbosity = 0
+
     def __init__(self, component, name, description):
         self.component = component
         self.name = name

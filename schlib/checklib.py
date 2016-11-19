@@ -7,6 +7,7 @@ from schlib import *
 from print_color import *
 import re
 from rules import *
+from rules.rule import KLCRule
 
 #enable windows wildcards
 from glob import glob
@@ -43,6 +44,9 @@ printer = PrintColor(use_color = not args.nocolor)
 
 # force to be verbose if is looking for a specific component
 if not args.verbose and args.component: args.verbose = 1
+
+# set verbosity globally
+KLCRule.verbosity = args.verbose
 
 #user can select various rules
 #in the format -r=3.1 or --rule=3.1,EC01,EC05
@@ -81,39 +85,36 @@ exit_code = 0
 for libfile in libfiles:
     lib = SchLib(libfile)
     n_components = 0
-    
+
     # Print the library name if multiple libraries have been passed
     if len(libfiles) > 1:
         printer.purple('library: %s' % libfile)
-    
+
     for component in lib.components:
         # skip components with non matching names
-        
-        match = True
-        
+
         #simple match
+        match = True
         if args.component:
             match = match and args.component.lower() == component.name.lower()
-            
+
         #regular expression match
         if args.pattern:
             match = match and re.search(args.pattern, component.name, flags=re.IGNORECASE)
-            
-        if not match: continue
-        
-        n_components += 1
 
-        
+        if not match: continue
+
+        n_components += 1
 
         # check the rules
         n_violations = 0
         for rule in all_rules:
             rule = rule(component)
             if rule.check():
-            
-                if n_violations == 0: #this is the first violation
+                #this is the first violation
+                if n_violations == 0:
                     printer.green('checking component: %s' % component.name)
-                    
+
                 n_violations += 1
                 printer.yellow('Violating ' +  rule.name, indentation=2)
                 if args.verbose:
