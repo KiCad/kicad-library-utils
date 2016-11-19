@@ -23,21 +23,15 @@ class Rule(KLCRule):
             self.pin1_count = len(pads)
             self.pin1_position = []
 
-            # get pads positions
+            # check/get pads positions
+            anchor_ok = False
             for pad in pads:
-                self.pin1_position.append((pad['pos']['x'], pad['pos']['y']))
+                x, y = pad['pos']['x'], pad['pos']['y']
+                self.pin1_position.append((x, y))
+                if x == 0 and y == 0:
+                    anchor_ok = True
 
-            # check how many pin 1 was found
-            if self.pin1_count != 1:
-                return True
-
-            # if reach here there is only one pin 1
-            self.pin1_position = self.pin1_position[0]
-            pad1 = pads[0]
-
-            # check pin 1 position
-            if pad1['pos']['x'] != 0 or pad1['pos']['y'] != 0:
-                return True
+            return not anchor_ok
 
         return False
 
@@ -47,5 +41,4 @@ class Rule(KLCRule):
         """
         module = self.module
         if self.check():
-            if self.pin1_count == 1:
-                module.setAnchor(self.pin1_position)
+            module.setAnchor(min(self.pin1_position))
