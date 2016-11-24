@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import division
+
 # math and comments from Michal script
 # https://github.com/michal777/KiCad_Lib_Check
 
