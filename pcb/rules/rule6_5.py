@@ -46,10 +46,10 @@ class Rule(KLCRule):
                             padOffset = complex(pad['drill']['offset']['x'], pad['drill']['offset']['y'])
 
                     edgesPad = {}
-                    edgesPad[0] = complex(pad['size']['x'] / 2, pad['size']['y'] / 2) + padComplex + padOffset
-                    edgesPad[1] = complex(-pad['size']['x'] / 2, -pad['size']['y'] / 2) + padComplex + padOffset
-                    edgesPad[2] = complex(pad['size']['x'] / 2, -pad['size']['y'] / 2) + padComplex + padOffset
-                    edgesPad[3] = complex(-pad['size']['x'] / 2, pad['size']['y'] / 2) + padComplex + padOffset
+                    edgesPad[0] = complex(pad['size']['x'] / 2.0, pad['size']['y'] / 2.0) + padComplex + padOffset
+                    edgesPad[1] = complex(-pad['size']['x'] / 2.0, -pad['size']['y'] / 2.0) + padComplex + padOffset
+                    edgesPad[2] = complex(pad['size']['x'] / 2.0, -pad['size']['y'] / 2.0) + padComplex + padOffset
+                    edgesPad[3] = complex(-pad['size']['x'] / 2.0, pad['size']['y'] / 2.0) + padComplex + padOffset
 
                     vectorR = cmath.rect(1, cmath.pi / 180 * pad['pos']['orientation'])
                     for i in range(4):
@@ -59,9 +59,9 @@ class Rule(KLCRule):
                     endComplex = complex(graph['end']['x'], graph['end']['y'])
                     radius = abs(endComplex - centerComplex)
                     if 'circle' in pad['shape']:
-                        distance = radius + pad['size']['x'] / 2 + 0.075
+                        distance = radius + pad['size']['x'] / 2.0 + 0.075
                         if (abs(centerComplex - padComplex) < distance and
-                            abs(centerComplex - padComplex) > abs(-radius + pad['size']['x'] / 2 + 0.075)):
+                            abs(centerComplex - padComplex) > abs(-radius + pad['size']['x'] / 2.0 + 0.075)):
                             self.intersections.append({'pad':pad, 'graph':graph})
                     else:
                         # if there are edges inside and outside the circle, we have an intersection
@@ -83,10 +83,10 @@ class Rule(KLCRule):
                             padOffset = complex(pad['drill']['offset']['x'], pad['drill']['offset']['y'])
 
                     edgesPad = {}
-                    edgesPad[0] = complex(pad['size']['x'] / 2, pad['size']['y'] / 2) + padComplex + padOffset
-                    edgesPad[1] = complex(-pad['size']['x'] / 2, -pad['size']['y'] / 2) + padComplex + padOffset
-                    edgesPad[2] = complex(pad['size']['x'] / 2, -pad['size']['y'] / 2) + padComplex + padOffset
-                    edgesPad[3] = complex(-pad['size']['x'] / 2, pad['size']['y'] / 2) + padComplex + padOffset
+                    edgesPad[0] = complex(pad['size']['x'] / 2.0, pad['size']['y'] / 2.0) + padComplex + padOffset
+                    edgesPad[1] = complex(-pad['size']['x'] / 2.0, -pad['size']['y'] / 2.0) + padComplex + padOffset
+                    edgesPad[2] = complex(pad['size']['x'] / 2.0, -pad['size']['y'] / 2.0) + padComplex + padOffset
+                    edgesPad[3] = complex(-pad['size']['x'] / 2.0, pad['size']['y'] / 2.0) + padComplex + padOffset
 
                     vectorR = cmath.rect(1, cmath.pi / 180 * pad['pos']['orientation'])
                     for i in range(4):
@@ -112,7 +112,7 @@ class Rule(KLCRule):
                             edgesPad[i] = edgesPad[i] * vectorR
 
                     if 'circle' in pad['shape']:
-                        distance = cmath.sqrt((pad['size']['x'] / 2) ** 2 - (padComplex.imag) ** 2).real
+                        distance = cmath.sqrt((pad['size']['x'] / 2.0) ** 2 - (padComplex.imag) ** 2).real
                         padMinX = padComplex.real - distance
                         padMaxX = padComplex.real + distance
                     else:
@@ -136,7 +136,7 @@ class Rule(KLCRule):
                         (padMaxX < length and padMaxX > 0) or
                         (padMaxX > length and padMinX < 0)) :
                         if 'circle' in pad['shape']:
-                            distance = pad['size']['x'] / 2
+                            distance = pad['size']['x'] / 2.0
                             padMin = padComplex.imag - distance
                             padMax = padComplex.imag + distance
                         else:
@@ -189,7 +189,7 @@ class Rule(KLCRule):
                     phase = cmath.phase(vector)
                     vectorR = cmath.rect(1, -phase)
                     padComplex = padComplex * vectorR
-                    distance = cmath.sqrt((pad['size']['x'] / 2 + 0.226) ** 2 - (padComplex.imag) ** 2).real
+                    distance = cmath.sqrt((pad['size']['x'] / 2.0 + 0.226) ** 2 - (padComplex.imag) ** 2).real
                     padMin = padComplex.real - distance
                     padMax = padComplex.real + distance
 
