@@ -217,8 +217,10 @@ class Component(object):
                         self.fields.append(dict(zip(self._FN_KEYS,values)))
 
         #perform checksum calculation
-        x = checksum_data.encode('utf-8')
-        md5 = hashlib.md5(x)
+        try:
+            md5 = hashlib.md5(checksum_data.encode('utf-8'))
+        except UnicodeDecodeError:
+            md5 = hashlib.md5(checksum_data)
         self.checksum = md5.hexdigest()
 
         # define some shortcuts
