@@ -10,7 +10,7 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad_mod files.
     """
     def __init__(self, module):
-        super(Rule, self).__init__(module, 'Rule 6.5', 'Silkscreen is not superposed to pads, its outline is completely visible after board assembly, uses 0.15mm line width and provides a reference mark for pin 1. (IPC-7351).')
+        super(Rule, self).__init__(module, 'Rule 6.5', 'Silkscreen is not superposed to pads, its outline is completely visible after board assembly, uses 0.12mm line width and provides a reference mark for pin 1. (IPC-7351C).')
 
     def check(self):
         """
@@ -28,7 +28,7 @@ class Rule(KLCRule):
         self.bad_width = []
 
         for graph in (self.f_silk + self.b_silk):
-            if graph['width'] != 0.15:
+            if graph['width'] != 0.12:
                 self.bad_width.append(graph)
 
         # check intersections between line and pad, translate the line and pad
@@ -162,7 +162,7 @@ class Rule(KLCRule):
 
         if self.check():
             for graph in self.bad_width:
-                graph['width'] = 0.15
+                graph['width'] = 0.12
             for inter in self.intersections:
                 pad = inter['pad']
                 graph = inter['graph']

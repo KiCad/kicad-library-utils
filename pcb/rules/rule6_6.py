@@ -12,7 +12,7 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad_mod files.
     """
     def __init__(self, module):
-        super(Rule, self).__init__(module, 'Rule 6.6', 'Courtyard line has a width 0.05mm. This line is placed so that its clearance is measured from its center to the edges of pads and body, and its position is rounded on a grid of 0.05mm.')
+        super(Rule, self).__init__(module, 'Rule 6.6', 'Courtyard line has a width 0.05mm. This line is placed so that its clearance is measured from its center to the edges of pads and body, and its position is rounded on a grid of 0.01mm.')
 
     def check(self):
         """
@@ -38,7 +38,7 @@ class Rule(KLCRule):
         self.f_courtyard_lines = module.filterLines('F.CrtYd')
         self.b_courtyard_lines = module.filterLines('B.CrtYd')
 
-        # check if there is proper rounding 0.05 of courtyard lines
+        # check if there is proper rounding 0.01 of courtyard lines
         # convert position to nanometers (add/subtract 1/10^7 to avoid wrong rounding and cast to int)
         # int pos_x = (d_pos_x + ((d_pos_x >= 0) ? 0.0000001 : -0.0000001)) * 1000000;
         # int pos_y = (d_pos_y + ((d_pos_y >= 0) ? 0.0000001 : -0.0000001)) * 1000000;
@@ -48,7 +48,7 @@ class Rule(KLCRule):
             x, y = line['start']['x'], line['start']['y']
             x = int( (x + (0.0000001 if x >= 0 else -0.0000001))*1E6 )
             y = int( (y + (0.0000001 if y >= 0 else -0.0000001))*1E6 )
-            start_is_wrong = (x % 0.05E6) or (y % 0.05E6)
+            start_is_wrong = (x % 0.01E6) or (y % 0.01E6)
             nanometers['start'] = {'x':x, 'y':y}
 
             x, y = line['end']['x'], line['end']['y']
@@ -76,11 +76,11 @@ class Rule(KLCRule):
 
             for item in self.bad_grid:
                 x, y = item['nanometers']['start']['x'], item['nanometers']['start']['y']
-                x, y = round(x / 0.05E6) * 0.05, round(y / 0.05E6) * 0.05
+                x, y = round(x / 0.05E6) * 0.01, round(y / 0.05E6) * 0.01
                 item['line']['start']['x'], item['line']['start']['y'] = x, y
 
                 x, y = item['nanometers']['end']['x'], item['nanometers']['end']['y']
-                x, y = round(x / 0.05E6) * 0.05, round(y / 0.05E6) * 0.05
+                x, y = round(x / 0.05E6) * 0.01, round(y / 0.05E6) * 0.01
                 item['line']['end']['x'], item['line']['end']['y'] = x, y
 
             # TODO: create courtyard if does not exists
