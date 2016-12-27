@@ -14,7 +14,10 @@ class Rule(KLCRule):
         Proceeds the checking of the rule.
         """
         module = self.module
-        return True if module.tags and module.tags.count(',') > 0 else False
+        if module.tags and module.tags.count(',') > 0:
+            self.verbose_message=self.verbose_message+"Tags ('{0}') contains commas!\n".format(module.tags)
+            return True
+        return False
 
     def fix(self):
         """

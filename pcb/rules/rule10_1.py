@@ -15,7 +15,11 @@ class Rule(KLCRule):
         Proceeds the checking of the rule.
         """
         module = self.module
-        return os.path.splitext(os.path.basename(module.filename))[0] != module.name
+        if os.path.splitext(os.path.basename(module.filename))[0] != module.name:
+            self.verbose_message=self.verbose_message+"footprint name (in file) was '{0}', but expected (from filename) '{1}'.\n".format(module.name, os.path.splitext(os.path.basename(module.filename))[0])
+            return True
+        
+        return False
 
     def fix(self):
         """

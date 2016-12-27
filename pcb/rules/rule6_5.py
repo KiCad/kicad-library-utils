@@ -10,7 +10,8 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad_mod files.
     """
     def __init__(self, module):
-        super(Rule, self).__init__(module, 'Rule 6.5', 'Silkscreen is not superposed to pads, its outline is completely visible after board assembly, uses 0.12mm line width and provides a reference mark for pin 1. (IPC-7351C).')
+        self.expected_width=0.12
+        super(Rule, self).__init__(module, 'Rule 6.5', "Silkscreen is not superposed to pads, its outline is completely visible after board assembly, uses {0}mm line width and provides a reference mark for pin 1. (IPC-7351C).".format(self.expected_width))
 
     def check(self):
         """
@@ -23,12 +24,14 @@ class Rule(KLCRule):
         module = self.module
         self.f_silk = module.filterGraphs('F.SilkS')
         self.b_silk = module.filterGraphs('B.SilkS')
+        
+        
 
         # check the width
         self.bad_width = []
 
         for graph in (self.f_silk + self.b_silk):
-            if graph['width'] != 0.12:
+            if graph['width'] != self.expected_width:
                 self.bad_width.append(graph)
 
         # check intersections between line and pad, translate the line and pad
@@ -150,7 +153,12 @@ class Rule(KLCRule):
                             differentSign = padMin / padMax
                         if (differentSign < 0) or (abs(padMax) < 0.075) or (abs(padMin) < 0.075):
                             self.intersections.append({'pad':pad, 'graph':graph})
+                            
 
+        for  g in self.bad_width:
+            self.verbose_message=self.verbose_message+"Some silkscreen line has a width of {1}mm, different from {0}mm (line: {2}).\n".format(self.expected_width,g['width'],g)
+        for ints in self.intersections:
+            self.verbose_message=self.verbose_message+"Some courtyard line is intersecting with pad @( {0}, {1} )mm (line: {2}).\n".format(ints['pad']['pos']['x'], ints['pad']['pos']['y'], ints['graph'])
         return True if (len(self.bad_width) or len(self.intersections)) else False
 
     def fix(self):
@@ -162,7 +170,7 @@ class Rule(KLCRule):
 
         if self.check():
             for graph in self.bad_width:
-                graph['width'] = 0.12
+                graph['width'] = self.expected_width
             for inter in self.intersections:
                 pad = inter['pad']
                 graph = inter['graph']

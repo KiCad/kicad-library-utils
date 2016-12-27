@@ -7,20 +7,25 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad_mod files.
     """
     def __init__(self, module):
-        super(Rule, self).__init__(module, 'Rule 10.6', 'All other properties are left to default values. (Move and Place: Free; Auto Place: 0 and 0,  Local Clearance Values: 0)')
+        super(Rule, self).__init__(module, 'Rule 10.6', 'Attributes is set to the appropriate value, see tooltip for more information.')
 
     def check(self):
         """
         Proceeds the checking of the rule.
+        The following variables will be accessible after checking:
+            * pth_count
+            * smd_count
         """
         module = self.module
-        if (module.locked or
-            module.autoplace_cost90 != 0 or
-            module.autoplace_cost180 != 0 or
-            module.clearance != 0 or
-            module.solder_mask_margin != 0 or
-            module.solder_paste_margin != 0 or
-            module.solder_paste_ratio != 0):
+        self.pth_count = len(module.filterPads('thru_hole'))
+        self.smd_count = len(module.filterPads('smd'))
+
+        if (self.pth_count > self.smd_count and module.attribute != 'pth'):
+            self.verbose_message=self.verbose_message+"There are mode THT-pads ({0}) than SMD-pads ({1}), but the attribute is not set to 'pth', but '{2}'. ".format(self.pth_count,self.smd_count, module.attribute)
+            return True
+        
+        if (self.smd_count > self.pth_count and module.attribute != 'smd'):
+            self.verbose_message=self.verbose_message+"There are mode SMD-pads ({1}) than THT-pads ({0}), but the attribute is not set to 'smd', but '{2}'. ".format(self.pth_count,self.smd_count, module.attribute)
             return True
 
         return False
@@ -31,10 +36,7 @@ class Rule(KLCRule):
         """
         module = self.module
         if self.check():
-            module.locked = False
-            module.autoplace_cost90 = 0
-            module.autoplace_cost180 = 0
-            module.clearance = 0
-            module.solder_mask_margin = 0
-            module.solder_paste_margin = 0
-            module.solder_paste_ratio = 0
+            if self.pth_count > self.smd_count:
+                module.attribute = 'pth'
+            elif self.smd_count > self.pth_count:
+                module.attribute = 'smd'
