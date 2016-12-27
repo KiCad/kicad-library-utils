@@ -67,10 +67,10 @@ class Rule(KLCRule):
             self.verbose_message=self.verbose_message+"Some courtyard line has a width of {1}mm, different from {0}mm.\n".format(self.expected_width,g['width'])
         for  g in self.bad_grid:
             self.verbose_message=self.verbose_message+"Some courtyard line is not on the expected grid of {0}mm (line: {1}).\n".format(self.expected_grid,g['line'])
-        if len(self.f_courtyard_all)==0:
+        if len(self.f_courtyard_all)+len(self.b_courtyard_all) == 0:
             self.verbose_message=self.verbose_message+"No courtyard line was found at all.\n"
         
-        if (len(self.bad_width) > 0 or len(self.bad_grid) > 0 or len(self.f_courtyard_all) == 0):
+        if (len(self.bad_width) > 0 or len(self.bad_grid) > 0 or len(self.f_courtyard_all)+len(self.b_courtyard_all) == 0):
             return True
         else:
             return False
