@@ -14,7 +14,10 @@ class Rule(KLCRule):
         Proceeds the checking of the rule.
         """
         module = self.module
-        return True if not module.description else False
+        if not module.description:
+            self.verbose_message=self.verbose_message+"Documentation was empty!\n"
+            return True
+        return False
 
     def fix(self):
         """

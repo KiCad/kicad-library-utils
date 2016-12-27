@@ -12,7 +12,9 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad_mod files.
     """
     def __init__(self, module):
-        super(Rule, self).__init__(module, 'Rule 6.6', 'Courtyard line has a width 0.05mm. This line is placed so that its clearance is measured from its center to the edges of pads and body, and its position is rounded on a grid of 0.01mm.')
+        self.expected_width=0.05
+        self.expected_grid=0.01
+        super(Rule, self).__init__(module, 'Rule 6.6', "Courtyard line has a width {0}mm. This line is placed so that its clearance is measured from its center to the edges of pads and body, and its position is rounded on a grid of {1}mm.".format(self.expected_width,self.expected_grid))
 
     def check(self):
         """
@@ -32,7 +34,7 @@ class Rule(KLCRule):
         # check the width
         self.bad_width = []
         for graph in (self.f_courtyard_all + self.b_courtyard_all):
-            if graph['width'] != 0.05:
+            if graph['width'] != self.expected_width:
                 self.bad_width.append(graph)
 
         self.f_courtyard_lines = module.filterLines('F.CrtYd')
@@ -48,19 +50,27 @@ class Rule(KLCRule):
             x, y = line['start']['x'], line['start']['y']
             x = int( (x + (0.0000001 if x >= 0 else -0.0000001))*1E6 )
             y = int( (y + (0.0000001 if y >= 0 else -0.0000001))*1E6 )
-            start_is_wrong = (x % 0.01E6) or (y % 0.01E6)
+            start_is_wrong = (x % int(self.expected_grid*1E6)) or (y % int(self.expected_grid*1E6))
             nanometers['start'] = {'x':x, 'y':y}
 
             x, y = line['end']['x'], line['end']['y']
             x = int( (x + (0.0000001 if x >= 0 else -0.0000001))*1E6 )
             y = int( (y + (0.0000001 if y >= 0 else -0.0000001))*1E6 )
-            end_is_wrong = (x % 0.05E6) or (y % 0.05E6)
+            end_is_wrong = (x % int(self.expected_grid*1E6)) or (y % int(self.expected_grid*1E6))
             nanometers['end'] = {'x':x, 'y':y}
 
             if start_is_wrong or end_is_wrong:
                 self.bad_grid.append({'nanometers':nanometers, 'line':line})
 
-        if (len(self.bad_width) > 0 or len(self.bad_grid) > 0 or len(self.f_courtyard_all) == 0):
+                
+        for  g in self.bad_width:
+            self.verbose_message=self.verbose_message+"Some courtyard line has a width of {1}mm, different from {0}mm.\n".format(self.expected_width,g['width'])
+        for  g in self.bad_grid:
+            self.verbose_message=self.verbose_message+"Some courtyard line is not on the expected grid of {0}mm (line: {1}).\n".format(self.expected_grid,g['line'])
+        if len(self.f_courtyard_all)+len(self.b_courtyard_all) == 0:
+            self.verbose_message=self.verbose_message+"No courtyard line was found at all.\n"
+        
+        if (len(self.bad_width) > 0 or len(self.bad_grid) > 0 or len(self.f_courtyard_all)+len(self.b_courtyard_all) == 0):
             return True
         else:
             return False
@@ -72,15 +82,15 @@ class Rule(KLCRule):
         module = self.module
         if self.check():
             for graph in self.bad_width:
-                graph['width'] = 0.15
+                graph['width'] = self.expected_width
 
             for item in self.bad_grid:
                 x, y = item['nanometers']['start']['x'], item['nanometers']['start']['y']
-                x, y = round(x / 0.05E6) * 0.01, round(y / 0.05E6) * 0.01
+                x, y = round(x / self.expected_grid*1E6) * self.expected_grid, round(y / self.expected_grid*1E6) * self.expected_grid
                 item['line']['start']['x'], item['line']['start']['y'] = x, y
 
                 x, y = item['nanometers']['end']['x'], item['nanometers']['end']['y']
-                x, y = round(x / 0.05E6) * 0.01, round(y / 0.05E6) * 0.01
+                x, y = round(x / self.expected_grid*1E6) * self.expected_grid, round(y / self.expected_grid*1E6) * self.expected_grid
                 item['line']['end']['x'], item['line']['end']['y'] = x, y
 
             # TODO: create courtyard if does not exists

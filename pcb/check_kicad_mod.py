@@ -57,6 +57,10 @@ for filename in files:
             printer.yellow('Violating ' + rule.name, indentation=2)
             if args.verbose:
                 printer.light_blue(rule.description, indentation=4, max_width=100)
+                if len(rule.verbose_message)>0:
+                    vm=rule.verbose_message.split('\n');
+                    for v in vm:
+                        printer.blue(v, indentation=6, max_width=100)
 
                 # example of customized printing feedback by checking the rule name
                 # and a specific variable of the rule
