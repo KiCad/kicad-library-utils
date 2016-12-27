@@ -20,7 +20,7 @@ class Rule(KLCRule):
         if module.value['value'] != module.name:
             self.verbose_message=self.verbose_message+"Contents of value label ('{0}') is different from module name '{1}'!\n".format(module.value['value'], module.name)
             ok=True
-        if module.value['layer'] != 'F.Fab' and module.value['layer'] != 'B.Fab':
+        if module.value['layer'] not in ['F.Fab', 'B.Fab']:
             self.verbose_message=self.verbose_message+"Value label is on layer '{0}', but should be on layer F.Fab or B.Fab!\n".format(module.value['layer'])
             ok=True
         if (module.value['font']['height'] != self.expected_val_width):
