@@ -41,9 +41,7 @@ def KLCCheck(component):
                 lib = args.new,
                 cmp = component,
                 nocolor = "--nocolor" if args.nocolor else ""
-                )    
-    print("Call:" , call)
-    
+                )
     return os.system(call)
 
 printer = PrintColor(use_color = not args.nocolor)
