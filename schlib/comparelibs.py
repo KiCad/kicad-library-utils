@@ -37,11 +37,17 @@ if not args.old:
     ExitError("Original file not supplied")
 
 def KLCCheck(component):
-    call = "python checklib.py {lib} -c={cmp} --enable-extra -vv -s {nocolor}".format(
+    # Wrap library in "quotes" if required
+    lib = args.new
+    if " " in lib and '"' not in lib:
+        lib = '"' + lib + '"'
+
+    call = 'python checklib.py {lib} -c={cmp} --enable-extra -vv -s {nocolor}'.format(
                 lib = args.new,
                 cmp = component,
                 nocolor = "--nocolor" if args.nocolor else ""
                 )
+                
     return os.system(call)
 
 printer = PrintColor(use_color = not args.nocolor)
@@ -110,6 +116,9 @@ if len(updated) > 0:
         if args.check:
             if KLCCheck(cmp) is not 0:
                 errors += 1
+                
+if args.verbose and len(deleted) == 0 and len(added) == 0 and len(updated) == 0:
+    printer.green("No component variations found")
             
 # Return the number of errors found ( zero if --check is not set )                
 sys.exit(errors)
