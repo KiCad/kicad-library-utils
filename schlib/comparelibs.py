@@ -43,7 +43,7 @@ def KLCCheck(component):
         lib = '"' + lib + '"'
 
     call = 'python checklib.py {lib} -c={cmp} --enable-extra -vv -s {nocolor}'.format(
-                lib = args.new,
+                lib = lib,
                 cmp = component,
                 nocolor = "--nocolor" if args.nocolor else ""
                 )
