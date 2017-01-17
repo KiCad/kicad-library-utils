@@ -93,4 +93,37 @@ class Rule(KLCRule):
                 x, y = round(x / self.expected_grid*1E6) * self.expected_grid, round(y / self.expected_grid*1E6) * self.expected_grid
                 item['nanometers']['end']['x'], item['nanometers']['end']['y'] = x, y
 
-            # TODO: create courtyard if does not exists
+            # create courtyard if does not exists
+            if len(self.f_courtyard_all)+len(self.b_courtyard_all) == 0:
+                overpadBounds=module.overpadsBounds()
+                geoBounds=module.geometricBounds('F.Fab')
+                #print('overpadBounds=',overpadBounds)
+                #print('F.Fab: geoBounds=',geoBounds)
+                b={'lower':{'x':1.0E99, 'y':1.0E99},'higher':{'x':-1.0E99, 'y':-1.0E99}}
+                if (geoBounds['lower']['x']>1.0E98 and geoBounds['lower']['x']==geoBounds['lower']['y']) or (geoBounds['higher']['x']<-1.0e98 and geoBounds['higher']['x']==geoBounds['higher']['y']):
+                    geoBounds=module.geometricBounds('B.Fab')               
+                    #print('B.Fab: geoBounds=',geoBounds)
+                if (geoBounds['lower']['x']>1.0E98 and geoBounds['lower']['x']==geoBounds['lower']['y']) or (geoBounds['higher']['x']<-1.0e98 and geoBounds['higher']['x']==geoBounds['higher']['y']):
+                    geoBounds=module.geometricBounds('F.SilkS')
+                    #print('F.SilkS: geoBounds=',geoBounds)
+                if (geoBounds['lower']['x']>1.0E98 and geoBounds['lower']['x']==geoBounds['lower']['y']) or (geoBounds['higher']['x']<-1.0e98 and geoBounds['higher']['x']==geoBounds['higher']['y']):
+                    geoBounds=module.geometricBounds('B.SilkS')
+                    #print('B.SilkS: geoBounds=',geoBounds)
+                
+                b['lower']['x']=min(b['lower']['x'],overpadBounds['lower']['x'])
+                b['lower']['y']=min(b['lower']['y'],overpadBounds['lower']['y'])
+                b['higher']['x']=max(b['higher']['x'],overpadBounds['higher']['x'])
+                b['higher']['y']=max(b['higher']['y'],overpadBounds['higher']['y'])
+                b['lower']['x']=min(b['lower']['x'],geoBounds['lower']['x'])
+                b['lower']['y']=min(b['lower']['y'],geoBounds['lower']['y'])
+                b['higher']['x']=max(b['higher']['x'],geoBounds['higher']['x'])
+                b['higher']['y']=max(b['higher']['y'],geoBounds['higher']['y'])
+                
+                #print('b=',b)
+                if b['higher']['x']!=b['lower']['x'] and b['higher']['y']!=b['lower']['y'] and b['higher']['x']>-1.0E99 and b['higher']['y']>-1.0E99 and b['lower']['x']<1.0E99 and b['lower']['x']<1.0E99:
+                    #print('ADDING Courtyard-RECTANGLE')
+                    crt_offset=0.25
+                    module.addRectangle([b['lower']['x']-crt_offset, b['lower']['y']-crt_offset], [b['higher']['x']+crt_offset, b['higher']['y']+crt_offset], 'F.CrtYd', 0.05)
+                    
+                    
+                    

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import sexpr, re
+import sexpr, re, math
 
 class KicadMod(object):
     """
@@ -480,6 +480,22 @@ class KicadMod(object):
 
             self._createArray(m, ['model', 'pad', 'fp_arc', 'fp_circle','fp_line', 'fp_text', 'attr', 'tags', 'descr', 'tedit'])
 
+    def addLine(self, start, end, layer, width):
+        line={
+               'start': {'x': start[0], 'y': start[1]},
+               'end': {'x': end[0], 'y': end[1]},
+               'layer': layer,
+               'width': width
+             }
+        self.lines.append( line)
+
+    def addRectangle(self, start, end, layer, width):
+        self.addLine( [ start[0], start[1] ], [ end[0], start[1] ], layer, width)
+        self.addLine( [ start[0], start[1] ], [ start[0], end[1] ], layer, width)
+        self.addLine( [ end[0], end[1] ], [ end[0], start[1] ], layer, width)
+        self.addLine( [ end[0], end[1] ], [ start[0], end[1] ], layer, width)
+        
+            
     def setAnchor(self, anchor_point):
         # change reference position
         self.reference['pos']['x'] -= anchor_point[0]
@@ -543,6 +559,57 @@ class KicadMod(object):
                 arcs.append(arc)
 
         return arcs
+        
+    def geometricBounds(self, layer):
+        lower_x = lower_y = 1.0E99
+        higher_x = higher_y = -1.0E99
+        
+        lines=self.filterLines( layer)
+        for l in lines:
+            if l['start']['x'] < lower_x: lower_x = l['start']['x']
+            if l['start']['x'] > higher_x: higher_x = l['start']['x']
+            if l['start']['y'] < lower_y: lower_y = l['start']['y']
+            if l['start']['y'] > higher_y: higher_y = l['start']['y']
+            if l['end']['x'] < lower_x: lower_x = l['end']['x']
+            if l['end']['x'] > higher_x: higher_x = l['end']['x']
+            if l['end']['y'] < lower_y: lower_y = l['end']['y']
+            if l['end']['y'] > higher_y: higher_y = l['end']['y']
+
+        circles=self.filterCircles( layer)
+        for c in circles:
+            r=math.sqrt((c['center']['x']-c['end']['x'])*(c['center']['x']-c['end']['x'])+(c['center']['y']-c['end']['y'])*(c['center']['y']-c['end']['y']))
+            if c['center']['x']-r < lower_x: lower_x = c['center']['x']-r
+            if c['center']['x']+r > higher_x: higher_x = c['center']['x']+r
+            if c['center']['y']-r < lower_y: lower_y = c['center']['y']-r
+            if c['center']['y']+r > higher_y: higher_y = c['center']['y']+r
+
+        arcs=self.filterArcs( layer)
+        for c in arcs:
+            r=math.sqrt((c['start']['x']-c['end']['x'])*(c['start']['x']-c['end']['x'])+(c['start']['y']-c['end']['y'])*(c['start']['y']-c['end']['y']))
+            dalpha=1
+            if c['angle']<1:
+                dalpha=c['angle']/2
+            if c['angle']>0:
+                a=0
+                c0=[ c['end']['x']-c['start']['x'] , c['end']['y']-c['start']['y'] ]
+                while a<=c['angle']:
+                    c1=[0,0]
+                    c1[0]=math.cos(a/180*3.1415)*c0[0]-math.sin(a/180*3.1415)*c0[1]
+                    c1[1]=math.sin(a/180*3.1415)*c0[0]+math.cos(a/180*3.1415)*c0[1]
+                    if c['start']['x']+c1[0] < lower_x: lower_x = c['start']['x']+c1[0]
+                    if c['start']['x']+c1[0] > higher_x: higher_x = c['start']['x']+c1[0]
+                    if c['start']['y']+c1[1] < lower_y: lower_y = c['start']['y']+c1[1]
+                    if c['start']['y']+c1[1] > higher_y: higher_y = c['start']['y']+c1[1]
+                    #print("arc-point a=",a,",  dpos=", c1,",  dpos=", [ c['start']['x']+c1[0], c['start']['y']+c1[1]], ",   center=", [c['start']['x'],c['start']['y']], ',      lower_x=',lower_x,',  higher_x=',higher_x)
+                    a=a+dalpha
+                
+            if c['end']['x'] < lower_x: lower_x = c['end']['x']
+            if c['end']['x'] > higher_x: higher_x = c['end']['x']
+            
+
+        return {'lower':{'x':lower_x, 'y':lower_y},
+                'higher':{'x':higher_x, 'y':higher_y}}
+        
 
     def filterGraphs(self, layer):
         return (self.filterLines(layer) +
@@ -579,6 +646,26 @@ class KicadMod(object):
         return {'lower':{'x':lower_x, 'y':lower_y},
                 'higher':{'x':higher_x, 'y':higher_y}}
 
+    def overpadsBounds(self):
+        lower_x = lower_y = 1.0E99
+        higher_x = higher_y = -1.0E99
+
+        for pad in self.pads:
+            if pad['pos']['x']-pad['size']['x']/2 < lower_x: lower_x = pad['pos']['x']-pad['size']['x']/2
+            if pad['pos']['x']+pad['size']['x']/2 > higher_x: higher_x = pad['pos']['x']+pad['size']['x']/2
+
+            if pad['pos']['y']-pad['size']['y']/2 < lower_y: lower_y = pad['pos']['y']-pad['size']['y']/2
+            if pad['pos']['y']+pad['size']['y']/2 > higher_y: higher_y = pad['pos']['y']+pad['size']['y']/2
+
+            if len(pad['drill'])>0 and len(pad['drill']['size'])>0:
+                if pad['pos']['x']-pad['drill']['size']['x']/2 < lower_x: lower_x = pad['pos']['x']-pad['drill']['size']['x']/2
+                if pad['pos']['x']+pad['drill']['size']['x']/2 > higher_x: higher_x = pad['pos']['x']+pad['drill']['size']['x']/2
+                if pad['pos']['y']-pad['drill']['size']['y']/2 < lower_y: lower_y = pad['pos']['y']-pad['drill']['size']['y']/2
+                if pad['pos']['y']+pad['drill']['size']['y']/2 > higher_y: higher_y = pad['pos']['y']+pad['drill']['size']['y']/2
+
+        return {'lower':{'x':lower_x, 'y':lower_y},
+                'higher':{'x':higher_x, 'y':higher_y}}
+                
     def save(self, filename=None):
         if not filename: filename = self.filename
 

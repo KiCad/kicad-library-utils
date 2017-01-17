@@ -15,7 +15,10 @@ class Rule(KLCRule):
         """
         module = self.module
         if module.tags and module.tags.count(',') > 0:
-            self.verbose_message=self.verbose_message+"Tags ('{0}') contains commas!\n".format(module.tags)
+            self.verbose_message=self.verbose_message+"Tags ('{0}') contains commas ','!\n".format(module.tags)
+            return True
+        if module.tags and module.tags.count(';') > 0:
+            self.verbose_message=self.verbose_message+"Tags ('{0}') contains ';'!\n".format(module.tags)
             return True
         return False
 
@@ -25,4 +28,10 @@ class Rule(KLCRule):
         """
         module = self.module
         if self.check():
-            module.tags = ' '.join(module.tags.replace(' ', '').split(','))
+            tagsc=module.tags.split(',')
+            tags=[]
+            for t in tagsc:
+                tags=tags+t.split(';')
+            for i in range(0, len(tags)):
+                tags[i]=tags[i].strip()
+            module.tags = ' '.join(tags)
