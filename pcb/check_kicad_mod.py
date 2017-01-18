@@ -17,6 +17,7 @@ from glob import glob
 parser = argparse.ArgumentParser()
 parser.add_argument('kicad_mod_files', nargs='+')
 parser.add_argument('--fix', help='fix the violations if possible', action='store_true')
+parser.add_argument('--addsilkscreenrect', help='adds a rectangle around the component on the silkscreen-layer', action='store_true')
 parser.add_argument('--nocolor', help='does not use colors to show the output', action='store_true')
 parser.add_argument('-v', '--verbose', help='show status of all modules and extra information about the violation', action='store_true')
 parser.add_argument('-s', '--silent', help='skip output for symbols passing all checks', action='store_true')
@@ -69,11 +70,39 @@ for filename in files:
         if args.fix:
             rule.fix()
 
+    if args.addsilkscreenrect:
+        # create courtyard if does not exists
+        overpadBounds=module.overpadsBounds()
+        geoBounds=module.geometricBounds('F.Fab')
+        b={'lower':{'x':1.0E99, 'y':1.0E99},'higher':{'x':-1.0E99, 'y':-1.0E99}}
+        if (geoBounds['lower']['x']>1.0E98 and geoBounds['lower']['x']==geoBounds['lower']['y']) or (geoBounds['higher']['x']<-1.0e98 and geoBounds['higher']['x']==geoBounds['higher']['y']):
+            geoBounds=module.geometricBounds('B.Fab')               
+        if (geoBounds['lower']['x']>1.0E98 and geoBounds['lower']['x']==geoBounds['lower']['y']) or (geoBounds['higher']['x']<-1.0e98 and geoBounds['higher']['x']==geoBounds['higher']['y']):
+            geoBounds=module.geometricBounds('F.SilkS')
+        if (geoBounds['lower']['x']>1.0E98 and geoBounds['lower']['x']==geoBounds['lower']['y']) or (geoBounds['higher']['x']<-1.0e98 and geoBounds['higher']['x']==geoBounds['higher']['y']):
+            geoBounds=module.geometricBounds('B.SilkS')
+        
+        b['lower']['x']=min(b['lower']['x'],overpadBounds['lower']['x'])
+        b['lower']['y']=min(b['lower']['y'],overpadBounds['lower']['y'])
+        b['higher']['x']=max(b['higher']['x'],overpadBounds['higher']['x'])
+        b['higher']['y']=max(b['higher']['y'],overpadBounds['higher']['y'])
+        b['lower']['x']=min(b['lower']['x'],geoBounds['lower']['x'])
+        b['lower']['y']=min(b['lower']['y'],geoBounds['lower']['y'])
+        b['higher']['x']=max(b['higher']['x'],geoBounds['higher']['x'])
+        b['higher']['y']=max(b['higher']['y'],geoBounds['higher']['y'])
+        
+        #print('b=',b)
+        if b['higher']['x']!=b['lower']['x'] and b['higher']['y']!=b['lower']['y'] and b['higher']['x']>-1.0E99 and b['higher']['y']>-1.0E99 and b['lower']['x']<1.0E99 and b['lower']['x']<1.0E99:
+            silk_offset=0.12
+            module.addRectangle([b['lower']['x']-silk_offset, b['lower']['y']-silk_offset], [b['higher']['x']+silk_offset, b['higher']['y']+silk_offset], 'F.SilkS', 0.12)
     if n_violations == 0 and not args.silent:
         printer.green('checking module: {mod}'.format(mod = module.name))
         printer.light_green('No violations found', indentation=2)
+        if args.addsilkscreenrect:
+            module.save()
     else:
         exit_code += 1
+                   
         if args.fix:
             module.save()
 
