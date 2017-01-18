@@ -20,6 +20,8 @@ class Rule(KLCRule):
         # check if module is through-hole
         if module.attribute == 'pth':
             pads = module.getPadsByNumber(1)
+            if len(pads)==0:
+                pads = module.getPadsByNumber('A1')
             self.pin1_count = len(pads)
             self.pin1_position = []
 
@@ -42,5 +44,5 @@ class Rule(KLCRule):
         Proceeds the fixing of the rule, if possible.
         """
         module = self.module
-        if self.check():
+        if self.check() and len(self.pin1_position)>0:
             module.setAnchor(min(self.pin1_position))
