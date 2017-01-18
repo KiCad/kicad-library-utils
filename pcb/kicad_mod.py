@@ -535,6 +535,11 @@ class KicadMod(object):
         for pad in self.pads:
             pad['pos']['x'] -= anchor_point[0]
             pad['pos']['y'] -= anchor_point[1]
+            
+        # change models
+        for model in self.models:
+            model['pos']['x'] -= anchor_point[0]/25.4
+            model['pos']['y'] += anchor_point[1]/25.4
 
     def filterLines(self, layer):
         lines = []
