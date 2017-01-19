@@ -22,17 +22,35 @@ if sys.version_info[0] == 2:
     import urllib2 as urllib
 else:
     import urllib.request as urlrequest
+    
+base_dir = os.getcwd()
 
 parser = argparse.ArgumentParser(description="Download KiCad footprint libraries, and keep them up to date")
 parser.add_argument("-l", "--lib", help="Select which libraries to download (regex filter)", action="store")
 parser.add_argument("-i", "--ignore", help="Select which libraries to ignore (regex filter)", action="store")
 parser.add_argument("-s", "--static", help="Download static copies of each library (no git integration)", action="store_true")
 parser.add_argument("-d", "--deprecated", help="Include libraries marked as deprecated", action="store_true")
+parser.add_argument("-u", "--update", help="Update libraries from github (no new libs will be downloaded)", action="store_true")
 args = parser.parse_args()
     
 def Fail(msg, result=-1):
     print(msg)
     sys.exit(result)
+    
+# Run a system command, print output
+def Call(cmd):
+
+    cmd = [cmd]
+
+    # Windows requires that commands are piped through cmd.exe
+    if platform.platform().lower().count('windows') > 0:
+        cmd = ["cmd", "/c"] + cmd
+    
+    pipe = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    
+    for line in iter(pipe.stdout.readline, b''):
+        line = line.decode('utf-8')
+        print(line.rstrip())
     
 # Download a file, with a simple progress bar
 def DownloadFile(url, save_file):
@@ -89,20 +107,19 @@ def StaticCopyRepository(repo):
     else:
         print("Error downloading",repo)
         return False
-
-def Call(cmd):
-
-    cmd = [cmd]
-
-    # Windows requires that commands are piped through cmd.exe
-    if platform.platform().lower().count('windows') > 0:
-        cmd = ["cmd", "/c"] + cmd
     
-    pipe = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+# Perform git update of the repository
+def UpdateRepository(repo):
+    print("Updating {lib}".format(lib=repo))
+    path = os.path.sep.join([base_dir, repo])
     
-    for line in iter(pipe.stdout.readline, b''):
-        line = line.decode('utf-8')
-        print(line.rstrip())
+    path = r"" + path
+    
+    if not os.path.exists(path):
+        print("Error: '{path}' does not exist".format(path=path))
+        return
+        
+    Call('cd {path} && git pull'.format(path=path))
 
 try:
     # Download the footprint-library-table
@@ -114,8 +131,6 @@ except:
 
 # Extract .pretty library information
 PRETTY_REGEX = 'lib \(name ([^\)]*)\)\(type Github\)\(uri \${KIGITHUB}\/([^\)]*)\)\(options "[^"]*"\)\(descr ([^\)]*)'
-
-base_dir = os.getcwd()
     
 libs = lib_table_data.split("\n")
 
@@ -140,14 +155,19 @@ for lib in libs:
         if re.search(args.ignore, name, flags=re.IGNORECASE):
             continue
     
-    # Check if the repository exists
-    if os.path.exists(url):
-        print(url, "exists, skipping...")
+    # If --update flag set, update library
+    if args.update:
+        UpdateRepository(url)
         continue
-
+    
     # Ignore libraries marked as 'deprecated'
     if not args.deprecated and description.lower().count("deprecated") > 0:
         print(name, "is deprecated - skipping")
+        continue
+        
+    # Check if the repository exists
+    if os.path.exists(url):
+        print(url, "exists, skipping...")
         continue
 
     if not args.static:
