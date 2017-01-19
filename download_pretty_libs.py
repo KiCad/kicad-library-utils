@@ -22,16 +22,22 @@ if sys.version_info[0] == 2:
     import urllib2 as urllib
 else:
     import urllib.request as urlrequest
-    
-base_dir = os.getcwd()
+
 
 parser = argparse.ArgumentParser(description="Download KiCad footprint libraries, and keep them up to date")
+parser.add_argument("-p", "--path", help="Directory to download libs. Current directory is used if unspecified", action="store")
 parser.add_argument("-l", "--lib", help="Select which libraries to download (regex filter)", action="store")
 parser.add_argument("-i", "--ignore", help="Select which libraries to ignore (regex filter)", action="store")
 parser.add_argument("-s", "--static", help="Download static copies of each library (no git integration)", action="store_true")
 parser.add_argument("-d", "--deprecated", help="Include libraries marked as deprecated", action="store_true")
 parser.add_argument("-u", "--update", help="Update libraries from github (no new libs will be downloaded)", action="store_true")
+
 args = parser.parse_args()
+
+if args.path and os.path.exists(args.path) and os.path.isdir(args.path):
+    base_dir = args.path
+else:
+    base_dir = os.getcwd()
     
 def Fail(msg, result=-1):
     print(msg)
@@ -85,12 +91,13 @@ def StaticCopyRepository(repo):
     
     url = "{repo}/{zip}".format(repo=RepoUrl(repo), zip=STATIC_ZIP)
     zip_file = repo + ".zip"
+    repo_path = os.path.sep.join([base_dir, repo])
     
     print("Downloading",repo)
     
     if DownloadFile(url, zip_file):
     
-        tmp_dir = repo + ".tmp"
+        tmp_dir = os.path.sep.join([base_dir, repo + ".tmp"])
         # Extract top-level zip into a temporary folder
         with zipfile.ZipFile(zip_file) as archive:
             archive.extractall(tmp_dir)
