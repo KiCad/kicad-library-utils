@@ -27,7 +27,7 @@ parser = argparse.ArgumentParser(description="Download KiCad footprint libraries
 parser.add_argument("-l", "--lib", help="Select which libraries to download (regex filter)", action="store")
 parser.add_argument("-i", "--ignore", help="Select which libraries to ignore (regex filter)", action="store")
 parser.add_argument("-s", "--static", help="Download static copies of each library (no git integration)", action="store_true")
-
+parser.add_argument("-d", "--deprecated", help="Include libraries marked as deprecated", action="store_true")
 args = parser.parse_args()
     
 def Fail(msg, result=-1):
@@ -146,7 +146,7 @@ for lib in libs:
         continue
 
     # Ignore libraries marked as 'deprecated'
-    if description.lower().count("deprecated") > 0:
+    if not args.deprecated and description.lower().count("deprecated") > 0:
         print(name, "is deprecated - skipping")
         continue
 
