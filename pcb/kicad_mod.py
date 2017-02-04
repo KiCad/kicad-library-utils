@@ -3,6 +3,18 @@
 
 import sexpr, re, math
 
+def _rotatePoint(x, degrees):
+	xx=x        
+	y={'x':x['x'], 'y':x['y']}
+	y['x']=math.cos(degrees/180.0*math.pi)*xx['x']+math.sin(degrees/180.0*math.pi)*xx['y'];
+	y['y']=-math.sin(degrees/180.0*math.pi)*xx['x']+math.cos(degrees/180.0*math.pi)*xx['y'];
+	if 'orientation' in x:
+		y['orientation']=xx['orientation']-degrees               
+	if 'z' in x:
+		y['z']=xx['z']
+	#print('before rotation (degrees=', degrees, ') x=', xx, '    after rotation y=', y)
+	return y
+
 class KicadMod(object):
     """
     A class to parse kicad_mod files format of the KiCad
@@ -540,6 +552,44 @@ class KicadMod(object):
         for model in self.models:
             model['pos']['x'] -= anchor_point[0]/25.4
             model['pos']['y'] += anchor_point[1]/25.4
+            
+    
+        
+    def rotateFootprint(self, degrees):
+        # change reference position
+        self.reference['pos']=_rotatePoint(self.reference['pos'], degrees)
+
+        # change value position
+        self.value['pos']=_rotatePoint(self.value['pos'], degrees)
+
+        # change user text position
+        for text in self.userText:
+            text['pos']=_rotatePoint(text['pos'], degrees)
+            
+
+        # change lines position
+        for line in self.lines:
+            line['start']=_rotatePoint(line['start'], degrees)
+            line['end']=_rotatePoint(line['end'], degrees)
+
+        # change circles position
+        for circle in self.circles:
+            circle['center']=_rotatePoint(circle['center'], degrees)
+            circle['end']=_rotatePoint(circle['end'], degrees)
+
+        # change arcs position
+        for arc in self.arcs:
+            arc['start']=_rotatePoint(arc['start'], degrees)
+            arc['end']=_rotatePoint(arc['end'], degrees)
+
+        # change pads positions
+        for pad in self.pads:
+            pad['pos']=_rotatePoint(pad['pos'], degrees)
+            
+        # change models
+        for model in self.models:
+            model['pos']=_rotatePoint(model['pos'], -degrees)
+            model['rotate']['z']=model['rotate']['z']-degrees
 
     def filterLines(self, layer):
         lines = []

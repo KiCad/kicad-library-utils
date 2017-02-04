@@ -18,6 +18,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('kicad_mod_files', nargs='+')
 parser.add_argument('--fix', help='fix the violations if possible', action='store_true')
 parser.add_argument('--addsilkscreenrect', help='adds a rectangle around the component on the silkscreen-layer', action='store_true')
+parser.add_argument('--rotate', help='rotate the whole symbol by the given number of degrees', action='store', default=0)
 parser.add_argument('--nocolor', help='does not use colors to show the output', action='store_true')
 parser.add_argument('-v', '--verbose', help='show status of all modules and extra information about the violation', action='store_true')
 parser.add_argument('-s', '--silent', help='skip output for symbols passing all checks', action='store_true')
@@ -47,6 +48,10 @@ for filename in files:
         exit_code += 1
         continue
 
+    if args.rotate!=0:
+        module.rotateFootprint(int(args.rotate))
+        printer.green('rotated footprint by {deg} degrees'.format(deg=int(args.rotate)))
+        
     n_violations = 0
     for rule in all_rules:
         rule = rule(module)
@@ -95,7 +100,10 @@ for filename in files:
         if b['higher']['x']!=b['lower']['x'] and b['higher']['y']!=b['lower']['y'] and b['higher']['x']>-1.0E99 and b['higher']['y']>-1.0E99 and b['lower']['x']<1.0E99 and b['lower']['x']<1.0E99:
             silk_offset=0.12
             module.addRectangle([b['lower']['x']-silk_offset, b['lower']['y']-silk_offset], [b['higher']['x']+silk_offset, b['higher']['y']+silk_offset], 'F.SilkS', 0.12)
-    if n_violations == 0 and not args.silent:
+            printer.green('added silkscreen rectangle around drawing')
+        else:
+            printer.red('unable to add silkscreen rectangle around drawing')
+    if n_violations == 0 and not args.silent and args.rotate==0:
         printer.green('checking module: {mod}'.format(mod = module.name))
         printer.light_green('No violations found', indentation=2)
         if args.addsilkscreenrect:
@@ -103,7 +111,7 @@ for filename in files:
     else:
         exit_code += 1
                    
-        if args.fix:
+        if args.fix or args.rotate!=0:
             module.save()
 
 if args.fix:
