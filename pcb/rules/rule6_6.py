@@ -6,6 +6,7 @@ from __future__ import division
 # https://github.com/michal777/KiCad_Lib_Check
 
 from rules.rule import *
+import re, os
 
 class Rule(KLCRule):
     """
@@ -121,8 +122,14 @@ class Rule(KLCRule):
                 
                 #print('b=',b)
                 if b['higher']['x']!=b['lower']['x'] and b['higher']['y']!=b['lower']['y'] and b['higher']['x']>-1.0E99 and b['higher']['y']>-1.0E99 and b['lower']['x']<1.0E99 and b['lower']['x']<1.0E99:
-                    #print('ADDING Courtyard-RECTANGLE')
+                    module_dir = os.path.split(os.path.dirname(os.path.realpath(module.filename)))[-1]
+                    self.module_dir = os.path.splitext(module_dir)
                     crt_offset=0.25
+                    if re.match("BGA\-.*", module.name) or re.match(".*Housing.*BGA.*", self.module_dir):
+                        crt_offset=1
+                    elif re.match(".*Connector.*", module.name) or re.match(".*Connector.*", self.module_dir) or re.match(".*Socket.*", module.name) or re.match(".*Socket.*", self.module_dir):
+                        crt_offset=0.5
+                    print("ADDING Courtyard-RECTANGLE with clearance {0}mm".format(crt_offset))
                     module.addRectangle([b['lower']['x']-crt_offset, b['lower']['y']-crt_offset], [b['higher']['x']+crt_offset, b['higher']['y']+crt_offset], 'F.CrtYd', 0.05)
                     
                     
