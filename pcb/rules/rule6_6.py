@@ -16,7 +16,52 @@ class Rule(KLCRule):
         self.expected_width=0.05
         self.expected_grid=0.01
         super(Rule, self).__init__(module, 'Rule 6.6', "Courtyard line has a width {0}mm. This line is placed so that its clearance is measured from its center to the edges of pads and body, and its position is rounded on a grid of {1}mm.".format(self.expected_width,self.expected_grid))
+        
+    def _getComponentAndPadBounds(self):
+        module = self.module
+        overpadBounds=module.overpadsBounds()
+        geoBounds=module.geometricBounds('F.Fab')
+        #print('overpadBounds=',overpadBounds)
+        #print('F.Fab: geoBounds=',geoBounds)
+        b={'lower':{'x':1.0E99, 'y':1.0E99},'higher':{'x':-1.0E99, 'y':-1.0E99}}
+        if (geoBounds['lower']['x']>1.0E98 and geoBounds['lower']['x']==geoBounds['lower']['y']) or (geoBounds['higher']['x']<-1.0e98 and geoBounds['higher']['x']==geoBounds['higher']['y']):
+            geoBounds=module.geometricBounds('B.Fab')               
+            #print('B.Fab: geoBounds=',geoBounds)
+        if (geoBounds['lower']['x']>1.0E98 and geoBounds['lower']['x']==geoBounds['lower']['y']) or (geoBounds['higher']['x']<-1.0e98 and geoBounds['higher']['x']==geoBounds['higher']['y']):
+            geoBounds=module.geometricBounds('F.SilkS')
+            #print('F.SilkS: geoBounds=',geoBounds)
+        if (geoBounds['lower']['x']>1.0E98 and geoBounds['lower']['x']==geoBounds['lower']['y']) or (geoBounds['higher']['x']<-1.0e98 and geoBounds['higher']['x']==geoBounds['higher']['y']):
+            geoBounds=module.geometricBounds('B.SilkS')
+            #print('B.SilkS: geoBounds=',geoBounds)
+        
+        b['lower']['x']=min(b['lower']['x'],overpadBounds['lower']['x'])
+        b['lower']['y']=min(b['lower']['y'],overpadBounds['lower']['y'])
+        b['higher']['x']=max(b['higher']['x'],overpadBounds['higher']['x'])
+        b['higher']['y']=max(b['higher']['y'],overpadBounds['higher']['y'])
+        b['lower']['x']=min(b['lower']['x'],geoBounds['lower']['x'])
+        b['lower']['y']=min(b['lower']['y'],geoBounds['lower']['y'])
+        b['higher']['x']=max(b['higher']['x'],geoBounds['higher']['x'])
+        b['higher']['y']=max(b['higher']['y'],geoBounds['higher']['y'])
+        
+        return b
+ 
+        
 
+    def _calcCourtyardOffset(self):
+        module = self.module
+        module_dir = os.path.split(os.path.dirname(os.path.realpath(module.filename)))[-1]
+        self.module_dir = "{0}".format(os.path.splitext(module_dir))
+        crt_offset=0.25
+        b=self._getComponentAndPadBounds()
+        if (b['higher']['x']-b['lower']['x']<2 and b['higher']['y']-b['lower']['y']<0.9) or (b['higher']['x']-b['lower']['x']<0.9 and b['higher']['y']-b['lower']['y']<2):
+            crt_offset=0.15
+        if re.match("BGA\-.*", module.name) or re.match(".*Housing.*BGA.*", module_dir):
+            crt_offset=1
+        elif re.match(".*Connector.*", module.name) or re.match(".*Connector.*", self.module_dir) or re.match(".*Socket.*", module.name) or re.match(".*Socket.*", self.module_dir):
+            crt_offset=0.5
+        return crt_offset
+
+        
     def check(self):
         """
         Proceeds the checking of the rule.
@@ -96,39 +141,13 @@ class Rule(KLCRule):
 
             # create courtyard if does not exists
             if len(self.f_courtyard_all)+len(self.b_courtyard_all) == 0:
-                overpadBounds=module.overpadsBounds()
-                geoBounds=module.geometricBounds('F.Fab')
-                #print('overpadBounds=',overpadBounds)
-                #print('F.Fab: geoBounds=',geoBounds)
-                b={'lower':{'x':1.0E99, 'y':1.0E99},'higher':{'x':-1.0E99, 'y':-1.0E99}}
-                if (geoBounds['lower']['x']>1.0E98 and geoBounds['lower']['x']==geoBounds['lower']['y']) or (geoBounds['higher']['x']<-1.0e98 and geoBounds['higher']['x']==geoBounds['higher']['y']):
-                    geoBounds=module.geometricBounds('B.Fab')               
-                    #print('B.Fab: geoBounds=',geoBounds)
-                if (geoBounds['lower']['x']>1.0E98 and geoBounds['lower']['x']==geoBounds['lower']['y']) or (geoBounds['higher']['x']<-1.0e98 and geoBounds['higher']['x']==geoBounds['higher']['y']):
-                    geoBounds=module.geometricBounds('F.SilkS')
-                    #print('F.SilkS: geoBounds=',geoBounds)
-                if (geoBounds['lower']['x']>1.0E98 and geoBounds['lower']['x']==geoBounds['lower']['y']) or (geoBounds['higher']['x']<-1.0e98 and geoBounds['higher']['x']==geoBounds['higher']['y']):
-                    geoBounds=module.geometricBounds('B.SilkS')
-                    #print('B.SilkS: geoBounds=',geoBounds)
-                
-                b['lower']['x']=min(b['lower']['x'],overpadBounds['lower']['x'])
-                b['lower']['y']=min(b['lower']['y'],overpadBounds['lower']['y'])
-                b['higher']['x']=max(b['higher']['x'],overpadBounds['higher']['x'])
-                b['higher']['y']=max(b['higher']['y'],overpadBounds['higher']['y'])
-                b['lower']['x']=min(b['lower']['x'],geoBounds['lower']['x'])
-                b['lower']['y']=min(b['lower']['y'],geoBounds['lower']['y'])
-                b['higher']['x']=max(b['higher']['x'],geoBounds['higher']['x'])
-                b['higher']['y']=max(b['higher']['y'],geoBounds['higher']['y'])
+                b=self._getComponentAndPadBounds()
                 
                 #print('b=',b)
                 if b['higher']['x']!=b['lower']['x'] and b['higher']['y']!=b['lower']['y'] and b['higher']['x']>-1.0E99 and b['higher']['y']>-1.0E99 and b['lower']['x']<1.0E99 and b['lower']['x']<1.0E99:
                     module_dir = os.path.split(os.path.dirname(os.path.realpath(module.filename)))[-1]
                     self.module_dir = "{0}".format(os.path.splitext(module_dir))
-                    crt_offset=0.25
-                    if re.match("BGA\-.*", module.name) or re.match(".*Housing.*BGA.*", module_dir):
-                        crt_offset=1
-                    elif re.match(".*Connector.*", module.name) or re.match(".*Connector.*", self.module_dir) or re.match(".*Socket.*", module.name) or re.match(".*Socket.*", self.module_dir):
-                        crt_offset=0.5
+                    crt_offset=self._calcCourtyardOffset()
                     print("ADDING Courtyard-RECTANGLE with clearance {0}mm".format(crt_offset))
                     module.addRectangle([b['lower']['x']-crt_offset, b['lower']['y']-crt_offset], [b['higher']['x']+crt_offset, b['higher']['y']+crt_offset], 'F.CrtYd', 0.05)
                     
