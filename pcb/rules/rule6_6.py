@@ -169,7 +169,8 @@ class Rule(KLCRule):
         self.expected_crt_rectangle=self._calcCourtyardRectangle()
         
         if self.actual_crt_rectangle['width']*self.actual_crt_rectangle['width']>0 and self.expected_crt_rectangle['width']*self.expected_crt_rectangle['width']>0:
-            if math.fabs(self.actual_crt_rectangle['x']-self.expected_crt_rectangle['x'])>1e-5 or math.fabs(self.actual_crt_rectangle['y']-self.expected_crt_rectangle['y'])>1e-5 or math.fabs(self.actual_crt_rectangle['width']-self.expected_crt_rectangle['width'])>1e-5 or math.fabs(self.actual_crt_rectangle['height']-self.expected_crt_rectangle['height'])>1e-5:
+            crterrorbound=2e-2
+            if math.fabs(self.actual_crt_rectangle['x']-self.expected_crt_rectangle['x'])>crterrorbound or math.fabs(self.actual_crt_rectangle['y']-self.expected_crt_rectangle['y'])>crterrorbound or math.fabs(self.actual_crt_rectangle['width']-self.expected_crt_rectangle['width'])>crterrorbound or math.fabs(self.actual_crt_rectangle['height']-self.expected_crt_rectangle['height'])>crterrorbound:
                 self.verbose_message=self.verbose_message+"For this footprint a rectangular courtyard {0} was expected, but a courtyard rectangle {1} was found\n".format(self.expected_crt_rectangle,self.actual_crt_rectangle)
                 Ok=True
 
