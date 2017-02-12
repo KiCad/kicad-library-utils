@@ -4,16 +4,16 @@
 import sexpr, re, math
 
 def _rotatePoint(x, degrees):
-	xx=x        
-	y={'x':x['x'], 'y':x['y']}
-	y['x']=math.cos(degrees/180.0*math.pi)*xx['x']+math.sin(degrees/180.0*math.pi)*xx['y'];
-	y['y']=-math.sin(degrees/180.0*math.pi)*xx['x']+math.cos(degrees/180.0*math.pi)*xx['y'];
-	if 'orientation' in x:
-		y['orientation']=xx['orientation']-degrees               
-	if 'z' in x:
-		y['z']=xx['z']
-	#print('before rotation (degrees=', degrees, ') x=', xx, '    after rotation y=', y)
-	return y
+    xx=x        
+    y={'x':x['x'], 'y':x['y']}
+    y['x']=math.cos(degrees/180.0*math.pi)*xx['x']+math.sin(degrees/180.0*math.pi)*xx['y'];
+    y['y']=-math.sin(degrees/180.0*math.pi)*xx['x']+math.cos(degrees/180.0*math.pi)*xx['y'];
+    if 'orientation' in x:
+        y['orientation']=xx['orientation']-degrees               
+    if 'z' in x:
+        y['z']=xx['z']
+    #print('before rotation (degrees=', degrees, ') x=', xx, '    after rotation y=', y)
+    return y
 
 class KicadMod(object):
     """
@@ -21,6 +21,13 @@ class KicadMod(object):
     """
     def __init__(self, filename):
         self.filename = filename
+        
+        # check file line-endings
+        self.unix_line_endings=True
+        filecontentsraw=open(filename,"rb").readline()
+        print(filecontentsraw)
+        if (filecontentsraw[-2]==0x0D and filecontentsraw[-1]==0x0A) or (filecontentsraw[-1]==0x0D):
+            self.unix_line_endings=False
 
         # read the s-expression data
         f = open(filename)
@@ -805,7 +812,7 @@ class KicadMod(object):
         # convert array data to s-expression and save in the disc
         output = sexpr.build_sexp(self.sexpr_data)
         output = sexpr.format_sexp(output, max_nesting=1)
-        f = open(filename, 'w', newline='\n')
+        f = open(filename, 'w', newline='')
         f.write(output)
         f.close()
 
