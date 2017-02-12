@@ -123,10 +123,11 @@ class Rule(KLCRule):
         b=self._getComponentAndPadBounds()
         if b['higher']['x']!=b['lower']['x'] and b['higher']['y']!=b['lower']['y'] and b['higher']['x']>-1.0E99 and b['higher']['y']>-1.0E99 and b['lower']['x']<1.0E99 and b['lower']['x']<1.0E99:
             crt_offset=self._calcCourtyardOffset()
-            return { 'x': int((b['lower']['x']-crt_offset)*100)/100, 
-                    'y':int((b['lower']['y']-crt_offset)*100)/100, 
-                    'width':int((math.fabs(b['higher']['x']-b['lower']['x'])+2*crt_offset)*100)/100, 
-                    'height':int((math.fabs(b['higher']['y']-b['lower']['y'])+2*crt_offset)*100)/100
+            factor=1/self.expected_grid
+            return { 'x': math.floor((b['lower']['x']-crt_offset)*factor)/factor, 
+                    'y':math.floor((b['lower']['y']-crt_offset)*factor)/factor, 
+                    'width':math.ceil((math.fabs(b['higher']['x']-b['lower']['x'])+2*crt_offset)*factor)/factor, 
+                    'height':math.ceil((math.fabs(b['higher']['y']-b['lower']['y'])+2*crt_offset)*factor)/factor
                    }
         else:
             return { 'x': 0, 'y':0, 'width':0, 'height':0}
