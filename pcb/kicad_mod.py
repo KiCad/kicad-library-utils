@@ -25,7 +25,6 @@ class KicadMod(object):
         # check file line-endings
         self.unix_line_endings=True
         filecontentsraw=open(filename,"rb").readline()
-        print(filecontentsraw)
         if (filecontentsraw[-2]==0x0D and filecontentsraw[-1]==0x0A) or (filecontentsraw[-1]==0x0D):
             self.unix_line_endings=False
 
