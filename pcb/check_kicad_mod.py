@@ -70,8 +70,8 @@ for filename in files:
 
                 # example of customized printing feedback by checking the rule name
                 # and a specific variable of the rule
-                if rule.name == 'Rule 6.6' and len(rule.f_courtyard_all) == 0:
-                    printer.red('No courtyard line found in the module', indentation=4)
+                #if rule.name == 'Rule 6.6' and len(rule.f_courtyard_all) == 0:
+                #    printer.red('No courtyard line found in the module', indentation=4)
         if args.fix:
             rule.fix()
 
