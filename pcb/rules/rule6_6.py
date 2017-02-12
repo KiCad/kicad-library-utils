@@ -6,7 +6,7 @@ from __future__ import division
 # https://github.com/michal777/KiCad_Lib_Check
 
 from rules.rule import *
-import re, os
+import re, os, math
 
 class Rule(KLCRule):
     """
@@ -44,7 +44,65 @@ class Rule(KLCRule):
         b['higher']['y']=max(b['higher']['y'],geoBounds['higher']['y'])
         
         return b
- 
+        
+    def _getCrtRectangle(self):
+        # searches for a series of consecutive lines (last.end==next.start or last.start==next.end)
+        # by picking a start point and following it until we return
+        lines=self.f_courtyard_lines
+        self.courtyard_rectangle_layer='F'
+        if len(lines)==0:
+            lines=self.b_courtyard_lines
+            if len(lines)>0:
+                self.courtyard_rectangle_layer='B'
+        if len(lines)<4:
+            # rectangle needs to have at least 4 lines
+            return { 'x': 0, 'y':0, 'width':0, 'height':0}
+        else:
+            x0={'x': min(lines[0]['start']['x'],lines[0]['end']['x']), 'y': min(lines[0]['start']['y'],lines[0]['end']['y'])}
+            start=lines[0]['start']
+            next=lines[0]['end']
+            currentPos=start
+            width=math.fabs(lines[0]['end']['x']-lines[0]['start']['x'])
+            height=math.fabs(lines[0]['end']['y']-lines[0]['start']['y'])
+            corners_found=1
+            used_lines=[]
+            #print(-1, 0,': start=',start,'   next=',next)
+            for corners in range(0,4):
+                # find 4 corners of rectangle
+                found=False
+                for li in range(1,len(lines)):
+                    if not li in used_lines:
+                        if lines[li]['end']['x']-lines[li]['start']['x']==0 or lines[li]['end']['y']-lines[li]['start']['y']==0:
+                            # we only look at rectangles formed from hor./ver. lines
+                            if lines[li]['start']==next:
+                                next=lines[li]['end']
+                                currentPos=lines[li]['start']
+                                found=True
+                            elif lines[li]['end']==next:
+                                next=lines[li]['start']
+                                currentPos=lines[li]['end']
+                                found=True
+                            if found:
+                                used_lines.append(li)
+                                width=max(width,math.fabs(lines[li]['end']['x']-lines[li]['start']['x']))
+                                height=max(height,math.fabs(lines[li]['end']['y']-lines[li]['start']['y']))
+                                x0={
+                                    'x': min(x0['x'], lines[li]['start']['x'],lines[li]['end']['x']), 
+                                    'y': min(x0['y'], lines[li]['start']['y'],lines[li]['end']['y'])}
+                    if found:
+                        corners_found=corners_found+1
+                        break
+                    if next==start:
+                        break
+                #print(corners_found, found,': next=',next,'   currentPos=',currentPos)
+            #print("corners_found=",corners_found, "   currentPos=",currentPos,"  start=",start,"  next=",next)
+            
+            if corners_found==4 and next==start:
+                #print("x0=", x0, "  width=",width,"  height=",height)
+                return { 'x': x0['x'], 'y':x0['y'], 'width':width, 'height':height}
+            else:
+                #print("NOT FOUND!!!")
+                return { 'x': 0, 'y':0, 'width':0, 'height':0}
         
 
     def _calcCourtyardOffset(self):
@@ -57,9 +115,21 @@ class Rule(KLCRule):
             crt_offset=0.15
         if re.match("BGA\-.*", module.name) or re.match(".*Housing.*BGA.*", module_dir):
             crt_offset=1
-        elif re.match(".*Connector.*", module.name) or re.match(".*Connector.*", self.module_dir) or re.match(".*Socket.*", module.name) or re.match(".*Socket.*", self.module_dir):
+        elif re.match(".*Connector.*", module.name) or re.match(".*Connector.*", self.module_dir) or re.match(".*Socket.*", module.name) or re.match(".*Socket.*", self.module_dir) or re.match(".*Button.*", module.name) or re.match(".*Button.*", self.module_dir) or re.match(".*Switch.*", module.name) or re.match(".*Switch.*", self.module_dir) :
             crt_offset=0.5
         return crt_offset
+
+    def _calcCourtyardRectangle(self):
+        b=self._getComponentAndPadBounds()
+        if b['higher']['x']!=b['lower']['x'] and b['higher']['y']!=b['lower']['y'] and b['higher']['x']>-1.0E99 and b['higher']['y']>-1.0E99 and b['lower']['x']<1.0E99 and b['lower']['x']<1.0E99:
+            crt_offset=self._calcCourtyardOffset()
+            return { 'x': int((b['lower']['x']-crt_offset)*100)/100, 
+                    'y':int((b['lower']['y']-crt_offset)*100)/100, 
+                    'width':int((math.fabs(b['higher']['x']-b['lower']['x'])+2*crt_offset)*100)/100, 
+                    'height':int((math.fabs(b['higher']['y']-b['lower']['y'])+2*crt_offset)*100)/100
+                   }
+        else:
+            return { 'x': 0, 'y':0, 'width':0, 'height':0}
 
         
     def check(self):
@@ -72,10 +142,17 @@ class Rule(KLCRule):
             * b_courtyard_lines
             * bad_width
             * bad_grid
+            * crt_offset
+            * actual_crt_rectangle
+            * expected_crt_rectangle
+            * courtyard_rectangle_layer
         """
+        Ok=False
+
         module = self.module
         self.f_courtyard_all = module.filterGraphs('F.CrtYd')
         self.b_courtyard_all = module.filterGraphs('B.CrtYd')
+        
 
         # check the width
         self.bad_width = []
@@ -86,6 +163,16 @@ class Rule(KLCRule):
         self.f_courtyard_lines = module.filterLines('F.CrtYd')
         self.b_courtyard_lines = module.filterLines('B.CrtYd')
 
+        self.crt_offset=self._calcCourtyardOffset()
+        self.actual_crt_rectangle=self._getCrtRectangle()
+        self.expected_crt_rectangle=self._calcCourtyardRectangle()
+        
+        if self.actual_crt_rectangle['width']*self.actual_crt_rectangle['width']>0 and self.expected_crt_rectangle['width']*self.expected_crt_rectangle['width']>0:
+            if math.fabs(self.actual_crt_rectangle['x']-self.expected_crt_rectangle['x'])>1e-5 or math.fabs(self.actual_crt_rectangle['y']-self.expected_crt_rectangle['y'])>1e-5 or math.fabs(self.actual_crt_rectangle['width']-self.expected_crt_rectangle['width'])>1e-5 or math.fabs(self.actual_crt_rectangle['height']-self.expected_crt_rectangle['height'])>1e-5:
+                self.verbose_message=self.verbose_message+"For this footprint a rectangular courtyard {0} was expected, but a courtyard rectangle {1} was found\n".format(self.expected_crt_rectangle,self.actual_crt_rectangle)
+                Ok=True
+
+        
         # check if there is proper rounding 0.01 of courtyard lines
         # convert position to nanometers (add/subtract 1/10^7 to avoid wrong rounding and cast to int)
         # int pos_x = (d_pos_x + ((d_pos_x >= 0) ? 0.0000001 : -0.0000001)) * 1000000;
@@ -111,15 +198,15 @@ class Rule(KLCRule):
                 
         for  g in self.bad_width:
             self.verbose_message=self.verbose_message+"Some courtyard line has a width of {1}mm, different from {0}mm.\n".format(self.expected_width,g['width'])
+            Ok=True
         for  g in self.bad_grid:
             self.verbose_message=self.verbose_message+"Some courtyard line is not on the expected grid of {0}mm (line: {1}).\n".format(self.expected_grid,g['line'])
+            Ok=True
         if len(self.f_courtyard_all)+len(self.b_courtyard_all) == 0:
             self.verbose_message=self.verbose_message+"No courtyard line was found at all.\n"
+            Ok=True
         
-        if (len(self.bad_width) > 0 or len(self.bad_grid) > 0 or len(self.f_courtyard_all)+len(self.b_courtyard_all) == 0):
-            return True
-        else:
-            return False
+        return Ok
 
     def fix(self):
         """
@@ -141,15 +228,17 @@ class Rule(KLCRule):
 
             # create courtyard if does not exists
             if len(self.f_courtyard_all)+len(self.b_courtyard_all) == 0:
-                b=self._getComponentAndPadBounds()
-                
-                #print('b=',b)
-                if b['higher']['x']!=b['lower']['x'] and b['higher']['y']!=b['lower']['y'] and b['higher']['x']>-1.0E99 and b['higher']['y']>-1.0E99 and b['lower']['x']<1.0E99 and b['lower']['x']<1.0E99:
-                    module_dir = os.path.split(os.path.dirname(os.path.realpath(module.filename)))[-1]
-                    self.module_dir = "{0}".format(os.path.splitext(module_dir))
-                    crt_offset=self._calcCourtyardOffset()
-                    print("ADDING Courtyard-RECTANGLE with clearance {0}mm".format(crt_offset))
-                    module.addRectangle([b['lower']['x']-crt_offset, b['lower']['y']-crt_offset], [b['higher']['x']+crt_offset, b['higher']['y']+crt_offset], 'F.CrtYd', 0.05)
-                    
-                    
+                if self.expected_crt_rectangle['width']>0 and self.expected_crt_rectangle['height']>0:
+                    print("ADDING Courtyard-RECTANGLE with clearance {0}mm on layer {1}.CrtYd".format(self.crt_offset, self.courtyard_rectangle_layer))
+                    module.addRectangle([self.expected_crt_rectangle['x'], self.expected_crt_rectangle['y']], [self.expected_crt_rectangle['x']+self.expected_crt_rectangle['width'], self.expected_crt_rectangle['y']+self.expected_crt_rectangle['height']], self.courtyard_rectangle_layer+'.CrtYd', 0.05)
+            
+            # modify courtyard rectangle that was wrong (e.g. wrong offset)
+            if self.actual_crt_rectangle['width']*self.actual_crt_rectangle['width']>0 and self.expected_crt_rectangle['width']*self.expected_crt_rectangle['width']>0:
+                if self.actual_crt_rectangle != self.expected_crt_rectangle:
+                    print("REPLACING Courtyard with RECTANGLE with clearance {0}mm on layer {1}.CrtYd".format(self.crt_offset, self.courtyard_rectangle_layer))
+                    for li in reversed(range(0,len(module.lines))):
+                        if module.lines[li]['layer']=='F.CrtYd' or module.lines[li]['layer']=='B.CrtYd':
+                            del module.lines[li]
+                    module.addRectangle([self.expected_crt_rectangle['x'], self.expected_crt_rectangle['y']], [self.expected_crt_rectangle['x']+self.expected_crt_rectangle['width'], self.expected_crt_rectangle['y']+self.expected_crt_rectangle['height']], self.courtyard_rectangle_layer+'.CrtYd', 0.05)
+            
                     
