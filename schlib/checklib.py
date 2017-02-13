@@ -34,7 +34,6 @@ parser.add_argument('-p', '--pattern', help='Check multiple components by matchi
 parser.add_argument('-r','--rule',help='Select a particular rule (or rules) to check against (default = all rules). Use comma separated values to select multiple rules. e.g. "-r 3.1,EC02"')
 parser.add_argument('--fix', help='fix the violations if possible', action='store_true')
 parser.add_argument('--nocolor', help='does not use colors to show the output', action='store_true')
-parser.add_argument('--enable-extra', help='enable extra checking', action='store_true')
 parser.add_argument('-v', '--verbose', help='show status of all components and extra information about the violation', action='count')
 parser.add_argument('-s', '--silent', help='skip output for symbols passing all checks', action='store_true')
 
@@ -82,6 +81,9 @@ for libfile in args.libfiles:
 
 exit_code = 0
 
+# add in the EC rules
+all_rules += all_ec
+
 for libfile in libfiles:
     lib = SchLib(libfile)
     n_components = 0
@@ -125,23 +127,6 @@ for libfile in libfiles:
 
                 processVerboseOutput(rule.messageBuffer)
 
-        # extra checking
-        if args.enable_extra:
-            for ec in all_ec:
-                ec = ec(component)
-                if ec.check():
-                    if n_violations == 0: #this is the first violation
-                        printer.green('checking component: %s' % component.name)
-                    n_violations += 1
-                    printer.yellow('Violating ' +  ec.name, indentation=2)
-
-                    if args.verbose:
-                        printer.light_blue(ec.description, indentation=4, max_width=100)
-
-                    if args.fix:
-                        ec.fix()
-
-                    processVerboseOutput(ec.messageBuffer)
 
         # check the number of violations
         if n_violations == 0 and not args.silent:
