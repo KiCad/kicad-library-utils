@@ -31,7 +31,7 @@ class Rule(KLCRule):
                 if x == 0 and y == 0:
                     anchor_ok = True
                 else:
-                    self.verbose_message=self.verbose_message+"pin1 was found at x={0}mm y={1}mm. ".format(x,y)
+                    self.addMessage("pin1 was found at x={0}mm y={1}mm. ".format(x,y))
 
             return not anchor_ok
 
