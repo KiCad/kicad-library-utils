@@ -1,23 +1,36 @@
 # -*- coding: utf-8 -*-
 
 from rules.rule import *
+import re
 
 class Rule(KLCRule):
     """
     Create the methods check and fix to use with the kicad lib files.
     """
     def __init__(self, component):
-        super(Rule, self).__init__(component, 'EC05 - Extra Checking', 'Pin numbers should not be duplicated, and all pins should be present')
+        super(Rule, self).__init__(component, 'EC01 - Extra checking', 'General pin checking')
 
-    def check(self):
-        """
-        Proceeds the checking of the rule.
-        Determines if any symbol pins are duplicated
-        """
+    def checkPinNames(self):
+        self.wrong_pin_numbers = []
+        for pin in self.component.pins:
+            try:
+                num = int(pin['num'])
+            except ValueError:
+                # BGA pins checking
+                m = re.search('([A-z]*)([0-9]*)', pin['num'])
 
+                # if group 2 is empty there are only letters in the pin name
+                if m.group(2) == '':
+                    self.wrong_pin_numbers.append(pin)
+                    self.verboseOut(Verbosity.HIGH, Severity.WARNING, "pin: {0} number {1} is not valid, should contain at least 1 number".format(pin['name'], pin['num']))
+
+                    
+        return len(self.wrong_pin_numbers) > 0
+        
+    def checkDuplicatePins(self):
         #dict of pins
         pins = {}
-
+        
         #look for duplicate pins
         for pin in self.component.pins:
 
@@ -31,7 +44,7 @@ class Rule(KLCRule):
                 pins[pin_number] = [pin]
 
         duplicate = False
-
+        
         for number in pins.keys():
             pin_list = pins[number]
 
@@ -46,25 +59,25 @@ class Rule(KLCRule):
                         x = pin['posx'],
                         y = pin['posy']))
 
-        # convert pins numbers to integers
-        int_pins = []
-        for pin in pins.keys():
-            try:
-                int_pins.append(int(pin))
-            except ValueError:
-                return duplicate
-
-        if not int_pins:
-            return duplicate
-
+        return duplicate
+        
+    def checkPinNumbers(self):
         #check for missing pins within the range of pins
         missing = False
         for i in range(1, max(int_pins) + 1):
             if i not in int_pins:
                 self.verboseOut(Verbosity.NORMAL, Severity.WARNING, "Pin {n} is missing".format(n=i))
                 missing = True
+                
+        return missing
 
-        return duplicate or missing
+    def check(self):
+    
+        return any([
+            checkPinNames(),
+            checkDuplicatePins(),
+            checkPinNumbers()
+            ])
 
     def fix(self):
         """
