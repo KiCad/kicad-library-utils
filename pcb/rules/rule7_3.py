@@ -192,10 +192,10 @@ class Rule(KLCRule):
 
         # Display message if bad silkscreen width was found
         for  g in self.bad_width:
-            self.verbose_message=self.verbose_message+"Some silkscreen line has a width of {1}mm, different from {0}mm (line: {2}).\n".format(KLC_SILK_WIDTH,g['width'],g)
+            self.addMessage("Some silkscreen line has a width of {1}mm, different from {0}mm (line: {2}).".format(KLC_SILK_WIDTH,g['width'],g))
         # Display message if silkscreen was found intersecting with pad
         for ints in self.intersections:
-            self.verbose_message=self.verbose_message+"Some courtyard line is intersecting with pad @( {0}, {1} )mm (line: {2}).\n".format(ints['pad']['pos']['x'], ints['pad']['pos']['y'], ints['graph'])
+            self.addMessage("Some courtyard line is intersecting with pad @( {0}, {1} )mm (line: {2}).".format(ints['pad']['pos']['x'], ints['pad']['pos']['y'], ints['graph']))
         
         # Return True if any of the checks returned an error
         return any([len(sef.bad_width) > 0,
