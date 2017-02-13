@@ -64,6 +64,14 @@ class Rule(KLCRule):
     def checkPinNumbers(self):
         #check for missing pins within the range of pins
         missing = False
+        
+        int_pins = []
+        for pin in self.component.pins:
+            try:
+                int_pins.append(int(pin['num']))
+            except:
+                pass
+        
         for i in range(1, max(int_pins) + 1):
             if i not in int_pins:
                 self.verboseOut(Verbosity.NORMAL, Severity.WARNING, "Pin {n} is missing".format(n=i))
@@ -74,9 +82,9 @@ class Rule(KLCRule):
     def check(self):
     
         return any([
-            checkPinNames(),
-            checkDuplicatePins(),
-            checkPinNumbers()
+            self.checkPinNames(),
+            self.checkDuplicatePins(),
+            self.checkPinNumbers()
             ])
 
     def fix(self):
