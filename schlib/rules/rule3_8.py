@@ -7,8 +7,8 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad lib files.
     """
     def __init__(self, component):
-        super(Rule, self).__init__(component, 'Rule 3.7', 'Value field is filled with the component name')
-
+        super(Rule, self).__init__(component, 'Rule 3.8', 'Default fields contain the correct information')
+        
     def check(self):
         """
         Proceeds the checking of the rule.
