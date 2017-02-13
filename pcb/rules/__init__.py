@@ -1,6 +1,6 @@
 __all__ = [
 "rule9_2",
-"rule6_4",
+"rule8_2",
 "rule6_5",
 "rule6_6",
 "rule6_9",
