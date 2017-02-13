@@ -15,7 +15,7 @@ class Rule(KLCRule):
     def __init__(self, module):
         self.expected_width=0.05
         self.expected_grid=0.01
-        super(Rule, self).__init__(module, 'Rule 1.8', "Library- and footprint-files use UNIX-sytle line-endings (i.e. \\n = LF = 0x0A).")
+        super(Rule, self).__init__(module, 'Rule 1.8', "Library files should use UNIX-style line-endings (LF)")
         
     def check(self):
         """
