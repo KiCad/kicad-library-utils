@@ -11,7 +11,6 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad_mod files.
     """
     def __init__(self, module):
-        self.expected_width = KLC_SILK_WIDTH
         super(Rule, self).__init__(module, 'Rule 6.5', "Silkscreen requirements")
         
     def checkReference(self):
@@ -26,14 +25,14 @@ class Rule(KLCRule):
         if module.reference['layer'] not in ['F.SilkS', 'B.SilkS']:
             self.addMessage("Reference label is on layer '{0}', but should be on layer F.SilkS or B.SilkS!".format(module.reference['layer']))
             err = True
-        if module.reference['font']['height'] > self.expected_ref_width:
-            self.addMessage("Reference label has a height of {1}mm (expected: <={0}mm).\n".format(self.expected_ref_width,module.reference['font']['height']))
+        if module.reference['font']['height'] > KLC_TEXT_HEIGHT:
+            self.addMessage("Reference label has a height of {1}mm (expected: <={0}mm).\n".format(KLC_TEXT_HEIGHT,module.reference['font']['height']))
             err = True
-        if module.reference['font']['width'] > self.expected_ref_width:
-            self.addMessage("Reference label has a width of {1}mm (expected: <={0}mm).\n".format(self.expected_ref_width,module.reference['font']['width']))
+        if module.reference['font']['width'] > KLC_TEXT_WIDTH:
+            self.addMessage("Reference label has a width of {1}mm (expected: <={0}mm).\n".format(KLC_TEXT_WIDTH,module.reference['font']['width']))
             err = True
-        if module.reference['font']['thickness'] != self.expected_ref_thickness:
-            self.addMessage("Reference label has a thickness of {1}mm (expected: {0}mm).\n".format(self.expected_ref_thickness,module.reference['font']['thickness']))
+        if module.reference['font']['thickness'] != KLC_TEXT_THICKNESS:
+            self.addMessage("Reference label has a thickness of {1}mm (expected: {0}mm).\n".format(KLC_TEXT_THICKNESS,module.reference['font']['thickness']))
             err = True
             
         self.refDesError = err
@@ -46,7 +45,7 @@ class Rule(KLCRule):
         self.bad_width = []
 
         for graph in (self.f_silk + self.b_silk):
-            if graph['width'] != self.expected_width:
+            if graph['width'] != KLC_SILK_WIDTH:
                 self.bad_width.append(graph)
              
     """ 
@@ -193,7 +192,7 @@ class Rule(KLCRule):
 
         # Display message if bad silkscreen width was found
         for  g in self.bad_width:
-            self.verbose_message=self.verbose_message+"Some silkscreen line has a width of {1}mm, different from {0}mm (line: {2}).\n".format(self.expected_width,g['width'],g)
+            self.verbose_message=self.verbose_message+"Some silkscreen line has a width of {1}mm, different from {0}mm (line: {2}).\n".format(KLC_SILK_WIDTH,g['width'],g)
         # Display message if silkscreen was found intersecting with pad
         for ints in self.intersections:
             self.verbose_message=self.verbose_message+"Some courtyard line is intersecting with pad @( {0}, {1} )mm (line: {2}).\n".format(ints['pad']['pos']['x'], ints['pad']['pos']['y'], ints['graph'])
@@ -217,11 +216,11 @@ class Rule(KLCRule):
                 if self.check():
                     module.reference['value'] = 'REF**'
                     module.reference['layer'] = 'F.SilkS'
-                    module.reference['font']['width'] = self.expected_ref_width
-                    module.reference['font']['height'] = self.expected_ref_width
-                    module.reference['font']['thickness'] = self.expected_ref_thickness
+                    module.reference['font']['width'] = KLC_TEXT_WIDTH
+                    module.reference['font']['height'] = KLC_TEXT_HEIGHT
+                    module.reference['font']['thickness'] = KLC_TEXT_THICKNESS
             for graph in self.bad_width:
-                graph['width'] = self.expected_width
+                graph['width'] = KLC_SILK_WIDTH
             for inter in self.intersections:
                 pad = inter['pad']
                 graph = inter['graph']
