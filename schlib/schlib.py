@@ -34,7 +34,7 @@ class Documentation(object):
 
         else:
             if not os.path.isfile(self.filename):
-                sys.stderr.write("Not a file\n")
+                sys.stderr.write('"{filename}" is not a valid .dcm file\n'.format(filename=self.filename))
                 return
             else:
                 self.validFile = True
@@ -291,7 +291,7 @@ class SchLib(object):
 
         else:
             if not os.path.isfile(self.filename):
-                sys.stderr.write("Not a file\n")
+                sys.stderr.write('"{filename}" is not a valid .lib file\n'.format(filename=self.filename))
                 return
             else:
                 self.validFile = True
