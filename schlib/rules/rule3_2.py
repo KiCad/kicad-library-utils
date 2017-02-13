@@ -7,7 +7,7 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad lib files.
     """
     def __init__(self, component):
-        super(Rule, self).__init__(component, 'EC04 - Extra Checking', 'Check line width and background for box outlines parts.')
+        super(Rule, self).__init__(component, '3.2', 'Symbol visual style')
 
     def check(self):
         """
