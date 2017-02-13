@@ -21,25 +21,22 @@ class Rule(KLCRule):
         """
         
         module = self.module
-        ok=False
+        err = False
 
-        if module.reference['layer'] != 'F.SilkS' and module.reference['layer'] != 'B.SilkS':
-            self.verbose_message=self.verbose_message+"Reference label is on layer '{0}', but should be on layer F.SilkS or B.SilkS!\n".format(module.reference['layer'])
-            ok=True
-        if module.reference['layer'] != 'F.SilkS' and module.reference['layer'] != 'B.SilkS':
-            self.verbose_message=self.verbose_message+"Reference label is on layer '{0}', but should be on layer F.SilkS or B.SilkS!\n".format(module.reference['layer'])
-            ok=True
-        if (module.reference['font']['height'] > self.expected_ref_width):
-            self.verbose_message=self.verbose_message+"Reference label has a height of {1}mm (expected: <={0}mm).\n".format(self.expected_ref_width,module.reference['font']['height'])
-            ok= True
-        if (module.reference['font']['width'] > self.expected_ref_width):
-            self.verbose_message=self.verbose_message+"Reference label has a width of {1}mm (expected: <={0}mm).\n".format(self.expected_ref_width,module.reference['font']['width'])
-            ok= True
-        if (module.reference['font']['thickness'] != self.expected_ref_thickness):
-            self.verbose_message=self.verbose_message+"Reference label has a thickness of {1}mm (expected: {0}mm).\n".format(self.expected_ref_thickness,module.reference['font']['thickness'])
-            ok= True
+        if module.reference['layer'] not in ['F.SilkS', 'B.SilkS']:
+            self.addMessage("Reference label is on layer '{0}', but should be on layer F.SilkS or B.SilkS!".format(module.reference['layer']))
+            err = True
+        if module.reference['font']['height'] > self.expected_ref_width:
+            self.addMessage("Reference label has a height of {1}mm (expected: <={0}mm).\n".format(self.expected_ref_width,module.reference['font']['height']))
+            err = True
+        if module.reference['font']['width'] > self.expected_ref_width:
+            self.addMessage("Reference label has a width of {1}mm (expected: <={0}mm).\n".format(self.expected_ref_width,module.reference['font']['width']))
+            err = True
+        if module.reference['font']['thickness'] != self.expected_ref_thickness:
+            self.addMessage("Reference label has a thickness of {1}mm (expected: {0}mm).\n".format(self.expected_ref_thickness,module.reference['font']['thickness']))
+            err = True
             
-        self.refDesError = ok
+        self.refDesError = err
         
     """
     Check that all silkscreen lines are of the correct width
