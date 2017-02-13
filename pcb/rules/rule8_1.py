@@ -24,7 +24,7 @@ class Rule(KLCRule):
         self.pth_count = len(module.filterPads('thru_hole'))
         self.smd_count = len(module.filterPads('smd'))
         
-        if self.pth_count > self.smd_count and module.attribute != 'smd':
+        if self.pth_count < self.smd_count and module.attribute != 'smd':
             self.addMessage("Surface Mount attribute not set")
             return True
             

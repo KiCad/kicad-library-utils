@@ -11,7 +11,7 @@ class KLCRule(object):
         
         self.verbose_message=[]
         
-        addMessage(verbose_message)
+        self.addMessage(verbose_message)
 
     def check(self, module):
         raise NotImplementedError('The check method must be implemented')

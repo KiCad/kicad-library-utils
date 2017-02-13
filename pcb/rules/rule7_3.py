@@ -3,7 +3,7 @@
 from __future__ import division
 
 from rules.rule import *
-from klc_constants import *
+from rules.klc_constants import *
 import cmath
 
 class Rule(KLCRule):
@@ -11,7 +11,7 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad_mod files.
     """
     def __init__(self, module):
-        super(Rule, self).__init__(module, 'Rule 6.5', "Silkscreen requirements")
+        super(Rule, self).__init__(module, 'Rule 7.3', "Silkscreen requirements")
         
     def checkReference(self):
         """
@@ -53,6 +53,9 @@ class Rule(KLCRule):
     with pads, etc
     """
     def checkIntersections(self):
+    
+        module = self.module
+    
         for graph in (self.f_silk + self.b_silk):
             if 'angle' in graph:
                 #TODO
@@ -191,15 +194,20 @@ class Rule(KLCRule):
         self.checkIntersections()
 
         # Display message if bad silkscreen width was found
-        for  g in self.bad_width:
-            self.addMessage("Some silkscreen line has a width of {1}mm, different from {0}mm (line: {2}).".format(KLC_SILK_WIDTH,g['width'],g))
+        if self.bad_width:
+            self.addMessage("Some silkscreen lines have incorrect width:")
+            for  g in self.bad_width:
+                self.addMessage("{2}".format(KLC_SILK_WIDTH,g['width'],g))
         # Display message if silkscreen was found intersecting with pad
-        for ints in self.intersections:
-            self.addMessage("Some courtyard line is intersecting with pad @( {0}, {1} )mm (line: {2}).".format(ints['pad']['pos']['x'], ints['pad']['pos']['y'], ints['graph']))
+        
+        if self.intersections:
+            self.addMessage("Some courtyard lines intersects with pads:")
+            for ints in self.intersections:
+                self.addMessage(" - @( {0}, {1} )mm (line: {2}).".format(ints['pad']['pos']['x'], ints['pad']['pos']['y'], ints['graph']))
         
         # Return True if any of the checks returned an error
-        return any([len(sef.bad_width) > 0,
-                    len(self.intsections) > 0,
+        return any([len(self.bad_width) > 0,
+                    len(self.intersections) > 0,
                     self.refDesError
                     ])
 

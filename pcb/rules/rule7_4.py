@@ -6,7 +6,7 @@ from __future__ import division
 # math and comments from Michal script
 # https://github.com/michal777/KiCad_Lib_Check
 
-from klc_constants import *
+from rules.klc_constants import *
 from rules.rule import *
 
 class Rule(KLCRule):
@@ -49,9 +49,14 @@ class Rule(KLCRule):
         for graph in (self.f_fabrication_all + self.b_fabrication_all):
             if graph['width'] != KLC_FAB_WIDTH:
                 self.bad_fabrication_width.append(graph)
+                
+        msg = False
     
         for g in self.bad_fabrication_width:
-            self.addMessage("Some fabrication layer line has a width of {1}mm, different from {0}mm.\n".format(KLC_FAB_WIDTH,g['width']))
+            # Only display this message once
+            if not msg:
+                self.addMessage("Some fabrication layer line has a width of {1}mm, different from {0}mm.\n".format(KLC_FAB_WIDTH,g['width']))
+            msg = True
         
         return len(self.bad_fabrication_width) > 0
         

@@ -5,7 +5,7 @@ from __future__ import division
 # math and comments from Michal script
 # https://github.com/michal777/KiCad_Lib_Check
 
-from klc_constants import *
+from rules.klc_constants import *
 from rules.rule import *
 
 class Rule(KLCRule):

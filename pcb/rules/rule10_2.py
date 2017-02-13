@@ -23,7 +23,7 @@ class Rule(KLCRule):
         error = False    
         if not mod.tags:
             self.addMessage("No keyword tags")
-            retun True
+            return True
         
         illegal = [',', ';', ':']
         
