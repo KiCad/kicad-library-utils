@@ -5,6 +5,7 @@ from __future__ import division
 # math and comments from Michal script
 # https://github.com/michal777/KiCad_Lib_Check
 
+from klc_constants import *
 from rules.rule import *
 
 class Rule(KLCRule):
@@ -12,15 +13,15 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad_mod files.
     """
     def __init__(self, module):
-        self.expected_width=0.05
-        self.expected_grid=0.01
+        self.expected_width=KLC_CRTYD_WIDTH
+        self.expected_grid=KLC_CRTYD_GRID
         super(Rule, self).__init__(module, 'Rule 7.5', "Courtyard requirements".format(self.expected_width,self.expected_grid))
 
     # Check that the courtyard is present
     # Return True if present
     def checkMissingCourtyard(self):
         if len(self.f_courtyard_all)+len(self.b_courtyard_all) == 0:
-            self.verbose_message=self.verbose_message+"No courtyard line was found at all.\n"
+            self.verbose_message=self.verbose_message+"No courtyard line was found.\n"
             return True
             
         return False
