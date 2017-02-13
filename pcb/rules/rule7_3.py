@@ -3,6 +3,7 @@
 from __future__ import division
 
 from rules.rule import *
+from klc_constants import *
 import cmath
 
 class Rule(KLCRule):
@@ -10,34 +11,52 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad_mod files.
     """
     def __init__(self, module):
-        self.expected_width=0.12
-        super(Rule, self).__init__(module, 'Rule 6.5', "Silkscreen is not superposed to pads, its outline is completely visible after board assembly, uses {0}mm line width and provides a reference mark for pin 1. (IPC-7351C).".format(self.expected_width))
-
-    def check(self):
+        self.expected_width = KLC_SILK_WIDTH
+        super(Rule, self).__init__(module, 'Rule 6.5', "Silkscreen requirements")
+        
+    def checkReference(self):
         """
-        Proceeds the checking of the rule.
-        The following variables will be accessible after checking:
-            * f_silk
-            * b_silk
-            * bad_width
+        Check that the RefDes is included on the silkscreen layer,
+        and has the correct dimensions (etc)
         """
+        
         module = self.module
-        self.f_silk = module.filterGraphs('F.SilkS')
-        self.b_silk = module.filterGraphs('B.SilkS')
-        
-        
+        ok=False
 
+        if module.reference['layer'] != 'F.SilkS' and module.reference['layer'] != 'B.SilkS':
+            self.verbose_message=self.verbose_message+"Reference label is on layer '{0}', but should be on layer F.SilkS or B.SilkS!\n".format(module.reference['layer'])
+            ok=True
+        if module.reference['layer'] != 'F.SilkS' and module.reference['layer'] != 'B.SilkS':
+            self.verbose_message=self.verbose_message+"Reference label is on layer '{0}', but should be on layer F.SilkS or B.SilkS!\n".format(module.reference['layer'])
+            ok=True
+        if (module.reference['font']['height'] > self.expected_ref_width):
+            self.verbose_message=self.verbose_message+"Reference label has a height of {1}mm (expected: <={0}mm).\n".format(self.expected_ref_width,module.reference['font']['height'])
+            ok= True
+        if (module.reference['font']['width'] > self.expected_ref_width):
+            self.verbose_message=self.verbose_message+"Reference label has a width of {1}mm (expected: <={0}mm).\n".format(self.expected_ref_width,module.reference['font']['width'])
+            ok= True
+        if (module.reference['font']['thickness'] != self.expected_ref_thickness):
+            self.verbose_message=self.verbose_message+"Reference label has a thickness of {1}mm (expected: {0}mm).\n".format(self.expected_ref_thickness,module.reference['font']['thickness'])
+            ok= True
+            
+        self.refDesError = ok
+        
+    """
+    Check that all silkscreen lines are of the correct width
+    """
+    def checkSilkscreenWidth(self):
         # check the width
         self.bad_width = []
 
         for graph in (self.f_silk + self.b_silk):
             if graph['width'] != self.expected_width:
                 self.bad_width.append(graph)
-
-        # check intersections between line and pad, translate the line and pad
-        # to coordinate (0, 0), rotate the line and pad
-        self.intersections = []
-
+             
+    """ 
+    Check if any of the silkscreen intersects
+    with pads, etc
+    """
+    def checkIntersections(self):
         for graph in (self.f_silk + self.b_silk):
             if 'angle' in graph:
                 #TODO
@@ -153,13 +172,40 @@ class Rule(KLCRule):
                             differentSign = padMin / padMax
                         if (differentSign < 0) or (abs(padMax) < 0.075) or (abs(padMin) < 0.075):
                             self.intersections.append({'pad':pad, 'graph':graph})
-                            
 
+    def check(self):
+        """
+        Proceeds the checking of the rule.
+        The following variables will be accessible after checking:
+            * f_silk
+            * b_silk
+            * bad_width
+        """
+        module = self.module
+        self.f_silk = module.filterGraphs('F.SilkS')
+        self.b_silk = module.filterGraphs('B.SilkS')
+
+        self.checkReference()
+        self.checkSilkscreenWidth()
+
+        # check intersections between line and pad, translate the line and pad
+        # to coordinate (0, 0), rotate the line and pad
+        self.intersections = []
+
+        self.checkIntersections()
+
+        # Display message if bad silkscreen width was found
         for  g in self.bad_width:
             self.verbose_message=self.verbose_message+"Some silkscreen line has a width of {1}mm, different from {0}mm (line: {2}).\n".format(self.expected_width,g['width'],g)
+        # Display message if silkscreen was found intersecting with pad
         for ints in self.intersections:
             self.verbose_message=self.verbose_message+"Some courtyard line is intersecting with pad @( {0}, {1} )mm (line: {2}).\n".format(ints['pad']['pos']['x'], ints['pad']['pos']['y'], ints['graph'])
-        return True if (len(self.bad_width) or len(self.intersections)) else False
+        
+        # Return True if any of the checks returned an error
+        return any([len(sef.bad_width) > 0,
+                    len(self.intsections) > 0,
+                    self.refDesError
+                    ])
 
     def fix(self):
         """
@@ -169,6 +215,14 @@ class Rule(KLCRule):
         module = self.module
 
         if self.check():
+            if self.refDesError:
+                module = self.module
+                if self.check():
+                    module.reference['value'] = 'REF**'
+                    module.reference['layer'] = 'F.SilkS'
+                    module.reference['font']['width'] = self.expected_ref_width
+                    module.reference['font']['height'] = self.expected_ref_width
+                    module.reference['font']['thickness'] = self.expected_ref_thickness
             for graph in self.bad_width:
                 graph['width'] = self.expected_width
             for inter in self.intersections:
