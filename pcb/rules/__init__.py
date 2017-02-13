@@ -1,9 +1,9 @@
 __all__ = [
-"rule9_2",
-"rule8_2",
 "rule7_3",
+"rule7_4",
 "rule7_5",
-"rule6_9",
+"rule8_2",
+"rule9_2",
 "rule10_1",
 "rule10_2",
 "rule10_3",
