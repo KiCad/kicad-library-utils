@@ -21,7 +21,7 @@ class Rule(KLCRule):
     # Return True if present
     def checkMissingCourtyard(self):
         if len(self.f_courtyard_all)+len(self.b_courtyard_all) == 0:
-            self.verbose_message=self.verbose_message+"No courtyard line was found.\n"
+            self.addMessage("No courtyard line was found.\n")
             return True
             
         return False
@@ -35,7 +35,7 @@ class Rule(KLCRule):
                 self.bad_width.append(graph)
                 
         for  g in self.bad_width:
-            self.verbose_message=self.verbose_message+"Some courtyard line has a width of {1}mm, different from {0}mm.\n".format(self.expected_width,g['width'])
+            self.addMessage("Some courtyard line has a width of {1}mm, different from {0}mm.\n".format(self.expected_width,g['width']))
         
         # return True if bad width detected
         return len(self.bad_width) > 0
@@ -64,7 +64,7 @@ class Rule(KLCRule):
                 self.bad_grid.append({'nanometers':nanometers, 'line':line})
                 
         for g in self.bad_grid:
-            self.verbose_message=self.verbose_message+"Some courtyard line is not on the expected grid of {0}mm (line: {1}).\n".format(self.expected_grid,g['line'])
+            self.addMessage("Some courtyard line is not on the expected grid of {0}mm (line: {1}).\n".format(self.expected_grid,g['line']))
         
         # return True if error detected
         return len(self.bad_grid) > 0
