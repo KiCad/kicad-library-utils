@@ -83,7 +83,13 @@ class Rule(KLCRule):
         Proceeds the fixing of the rule, if possible.
         """
         module = self.module
-        if self.check():
+        if self.checkIncorrectWidth():
             for graph in self.bad_fabrication_width:
                 graph['width'] = KLC_FAB_WIDTH
+                
+        if self.checkMissingValue():
+            module.value['layer'] = 'F.Fab'
+            module.value['font']['height'] = self.expected_val_width
+            module.value['font']['width'] = self.expected_val_width
+            module.value['font']['thickness'] = self.expected_val_thickness
 
