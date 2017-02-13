@@ -8,10 +8,17 @@ class KLCRule(object):
         self.module = module
         self.name = name
         self.description = description
-        self.verbose_message=verbose_message
+        
+        self.verbose_message=[]
+        
+        addMessage(verbose_message)
 
     def check(self, module):
         raise NotImplementedError('The check method must be implemented')
 
     def fix(self, module):
         raise NotImplementedError('The fix method must be implemented')
+
+    def addMessage(self, msg):
+        if msg:
+            self.verbose_message.append(msg.strip())
