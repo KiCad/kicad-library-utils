@@ -47,7 +47,7 @@ def positionFormater(element):
         raise Exception("input type: ",type(element),"expected dictionary, ",element)
     if(not {"posx","posy"}.issubset(element.keys())):
         raise Exception("missing keys 'posx' and 'posy' in"+str(element))
-    return "posx {0}, posy {1}".format(element['posx'],element['posy'])
+    return "@ ({0}, {1})".format(element['posx'],element['posy'])
     # return "pos [{0},{1}]".format(element['posx'],element['posy'])
 
 class Verbosity:
