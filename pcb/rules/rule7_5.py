@@ -14,32 +14,32 @@ class Rule(KLCRule):
     def __init__(self, module):
         self.expected_width=0.05
         self.expected_grid=0.01
-        super(Rule, self).__init__(module, 'Rule 6.6', "Courtyard line has a width {0}mm. This line is placed so that its clearance is measured from its center to the edges of pads and body, and its position is rounded on a grid of {1}mm.".format(self.expected_width,self.expected_grid))
+        super(Rule, self).__init__(module, 'Rule 7.5', "Courtyard requirements".format(self.expected_width,self.expected_grid))
 
-    def check(self):
-        """
-        Proceeds the checking of the rule.
-        The following variables will be accessible after checking:
-            * f_courtyard_all
-            * b_courtyard_all
-            * f_courtyard_lines
-            * b_courtyard_lines
-            * bad_width
-            * bad_grid
-        """
-        module = self.module
-        self.f_courtyard_all = module.filterGraphs('F.CrtYd')
-        self.b_courtyard_all = module.filterGraphs('B.CrtYd')
-
+    # Check that the courtyard is present
+    # Return True if present
+    def checkMissingCourtyard(self):
+        if len(self.f_courtyard_all)+len(self.b_courtyard_all) == 0:
+            self.verbose_message=self.verbose_message+"No courtyard line was found at all.\n"
+            return True
+            
+        return False
+    
+    # Check that the courtyard width is correct
+    def checkIncorrectWidth(self):
         # check the width
         self.bad_width = []
         for graph in (self.f_courtyard_all + self.b_courtyard_all):
             if graph['width'] != self.expected_width:
                 self.bad_width.append(graph)
-
-        self.f_courtyard_lines = module.filterLines('F.CrtYd')
-        self.b_courtyard_lines = module.filterLines('B.CrtYd')
-
+                
+        for  g in self.bad_width:
+            self.verbose_message=self.verbose_message+"Some courtyard line has a width of {1}mm, different from {0}mm.\n".format(self.expected_width,g['width'])
+        
+        # return True if bad width detected
+        return len(self.bad_width) > 0
+    
+    def checkCourtyardGrid(self):
         # check if there is proper rounding 0.01 of courtyard lines
         # convert position to nanometers (add/subtract 1/10^7 to avoid wrong rounding and cast to int)
         # int pos_x = (d_pos_x + ((d_pos_x >= 0) ? 0.0000001 : -0.0000001)) * 1000000;
@@ -61,19 +61,43 @@ class Rule(KLCRule):
 
             if start_is_wrong or end_is_wrong:
                 self.bad_grid.append({'nanometers':nanometers, 'line':line})
-
                 
-        for  g in self.bad_width:
-            self.verbose_message=self.verbose_message+"Some courtyard line has a width of {1}mm, different from {0}mm.\n".format(self.expected_width,g['width'])
-        for  g in self.bad_grid:
+        for g in self.bad_grid:
             self.verbose_message=self.verbose_message+"Some courtyard line is not on the expected grid of {0}mm (line: {1}).\n".format(self.expected_grid,g['line'])
-        if len(self.f_courtyard_all)+len(self.b_courtyard_all) == 0:
-            self.verbose_message=self.verbose_message+"No courtyard line was found at all.\n"
         
-        if (len(self.bad_width) > 0 or len(self.bad_grid) > 0 or len(self.f_courtyard_all)+len(self.b_courtyard_all) == 0):
-            return True
-        else:
-            return False
+        # return True if error detected
+        return len(self.bad_grid) > 0
+    
+    def checkCourtyardClearance(self):
+        
+        ## TODO
+        return False
+        
+    def check(self):
+        """
+        Proceeds the checking of the rule.
+        The following variables will be accessible after checking:
+            * f_courtyard_all
+            * b_courtyard_all
+            * f_courtyard_lines
+            * b_courtyard_lines
+            * bad_width
+            * bad_grid
+        """
+        module = self.module
+        self.f_courtyard_all = module.filterGraphs('F.CrtYd')
+        self.b_courtyard_all = module.filterGraphs('B.CrtYd')
+
+        self.f_courtyard_lines = module.filterLines('F.CrtYd')
+        self.b_courtyard_lines = module.filterLines('B.CrtYd')     
+            
+        # Return True if any of the checks returned True (indicating failure)
+        return any([ 
+                self.checkMissingCourtyard(),
+                self.checkIncorrectWidth(),
+                self.checkCourtyardGrid(),
+                self.checkCourtyardClearance()
+                ])
 
     def fix(self):
         """
