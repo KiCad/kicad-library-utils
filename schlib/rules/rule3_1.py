@@ -7,14 +7,9 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad lib files.
     """
     def __init__(self, component):
-        super(Rule, self).__init__(component, 'Rule 3.1', 'Using a 100mils grid, pin ends and origin must lie on grid nodes (IEC-60617).')
+        super(Rule, self).__init__(component, 'Rule 3.1', 'Pin placement')
 
-    def check(self):
-        """
-        Proceeds the checking of the rule.
-        The following variables will be accessible after checking:
-            * violating_pins
-        """
+    def checkPinOrigin(self):
         self.violating_pins = []
         for pin in self.component.pins:
             posx = int(pin['posx'])
@@ -22,6 +17,27 @@ class Rule(KLCRule):
             if (posx % 100) != 0 or (posy % 100) != 0:
                 self.violating_pins.append(pin)
                 self.verboseOut(Verbosity.HIGH, Severity.ERROR, 'pin: {0} ({1}), {2}'.format(pin['name'], pin['num'], positionFormater(pin)))
+    
+        return len(self.violating_pins) > 0
+    
+    def checkPinLength(self):
+        self.violating_pins = []
+        for pin in self.component.pins:
+            length = int(pin['length'])
+            if length == 0: continue
+            if (length < 100) or (length % 50 != 0):
+                self.violating_pins.append(pin)
+                self.verboseOut(Verbosity.HIGH, Severity.ERROR, 'pin: {0} ({1}), {2}'.format(pin['name'], pin['num'], positionFormater(pin)))
+
+        return len(self.violating_pins) > 0
+    
+    def check(self):
+    
+        return any([
+            self.checkPinOrigin(),
+            self.checkPinLength()
+            ])
+
 
         return True if len(self.violating_pins) > 0 else False
 
@@ -29,5 +45,9 @@ class Rule(KLCRule):
         """
         Proceeds the fixing of the rule, if possible.
         """
-        self.verboseOut(Verbosity.NORMAL, Severity.INFO, "FIX: not yet supported" )
-        # TODO
+        
+        if self.checkPinOrigin():
+            pass
+            
+        if self.checkPinLength():
+            pass
