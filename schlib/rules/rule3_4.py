@@ -48,7 +48,7 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad lib files.
     """
     def __init__(self, component):
-        super(Rule, self).__init__(component, 'EC01 - Extra Checking', 'Check pins names against pin types.')
+        super(Rule, self).__init__(component, '3.4', 'Check pins names against pin types.')
 
     def check(self):
         """
