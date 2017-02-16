@@ -3,6 +3,8 @@
 from rules.rule import *
 import os
 
+SYSMOD_PREFIX = "{$KISYS3DMOD}/"
+
 class Rule(KLCRule):
     """
     Create the methods check and fix to use with the kicad_mod files.
@@ -29,6 +31,10 @@ class Rule(KLCRule):
             return True
 
         model_file_path = module.models[0]['file']
+        
+        if model_file_path.startswith(SYSMOD_PREFIX):
+            model_file_path = model_file_path.replace(SYSMOD_PREFIX, "")
+        
         self.model_file = os.path.splitext(os.path.basename(model_file_path))
         model_dir = os.path.split(os.path.dirname(model_file_path))[-1]
         self.model_dir = os.path.splitext(model_dir)
@@ -58,6 +64,10 @@ class Rule(KLCRule):
         if self.check():
             if len(module.models) == 1:
                 path = os.path.join(self.module_dir[0] + '.3dshapes', module.name + '.wrl')
+                
+                if module.models[0]['file'].startswith(SYSMOD_PREFIX):
+                    path = SYSMOD_PREFIX + path
+                
                 module.models[0]['file'] = path
             elif len(module.models) > 1:
                 pass
