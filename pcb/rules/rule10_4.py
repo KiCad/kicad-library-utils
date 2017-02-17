@@ -3,7 +3,7 @@
 from rules.rule import *
 import os
 
-SYSMOD_PREFIX = "{$KISYS3DMOD}/"
+SYSMOD_PREFIX = "${KISYS3DMOD}/"
 
 class Rule(KLCRule):
     """
