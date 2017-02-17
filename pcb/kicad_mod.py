@@ -1,7 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import sexpr, re
+import sexpr, re, math
+
+def _rotatePoint(x, degrees):
+    xx=x        
+    y={'x':x['x'], 'y':x['y']}
+    y['x']=math.cos(degrees/180.0*math.pi)*xx['x']+math.sin(degrees/180.0*math.pi)*xx['y'];
+    y['y']=-math.sin(degrees/180.0*math.pi)*xx['x']+math.cos(degrees/180.0*math.pi)*xx['y'];
+    if 'orientation' in x:
+        y['orientation']=xx['orientation']-degrees               
+    if 'z' in x:
+        y['z']=xx['z']
+    #print('before rotation (degrees=', degrees, ') x=', xx, '    after rotation y=', y)
+    return y
 
 class KicadMod(object):
     """
@@ -9,6 +21,12 @@ class KicadMod(object):
     """
     def __init__(self, filename):
         self.filename = filename
+        
+        # check file line-endings
+        self.unix_line_endings=True
+        filecontentsraw=open(filename,"rb").readline()
+        if (filecontentsraw[-2]==0x0D and filecontentsraw[-1]==0x0A) or (filecontentsraw[-1]==0x0D):
+            self.unix_line_endings=False
 
         # read the s-expression data
         f = open(filename)
@@ -480,6 +498,22 @@ class KicadMod(object):
 
             self._createArray(m, ['model', 'pad', 'fp_arc', 'fp_circle','fp_line', 'fp_text', 'attr', 'tags', 'descr', 'tedit'])
 
+    def addLine(self, start, end, layer, width):
+        line={
+               'start': {'x': start[0], 'y': start[1]},
+               'end': {'x': end[0], 'y': end[1]},
+               'layer': layer,
+               'width': width
+             }
+        self.lines.append( line)
+
+    def addRectangle(self, start, end, layer, width):
+        self.addLine( [ start[0], start[1] ], [ end[0], start[1] ], layer, width)
+        self.addLine( [ start[0], start[1] ], [ start[0], end[1] ], layer, width)
+        self.addLine( [ end[0], end[1] ], [ end[0], start[1] ], layer, width)
+        self.addLine( [ end[0], end[1] ], [ start[0], end[1] ], layer, width)
+        
+            
     def setAnchor(self, anchor_point):
         # change reference position
         self.reference['pos']['x'] -= anchor_point[0]
@@ -519,6 +553,49 @@ class KicadMod(object):
         for pad in self.pads:
             pad['pos']['x'] -= anchor_point[0]
             pad['pos']['y'] -= anchor_point[1]
+            
+        # change models
+        for model in self.models:
+            model['pos']['x'] -= anchor_point[0]/25.4
+            model['pos']['y'] += anchor_point[1]/25.4
+            
+    
+        
+    def rotateFootprint(self, degrees):
+        # change reference position
+        self.reference['pos']=_rotatePoint(self.reference['pos'], degrees)
+
+        # change value position
+        self.value['pos']=_rotatePoint(self.value['pos'], degrees)
+
+        # change user text position
+        for text in self.userText:
+            text['pos']=_rotatePoint(text['pos'], degrees)
+            
+
+        # change lines position
+        for line in self.lines:
+            line['start']=_rotatePoint(line['start'], degrees)
+            line['end']=_rotatePoint(line['end'], degrees)
+
+        # change circles position
+        for circle in self.circles:
+            circle['center']=_rotatePoint(circle['center'], degrees)
+            circle['end']=_rotatePoint(circle['end'], degrees)
+
+        # change arcs position
+        for arc in self.arcs:
+            arc['start']=_rotatePoint(arc['start'], degrees)
+            arc['end']=_rotatePoint(arc['end'], degrees)
+
+        # change pads positions
+        for pad in self.pads:
+            pad['pos']=_rotatePoint(pad['pos'], degrees)
+            
+        # change models
+        for model in self.models:
+            model['pos']=_rotatePoint(model['pos'], -degrees)
+            model['rotate']['z']=model['rotate']['z']-degrees
 
     def filterLines(self, layer):
         lines = []
@@ -543,6 +620,57 @@ class KicadMod(object):
                 arcs.append(arc)
 
         return arcs
+        
+    def geometricBounds(self, layer):
+        lower_x = lower_y = 1.0E99
+        higher_x = higher_y = -1.0E99
+        
+        lines=self.filterLines( layer)
+        for l in lines:
+            if l['start']['x'] < lower_x: lower_x = l['start']['x']
+            if l['start']['x'] > higher_x: higher_x = l['start']['x']
+            if l['start']['y'] < lower_y: lower_y = l['start']['y']
+            if l['start']['y'] > higher_y: higher_y = l['start']['y']
+            if l['end']['x'] < lower_x: lower_x = l['end']['x']
+            if l['end']['x'] > higher_x: higher_x = l['end']['x']
+            if l['end']['y'] < lower_y: lower_y = l['end']['y']
+            if l['end']['y'] > higher_y: higher_y = l['end']['y']
+
+        circles=self.filterCircles( layer)
+        for c in circles:
+            r=math.sqrt((c['center']['x']-c['end']['x'])*(c['center']['x']-c['end']['x'])+(c['center']['y']-c['end']['y'])*(c['center']['y']-c['end']['y']))
+            if c['center']['x']-r < lower_x: lower_x = c['center']['x']-r
+            if c['center']['x']+r > higher_x: higher_x = c['center']['x']+r
+            if c['center']['y']-r < lower_y: lower_y = c['center']['y']-r
+            if c['center']['y']+r > higher_y: higher_y = c['center']['y']+r
+
+        arcs=self.filterArcs( layer)
+        for c in arcs:
+            r=math.sqrt((c['start']['x']-c['end']['x'])*(c['start']['x']-c['end']['x'])+(c['start']['y']-c['end']['y'])*(c['start']['y']-c['end']['y']))
+            dalpha=1
+            if c['angle']<1:
+                dalpha=c['angle']/2
+            if c['angle']>0:
+                a=0
+                c0=[ c['end']['x']-c['start']['x'] , c['end']['y']-c['start']['y'] ]
+                while a<=c['angle']:
+                    c1=[0,0]
+                    c1[0]=math.cos(a/180*3.1415)*c0[0]-math.sin(a/180*3.1415)*c0[1]
+                    c1[1]=math.sin(a/180*3.1415)*c0[0]+math.cos(a/180*3.1415)*c0[1]
+                    if c['start']['x']+c1[0] < lower_x: lower_x = c['start']['x']+c1[0]
+                    if c['start']['x']+c1[0] > higher_x: higher_x = c['start']['x']+c1[0]
+                    if c['start']['y']+c1[1] < lower_y: lower_y = c['start']['y']+c1[1]
+                    if c['start']['y']+c1[1] > higher_y: higher_y = c['start']['y']+c1[1]
+                    #print("arc-point a=",a,",  dpos=", c1,",  dpos=", [ c['start']['x']+c1[0], c['start']['y']+c1[1]], ",   center=", [c['start']['x'],c['start']['y']], ',      lower_x=',lower_x,',  higher_x=',higher_x)
+                    a=a+dalpha
+                
+            if c['end']['x'] < lower_x: lower_x = c['end']['x']
+            if c['end']['x'] > higher_x: higher_x = c['end']['x']
+            
+
+        return {'lower':{'x':lower_x, 'y':lower_y},
+                'higher':{'x':higher_x, 'y':higher_y}}
+        
 
     def filterGraphs(self, layer):
         return (self.filterLines(layer) +
@@ -579,6 +707,26 @@ class KicadMod(object):
         return {'lower':{'x':lower_x, 'y':lower_y},
                 'higher':{'x':higher_x, 'y':higher_y}}
 
+    def overpadsBounds(self):
+        lower_x = lower_y = 1.0E99
+        higher_x = higher_y = -1.0E99
+
+        for pad in self.pads:
+            if pad['pos']['x']-pad['size']['x']/2 < lower_x: lower_x = pad['pos']['x']-pad['size']['x']/2
+            if pad['pos']['x']+pad['size']['x']/2 > higher_x: higher_x = pad['pos']['x']+pad['size']['x']/2
+
+            if pad['pos']['y']-pad['size']['y']/2 < lower_y: lower_y = pad['pos']['y']-pad['size']['y']/2
+            if pad['pos']['y']+pad['size']['y']/2 > higher_y: higher_y = pad['pos']['y']+pad['size']['y']/2
+
+            if len(pad['drill'])>0 and len(pad['drill']['size'])>0:
+                if pad['pos']['x']-pad['drill']['size']['x']/2 < lower_x: lower_x = pad['pos']['x']-pad['drill']['size']['x']/2
+                if pad['pos']['x']+pad['drill']['size']['x']/2 > higher_x: higher_x = pad['pos']['x']+pad['drill']['size']['x']/2
+                if pad['pos']['y']-pad['drill']['size']['y']/2 < lower_y: lower_y = pad['pos']['y']-pad['drill']['size']['y']/2
+                if pad['pos']['y']+pad['drill']['size']['y']/2 > higher_y: higher_y = pad['pos']['y']+pad['drill']['size']['y']/2
+
+        return {'lower':{'x':lower_x, 'y':lower_y},
+                'higher':{'x':higher_x, 'y':higher_y}}
+                
     def save(self, filename=None):
         if not filename: filename = self.filename
 
@@ -663,7 +811,7 @@ class KicadMod(object):
         # convert array data to s-expression and save in the disc
         output = sexpr.build_sexp(self.sexpr_data)
         output = sexpr.format_sexp(output, max_nesting=1)
-        f = open(filename, 'w')
+        f = open(filename, 'w', newline='')
         f.write(output)
         f.close()
 

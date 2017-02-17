@@ -6,10 +6,10 @@ class Rule(KLCRule):
     """
     Create the methods check and fix to use with the kicad_mod files.
     """
-    def __init__(self, module):
+    def __init__(self, module, args):
         self.expected_val_width=1
         self.expected_val_thickness=0.15
-        super(Rule, self).__init__(module, 'Rule 10.4', "Value has a height of {0}mm, thickness of {1}mm, is filled with footprint name and is placed on the fabrication layer.".format(self.expected_val_width,self.expected_val_thickness))
+        super(Rule, self).__init__(module, args, 'Rule 10.4', "Value has a height of {0}mm, thickness of {1}mm, is filled with footprint name and is placed on the fabrication layer.".format(self.expected_val_width,self.expected_val_thickness))
 
     def check(self):
         """

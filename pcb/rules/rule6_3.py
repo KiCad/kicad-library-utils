@@ -6,8 +6,8 @@ class Rule(KLCRule):
     """
     Create the methods check and fix to use with the kicad_mod files.
     """
-    def __init__(self, module):
-        super(Rule, self).__init__(module, 'Rule 6.3', 'For through-hole components, footprint anchor is set on pad 1.')
+    def __init__(self, module, args):
+        super(Rule, self).__init__(module, args, 'Rule 6.3', 'For through-hole components, footprint anchor is set on pad 1.')
 
     def check(self):
         """
@@ -20,6 +20,8 @@ class Rule(KLCRule):
         # check if module is through-hole
         if module.attribute == 'pth':
             pads = module.getPadsByNumber(1)
+            if len(pads)==0:
+                pads = module.getPadsByNumber('A1')
             self.pin1_count = len(pads)
             self.pin1_position = []
 
@@ -42,5 +44,5 @@ class Rule(KLCRule):
         Proceeds the fixing of the rule, if possible.
         """
         module = self.module
-        if self.check():
+        if self.check() and len(self.pin1_position)>0:
             module.setAnchor(min(self.pin1_position))

@@ -6,8 +6,8 @@ class Rule(KLCRule):
     """
     Create the methods check and fix to use with the kicad_mod files.
     """
-    def __init__(self, module):
-        super(Rule, self).__init__(module, 'Rule 10.2', 'Doc property contains a full description of footprint.')
+    def __init__(self, module, args):
+        super(Rule, self).__init__(module, args, 'Rule 10.2', 'Doc property contains a full description of footprint.')
 
     def check(self):
         """
