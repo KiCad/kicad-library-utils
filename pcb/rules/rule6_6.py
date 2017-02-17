@@ -12,10 +12,10 @@ class Rule(KLCRule):
     """
     Create the methods check and fix to use with the kicad_mod files.
     """
-    def __init__(self, module):
+    def __init__(self, module, args):
         self.expected_width=0.05
         self.expected_grid=0.01
-        super(Rule, self).__init__(module, 'Rule 6.6', "Courtyard line has a width {0}mm. This line is placed so that its clearance is measured from its center to the edges of pads and body, and its position is rounded on a grid of {1}mm.".format(self.expected_width,self.expected_grid))
+        super(Rule, self).__init__(module, args, 'Rule 6.6', "Courtyard line has a width {0}mm. This line is placed so that its clearance is measured from its center to the edges of pads and body, and its position is rounded on a grid of {1}mm.".format(self.expected_width,self.expected_grid))
         
     def _getComponentAndPadBounds(self):
         module = self.module
@@ -169,9 +169,20 @@ class Rule(KLCRule):
         self.expected_crt_rectangle=self._calcCourtyardRectangle()
         
         if self.actual_crt_rectangle['width']*self.actual_crt_rectangle['width']>0 and self.expected_crt_rectangle['width']*self.expected_crt_rectangle['width']>0:
-            crterrorbound=2e-2
+            crterrorbound=5e-2
             if math.fabs(self.actual_crt_rectangle['x']-self.expected_crt_rectangle['x'])>crterrorbound or math.fabs(self.actual_crt_rectangle['y']-self.expected_crt_rectangle['y'])>crterrorbound or math.fabs(self.actual_crt_rectangle['width']-self.expected_crt_rectangle['width'])>crterrorbound or math.fabs(self.actual_crt_rectangle['height']-self.expected_crt_rectangle['height'])>crterrorbound:
-                self.verbose_message=self.verbose_message+"For this footprint a rectangular courtyard {0} was expected, but a courtyard rectangle {1} was found\n".format(self.expected_crt_rectangle,self.actual_crt_rectangle)
+                clearancemin=self.crt_offset-\
+                             min(self.expected_crt_rectangle['x']-self.actual_crt_rectangle['x'],\
+                                 self.expected_crt_rectangle['y']-self.actual_crt_rectangle['y'],\
+                                 self.expected_crt_rectangle['width']+self.expected_crt_rectangle['x']-self.actual_crt_rectangle['width']-self.actual_crt_rectangle['x'],\
+                                 self.expected_crt_rectangle['height']+self.expected_crt_rectangle['y']-self.actual_crt_rectangle['height']-self.actual_crt_rectangle['y'])
+                clearancemax=self.crt_offset-\
+                             max(self.expected_crt_rectangle['x']-self.actual_crt_rectangle['x'],\
+                                 self.expected_crt_rectangle['y']-self.actual_crt_rectangle['y'],\
+                                 self.expected_crt_rectangle['width']+self.expected_crt_rectangle['x']-self.actual_crt_rectangle['width']-self.actual_crt_rectangle['x'],\
+                                 self.expected_crt_rectangle['height']+self.expected_crt_rectangle['y']-self.actual_crt_rectangle['height']-self.actual_crt_rectangle['y'])
+                #self.verbose_message=self.verbose_message+"For this footprint a rectangular courtyard {0} was expected, but a courtyard rectangle {1} was found\n".format(self.expected_crt_rectangle,self.actual_crt_rectangle)
+                self.verbose_message=self.verbose_message+"A courtyard clearance in the range {1}...{2}mm was found, but {0}mm was expected.\nThe recommendet courtyard rectangle would be:\n    {3}mm.".format(self.crt_offset, round(min(clearancemin, clearancemax)*100)/100, round(max(clearancemin, clearancemax)*100)/100, self.expected_crt_rectangle)
                 Ok=True
 
         
@@ -231,16 +242,18 @@ class Rule(KLCRule):
             # create courtyard if does not exists
             if len(self.f_courtyard_all)+len(self.b_courtyard_all) == 0:
                 if self.expected_crt_rectangle['width']>0 and self.expected_crt_rectangle['height']>0:
-                    print("ADDING Courtyard-RECTANGLE with clearance {0}mm on layer {1}.CrtYd".format(self.crt_offset, self.courtyard_rectangle_layer))
+                    self.fix_verbose_message=self.fix_verbose_message+"ADDING Courtyard-RECTANGLE with clearance {0}mm on layer {1}.CrtYd".format(self.crt_offset, self.courtyard_rectangle_layer)
                     module.addRectangle([self.expected_crt_rectangle['x'], self.expected_crt_rectangle['y']], [self.expected_crt_rectangle['x']+self.expected_crt_rectangle['width'], self.expected_crt_rectangle['y']+self.expected_crt_rectangle['height']], self.courtyard_rectangle_layer+'.CrtYd', 0.05)
             
             # modify courtyard rectangle that was wrong (e.g. wrong offset)
             if self.actual_crt_rectangle['width']*self.actual_crt_rectangle['width']>0 and self.expected_crt_rectangle['width']*self.expected_crt_rectangle['width']>0:
                 if self.actual_crt_rectangle != self.expected_crt_rectangle:
-                    print("REPLACING Courtyard with RECTANGLE with clearance {0}mm on layer {1}.CrtYd".format(self.crt_offset, self.courtyard_rectangle_layer))
-                    for li in reversed(range(0,len(module.lines))):
-                        if module.lines[li]['layer']=='F.CrtYd' or module.lines[li]['layer']=='B.CrtYd':
-                            del module.lines[li]
-                    module.addRectangle([self.expected_crt_rectangle['x'], self.expected_crt_rectangle['y']], [self.expected_crt_rectangle['x']+self.expected_crt_rectangle['width'], self.expected_crt_rectangle['y']+self.expected_crt_rectangle['height']], self.courtyard_rectangle_layer+'.CrtYd', 0.05)
-            
+                    if self.args.fixmore:
+                        self.fix_verbose_message=self.fix_verbose_message+"REPLACING Courtyard with RECTANGLE with clearance {0}mm on layer {1}.CrtYd".format(self.crt_offset, self.courtyard_rectangle_layer)
+                        for li in reversed(range(0,len(module.lines))):
+                            if module.lines[li]['layer']=='F.CrtYd' or module.lines[li]['layer']=='B.CrtYd':
+                                del module.lines[li]
+                        module.addRectangle([self.expected_crt_rectangle['x'], self.expected_crt_rectangle['y']], [self.expected_crt_rectangle['x']+self.expected_crt_rectangle['width'], self.expected_crt_rectangle['y']+self.expected_crt_rectangle['height']], self.courtyard_rectangle_layer+'.CrtYd', 0.05)
+                    else:
+                        self.fix_verbose_message=self.fix_verbose_message+"Courtyard rectangle was not fixed, use --fixmore to get this fixed!"
                     

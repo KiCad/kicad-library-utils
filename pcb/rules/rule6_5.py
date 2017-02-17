@@ -9,9 +9,9 @@ class Rule(KLCRule):
     """
     Create the methods check and fix to use with the kicad_mod files.
     """
-    def __init__(self, module):
+    def __init__(self, module, args):
         self.expected_width=0.12
-        super(Rule, self).__init__(module, 'Rule 6.5', "Silkscreen is not superposed to pads, its outline is completely visible after board assembly, uses {0}mm line width and provides a reference mark for pin 1. (IPC-7351C).".format(self.expected_width))
+        super(Rule, self).__init__(module, args, 'Rule 6.5', "Silkscreen is not superposed to pads, its outline is completely visible after board assembly, uses {0}mm line width and provides a reference mark for pin 1. (IPC-7351C).".format(self.expected_width))
 
     def check(self):
         """

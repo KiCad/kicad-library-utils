@@ -17,6 +17,7 @@ from glob import glob
 parser = argparse.ArgumentParser()
 parser.add_argument('kicad_mod_files', nargs='+')
 parser.add_argument('--fix', help='fix the violations if possible', action='store_true')
+parser.add_argument('--fixmore', help='fix additional violations, not covered by --fix (e.g. rectangular courtyards), implies --fix!', action='store_true')
 parser.add_argument('--addsilkscreenrect', help='adds a rectangle around the component on the silkscreen-layer', action='store_true')
 parser.add_argument('--rotate', help='rotate the whole symbol by the given number of degrees', action='store', default=0)
 parser.add_argument('--nocolor', help='does not use colors to show the output', action='store_true')
@@ -24,6 +25,8 @@ parser.add_argument('-v', '--verbose', help='show status of all modules and extr
 parser.add_argument('-s', '--silent', help='skip output for symbols passing all checks', action='store_true')
 
 args = parser.parse_args()
+if args.fixmore:
+    args.fix=True
 
 printer = PrintColor(use_color=not args.nocolor)
 
@@ -54,7 +57,7 @@ for filename in files:
         
     n_violations = 0
     for rule in all_rules:
-        rule = rule(module)
+        rule = rule(module,args)
         if rule.check():
             #this is the first violation
             if n_violations == 0:
@@ -74,6 +77,11 @@ for filename in files:
                 #    printer.red('No courtyard line found in the module', indentation=4)
         if args.fix:
             rule.fix()
+            if args.verbose:
+                if len(rule.fix_verbose_message)>0:
+                    vm=rule.fix_verbose_message.split('\n');
+                    for v in vm:
+                        printer.red(v, indentation=8, max_width=100)
 
     if args.addsilkscreenrect:
         # create courtyard if does not exists

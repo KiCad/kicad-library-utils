@@ -6,10 +6,10 @@ class Rule(KLCRule):
     """
     Create the methods check and fix to use with the kicad_mod files.
     """
-    def __init__(self, module):
+    def __init__(self, module, args):
         self.expected_ref_thickness=0.15
         self.expected_ref_width=1
-        super(Rule, self).__init__(module, 'Rule 10.5', "Reference designator has a height of {0}mm or smaller if needed, thickness of {1}mm and is placed on the silkscreen and the fabrication layer.".format(self.expected_ref_width,self.expected_ref_thickness))
+        super(Rule, self).__init__(module, args, 'Rule 10.5', "Reference designator has a height of {0}mm or smaller if needed, thickness of {1}mm and is placed on the silkscreen and the fabrication layer.".format(self.expected_ref_width,self.expected_ref_thickness))
 
     def check(self):
         """
