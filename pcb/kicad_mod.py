@@ -15,6 +15,13 @@ def _rotatePoint(x, degrees):
     #print('before rotation (degrees=', degrees, ') x=', xx, '    after rotation y=', y)
     return y
 
+def _movePoint(x, dx):
+    y={'x':x['x']+dx['x'], 'y':x['y']+dx['y']}
+    for key, value in x:
+        if key!='x' and key!='y':
+            y[key]=value
+    return y
+
 class KicadMod(object):
     """
     A class to parse kicad_mod files format of the KiCad
@@ -648,12 +655,16 @@ class KicadMod(object):
         for c in arcs:
             r=math.sqrt((c['start']['x']-c['end']['x'])*(c['start']['x']-c['end']['x'])+(c['start']['y']-c['end']['y'])*(c['start']['y']-c['end']['y']))
             dalpha=1
-            if c['angle']<1:
-                dalpha=c['angle']/2
-            if c['angle']>0:
+            alphaend=c['angle']
+            if math.fabs(alphaend)<1:
+                dalpha=math.fabs(alphaend)/5
+            if alphaend<0:
+                dalpha=-dalpha
+            if math.fabs(alphaend)>0:
                 a=0
                 c0=[ c['end']['x']-c['start']['x'] , c['end']['y']-c['start']['y'] ]
-                while a<=c['angle']:
+                #print("c0 = ",c0)
+                while (alphaend>0 and a<=alphaend) or (alphaend<0 and a>=alphaend):
                     c1=[0,0]
                     c1[0]=math.cos(a/180*3.1415)*c0[0]-math.sin(a/180*3.1415)*c0[1]
                     c1[1]=math.sin(a/180*3.1415)*c0[0]+math.cos(a/180*3.1415)*c0[1]
@@ -661,7 +672,7 @@ class KicadMod(object):
                     if c['start']['x']+c1[0] > higher_x: higher_x = c['start']['x']+c1[0]
                     if c['start']['y']+c1[1] < lower_y: lower_y = c['start']['y']+c1[1]
                     if c['start']['y']+c1[1] > higher_y: higher_y = c['start']['y']+c1[1]
-                    #print("arc-point a=",a,",  dpos=", c1,",  dpos=", [ c['start']['x']+c1[0], c['start']['y']+c1[1]], ",   center=", [c['start']['x'],c['start']['y']], ',      lower_x=',lower_x,',  higher_x=',higher_x)
+                    #print("arc-point a=",a,",  c1=", c1,",  start+c1=", [ c['start']['x']+c1[0], c['start']['y']+c1[1]], ",   center=", [c['start']['x'],c['start']['y']], ',      lower_x=',lower_x,',  higher_x=',higher_x)
                     a=a+dalpha
                 
             if c['end']['x'] < lower_x: lower_x = c['end']['x']
@@ -710,19 +721,23 @@ class KicadMod(object):
     def overpadsBounds(self):
         lower_x = lower_y = 1.0E99
         higher_x = higher_y = -1.0E99
-
+        x=[]
         for pad in self.pads:
-            if pad['pos']['x']-pad['size']['x']/2 < lower_x: lower_x = pad['pos']['x']-pad['size']['x']/2
-            if pad['pos']['x']+pad['size']['x']/2 > higher_x: higher_x = pad['pos']['x']+pad['size']['x']/2
-
-            if pad['pos']['y']-pad['size']['y']/2 < lower_y: lower_y = pad['pos']['y']-pad['size']['y']/2
-            if pad['pos']['y']+pad['size']['y']/2 > higher_y: higher_y = pad['pos']['y']+pad['size']['y']/2
-
+            x.append(_rotatePoint({'x': -pad['size']['x']/2, 'y': -pad['size']['y']/2}, pad['pos']['orientation']))
+            x.append(_rotatePoint({'x': +pad['size']['x']/2, 'y': -pad['size']['y']/2}, pad['pos']['orientation']))
+            x.append(_rotatePoint({'x': +pad['size']['x']/2, 'y': +pad['size']['y']/2}, pad['pos']['orientation']))
+            x.append(_rotatePoint({'x': -pad['size']['x']/2, 'y': +pad['size']['y']/2}, pad['pos']['orientation']))
             if len(pad['drill'])>0 and len(pad['drill']['size'])>0:
-                if pad['pos']['x']-pad['drill']['size']['x']/2 < lower_x: lower_x = pad['pos']['x']-pad['drill']['size']['x']/2
-                if pad['pos']['x']+pad['drill']['size']['x']/2 > higher_x: higher_x = pad['pos']['x']+pad['drill']['size']['x']/2
-                if pad['pos']['y']-pad['drill']['size']['y']/2 < lower_y: lower_y = pad['pos']['y']-pad['drill']['size']['y']/2
-                if pad['pos']['y']+pad['drill']['size']['y']/2 > higher_y: higher_y = pad['pos']['y']+pad['drill']['size']['y']/2
+                x.append(_rotatePoint({'x': -pad['drill']['size']['x']/2, 'y': -pad['drill']['size']['y']/2}, pad['pos']['orientation']))
+                x.append(_rotatePoint({'x': +pad['drill']['size']['x']/2, 'y': -pad['drill']['size']['y']/2}, pad['pos']['orientation']))
+                x.append(_rotatePoint({'x': +pad['drill']['size']['x']/2, 'y': +pad['drill']['size']['y']/2}, pad['pos']['orientation']))
+                x.append(_rotatePoint({'x': -pad['drill']['size']['x']/2, 'y': +pad['drill']['size']['y']/2}, pad['pos']['orientation']))
+            for ix in x:
+                lower_x=min(lower_x, ix['x']+pad['pos']['x'])
+                higher_x=max(higher_x, ix['x']+pad['pos']['x'])
+                lower_y=min(lower_y, ix['y']+pad['pos']['y'])
+                higher_y=max(higher_y, ix['y']+pad['pos']['y'])
+
 
         return {'lower':{'x':lower_x, 'y':lower_y},
                 'higher':{'x':higher_x, 'y':higher_y}}
