@@ -146,6 +146,8 @@ class Component(object):
         
         checksum_data = ''
         
+        self.resetDraw()
+        
         for line in data:
             checksum_data += line
             line = line.replace('\n', '')
@@ -177,14 +179,7 @@ class Component(object):
 
             elif line[0] == 'DRAW':
                 building_draw = True
-                self.draw = {
-                    'arcs':[],
-                    'circles':[],
-                    'polylines':[],
-                    'rectangles':[],
-                    'texts':[],
-                    'pins':[]
-                }
+                self.resetDraw()
                 self.drawOrdered=[]#list of draw elements references, needed to preserve line ordering
 
             elif line[0] == 'ENDDRAW':
@@ -244,6 +239,16 @@ class Component(object):
 
         # get documentation
         self.documentation = self.getDocumentation(documentation,self.name)
+        
+    def resetDraw(self):
+        self.draw = {
+                    'arcs':[],
+                    'circles':[],
+                    'polylines':[],
+                    'rectangles':[],
+                    'texts':[],
+                    'pins':[]
+                }
 
     def getDocumentation(self,documentation,name):
         try:
