@@ -55,6 +55,11 @@ printer = PrintColor(use_color = not args.nocolor)
 new_lib = SchLib( args.new )
 old_lib = SchLib( args.old )
 
+# If the libs themselves are unchanged, ignore!
+if new_lib.compareChecksum(old_lib):
+    print("No change to library {lib}.".format(lib=new_lib.filename))
+    sys.exit(0)
+
 # Dicts of name:checksum pairs
 new_chk = {}
 old_chk = {}
