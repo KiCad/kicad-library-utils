@@ -36,12 +36,16 @@ parser.add_argument('--fix', help='fix the violations if possible', action='stor
 parser.add_argument('--nocolor', help='does not use colors to show the output', action='store_true')
 parser.add_argument('--enable-extra', help='enable extra checking', action='store_true')
 parser.add_argument('-v', '--verbose', help='show status of all components and extra information about the violation', action='count')
-parser.add_argument('-s', '--silent', help='skip output for symbols passing all checks', action='store_true')
+parser.add_argument('-s', '--silent', help='skip output for symbols passing all checks', action='count')
 
 args = parser.parse_args()
 
 printer = PrintColor(use_color = not args.nocolor)
 
+# If --silent is set to 2 or above, there is NO printed output at all
+if args.silent and args.silent > 1:
+    printer._silent = True
+    
 # force to be verbose if is looking for a specific component
 if not args.verbose and args.component: args.verbose = 1
 
@@ -92,6 +96,8 @@ for libfile in libfiles:
 
     for component in lib.components:
         # skip components with non matching names
+        
+        first = True
 
         #simple match
         match = True
@@ -108,11 +114,13 @@ for libfile in libfiles:
 
         # check the rules
         n_violations = 0
+        
         for rule in all_rules:
             rule = rule(component)
             if rule.check():
                 #this is the first violation
-                if n_violations == 0:
+                if first:
+                    first = False
                     printer.green('checking component: %s' % component.name)
 
                 n_violations += 1
@@ -130,9 +138,10 @@ for libfile in libfiles:
             for ec in all_ec:
                 ec = ec(component)
                 if ec.check():
-                    if n_violations == 0: #this is the first violation
+                    if first:
+                        first = False
                         printer.green('checking component: %s' % component.name)
-                    n_violations += 1
+                    #n_violations += 1
                     printer.yellow('Violating ' +  ec.name, indentation=2)
 
                     if args.verbose:
@@ -144,13 +153,14 @@ for libfile in libfiles:
                     processVerboseOutput(ec.messageBuffer)
 
         # check the number of violations
-        if n_violations == 0 and not args.silent:
-            printer.light_green('Component: {cmp}'.format(cmp=component.name))
-            printer.light_green('No violations found', indentation=2)
+        if n_violations == 0:
+            if not args.silent:
+                printer.light_green('Component: {cmp}'.format(cmp=component.name))
+                printer.light_green('No violations found', indentation=2)
         else:
             exit_code += 1
 
     if args.fix:
         lib.save()
-
+		
 sys.exit(exit_code);
