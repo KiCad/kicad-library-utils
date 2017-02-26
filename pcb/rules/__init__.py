@@ -6,6 +6,7 @@ __all__ = [
 "rule8_2",
 "rule9_1",
 "rule9_2",
+"rule9_4",
 "rule10_1",
 "rule10_2",
 "rule10_3",
