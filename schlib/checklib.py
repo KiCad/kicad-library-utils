@@ -82,7 +82,7 @@ for libfile in args.libfiles:
 exit_code = 0
 
 # add in the EC rules
-all_rules += all_ec
+all_rules
 
 for libfile in libfiles:
     lib = SchLib(libfile)
@@ -94,6 +94,8 @@ for libfile in libfiles:
 
     for component in lib.components:
         # skip components with non matching names
+        
+        first = True
 
         #simple match
         match = True
@@ -114,7 +116,8 @@ for libfile in libfiles:
             rule = rule(component)
             if rule.check():
                 #this is the first violation
-                if n_violations == 0:
+                if first:
+                    first = False
                     printer.green('checking component: %s' % component.name)
 
                 n_violations += 1
@@ -127,7 +130,26 @@ for libfile in libfiles:
 
                 processVerboseOutput(rule.messageBuffer)
 
-
+        # extra checks
+        for rule in all_ec:
+            
+            rule = rule(component):
+            if rule.check():
+                if first:
+                    first = False
+                    printre.green('checking component: %s' % component.name)
+                
+                printer.yellow('Warning: ' + rule.name, indentation=2)
+                
+                if args.verbose:
+                    printer.light_blue(rule.description,indentation=4,max_width=100)
+                    
+                if args.fix:
+                    rule.fix()
+                    
+                processVerboseOutput(rule.messageBuffer)
+                
+                
         # check the number of violations
         if n_violations == 0 and not args.silent:
             printer.light_green('Component: {cmp}'.format(cmp=component.name))
