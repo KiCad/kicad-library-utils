@@ -151,7 +151,8 @@ for libfile in libfiles:
                 
                 
         # check the number of violations
-        if n_violations == 0 and not args.silent:
+        if n_violations == 0:
+            if not args.silent:
             printer.light_green('Component: {cmp}'.format(cmp=component.name))
             printer.light_green('No violations found', indentation=2)
         else:
