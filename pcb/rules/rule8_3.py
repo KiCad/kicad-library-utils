@@ -7,9 +7,9 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad_mod files.
     """
     def __init__(self, module):
-        super(Rule, self).__init__(module, 'Rule 9.4', 'THT pad layer requirements')
+        super(Rule, self).__init__(module, 'Rule 8.3', 'SMD pad layer requirements')
         
-        self.required_layers = ["*.Cu","*.Mask"]
+        self.required_layers = ["F.Cu","F.Mask","F.Paste"]
         
     def checkPad(self, pad):
         layers = pad['layers']
@@ -19,7 +19,7 @@ class Rule(KLCRule):
         # F.mask
         # B.mask
         
-        if not pad['type'] == 'thru_hole':
+        if not pad['type'] == 'smd':
             return False
         
         err = False
@@ -52,7 +52,7 @@ class Rule(KLCRule):
         """
         module = self.module
         
-        return any([self.checkPad(pad) for pad in module.filterPads('thru_hole')])
+        return any([self.checkPad(pad) for pad in module.filterPads('smd')])
         
     def fix(self):
         """
@@ -60,6 +60,6 @@ class Rule(KLCRule):
         """
         module = self.module
         
-        for pad in module.filterPads('thru_hole'):
+        for pad in module.filterPads('smd'):
             pad['layers'] = self.required_layers
         
