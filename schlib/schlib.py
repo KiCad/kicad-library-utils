@@ -36,7 +36,7 @@ class Documentation(object):
 
         else:
             if not os.path.isfile(self.filename):
-                sys.stderr.write("DCM file '{filename}' does not exist".format(filename=self.filename))
+                sys.stderr.write("DCM file '{filename}' does not exist\n".format(filename=self.filename))
                 return
             else:
                 self.validFile = True
