@@ -36,7 +36,7 @@ class Documentation(object):
 
         else:
             if not os.path.isfile(self.filename):
-                sys.stderr.write('"{filename}" does not exist'.format(filename=self.filename))
+                sys.stderr.write("DCM file '{filename}' does not exist".format(filename=self.filename))
                 return
             else:
                 self.validFile = True
@@ -48,7 +48,7 @@ class Documentation(object):
 
         if self.header and not self.line_keys['header'] in self.header[0]:
             self.header=None
-            sys.stderr.write('The file is not a KiCad Documentation Library File\n')
+            sys.stderr.write("'{fn}' is not a KiCad Documentation Library File\n".format(fn=self.filename))
             return False
 
         name = None
@@ -312,7 +312,7 @@ class SchLib(object):
 
         else:
             if not os.path.isfile(self.filename):
-                sys.stderr.write('"{filename}" does not exist'.format(filename=self.filename))
+                sys.stderr.write("Library file '{filename}' does not exist\n".format(filename=self.filename))
                 return
             else:
                 self.validFile = True
@@ -333,7 +333,7 @@ class SchLib(object):
         checksum_data += self.header[0]
         
         if self.header and not SchLib.line_keys['header'] in self.header[0]:
-            sys.stderr.write('The file is not a KiCad Schematic Library File\n')
+            sys.stderr.write("'{fn}' is not a KiCad Schematic Library File\n".format(fn=self.filename))
             return False
 
         self.header.append(f.readline())
