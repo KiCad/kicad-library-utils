@@ -34,7 +34,7 @@ class Documentation(object):
 
         else:
             if not os.path.isfile(self.filename):
-                sys.stderr.write("Not a file\n")
+                sys.stderr.write("'{fn}' does not exist\n".format(fn=self.filename))
                 return
             else:
                 self.validFile = True
@@ -291,7 +291,7 @@ class SchLib(object):
 
         else:
             if not os.path.isfile(self.filename):
-                sys.stderr.write("Not a file\n")
+                sys.stderr.write("'{fn}' does not exist\n".format(fn=self.filename))
                 return
             else:
                 self.validFile = True
