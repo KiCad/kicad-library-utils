@@ -36,15 +36,11 @@ parser.add_argument('--fix', help='fix the violations if possible', action='stor
 parser.add_argument('--nocolor', help='does not use colors to show the output', action='store_true')
 parser.add_argument('--enable-extra', help='enable extra checking', action='store_true')
 parser.add_argument('-v', '--verbose', help='show status of all components and extra information about the violation', action='count')
-parser.add_argument('-s', '--silent', help='skip output for symbols passing all checks', action='count')
+parser.add_argument('-s', '--silent', help='skip output for symbols passing all checks', action='store_true')
 
 args = parser.parse_args()
 
 printer = PrintColor(use_color = not args.nocolor)
-
-# If --silent is set to 2 or above, there is NO printed output at all
-if args.silent and args.silent > 1:
-    printer._silent = True
     
 # force to be verbose if is looking for a specific component
 if not args.verbose and args.component: args.verbose = 1
