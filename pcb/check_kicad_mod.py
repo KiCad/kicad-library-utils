@@ -20,6 +20,7 @@ parser.add_argument('--fix', help='fix the violations if possible', action='stor
 parser.add_argument('--fixmore', help='fix additional violations, not covered by --fix (e.g. rectangular courtyards), implies --fix!', action='store_true')
 parser.add_argument('--addsilkscreenrect', help='adds a rectangle around the component on the silkscreen-layer', action='store_true')
 parser.add_argument('--rotate', help='rotate the whole symbol by the given number of degrees', action='store', default=0)
+parser.add_argument('-r', '--rule', help='specify single rule to check (default = check all rules)', action='store')
 parser.add_argument('--nocolor', help='does not use colors to show the output', action='store_true')
 parser.add_argument('-v', '--verbose', help='show status of all modules and extra information about the violation', action='store_true')
 parser.add_argument('-s', '--silent', help='skip output for symbols passing all checks', action='store_true')
@@ -32,11 +33,17 @@ printer = PrintColor(use_color=not args.nocolor)
 
 exit_code = 0
 
+if args.rule:
+    selected_rules = args.rule.split(",")
+else:
+    selected_rules = None
+
 # get all rules
 all_rules = []
 for f in dir():
     if f.startswith('rule'):
-        all_rules.append(globals()[f].Rule)
+        if selected_rules == None or (f[4:].replace("_",".") in selected_rules):
+            all_rules.append(globals()[f].Rule)
 
 files = []
 
@@ -58,6 +65,7 @@ for filename in files:
     n_violations = 0
     
     for rule in all_rules:
+    
         rule = rule(module,args)
         if rule.check():
             #this is the first violation
