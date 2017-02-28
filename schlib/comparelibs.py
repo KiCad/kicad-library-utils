@@ -57,7 +57,7 @@ old_lib = SchLib( args.old )
 
 # If the libs themselves are unchanged, ignore!
 if new_lib.compareChecksum(old_lib):
-    print("No change to library {lib}.".format(lib=new_lib.filename))
+    # exit silently
     sys.exit(0)
 
 # Dicts of name:checksum pairs
