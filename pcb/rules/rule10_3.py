@@ -6,8 +6,8 @@ class Rule(KLCRule):
     """
     Create the methods check and fix to use with the kicad_mod files.
     """
-    def __init__(self, module):
-        super(Rule, self).__init__(module, 'Rule 10.3', 'All other properties are left to default values. (Move and Place: Free; Auto Place: 0 and 0,  Local Clearance Values: 0)')
+    def __init__(self, module, args):
+        super(Rule, self).__init__(module, args, 'Rule 10.3', 'All other properties are left to default values. (Move and Place: Free; Auto Place: 0 and 0,  Local Clearance Values: 0)')
 
     def check(self):
         """
