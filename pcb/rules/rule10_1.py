@@ -9,7 +9,7 @@ class Rule(KLCRule):
     """
     def __init__(self, module, args):
         super(Rule, self).__init__(module, args, 'Rule 10.1', 'Footprint name must match its filename. (.kicad_mod files).')
-	self.illegal_chars = ['*', '?', ':', '/', '\\', '[', ']', ';', '|', '=', ',']
+        self.illegal_chars = ['*', '?', ':', '/', '\\', '[', ']', ';', '|', '=', ',']
         
     def check(self):
         """
@@ -32,7 +32,7 @@ class Rule(KLCRule):
                 self.addMessage("Illegal character in filename: {c}".format(c=c))
                 err = True
             
-        return Err
+        return err
 
     def fix(self):
         """

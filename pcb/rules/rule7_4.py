@@ -13,8 +13,8 @@ class Rule(KLCRule):
     """
     Create the methods check and fix to use with the kicad_mod files.
     """
-    def __init__(self, module):
-        super(Rule, self).__init__(module, 'Rule 7.4', "Fabrication layer requirements")
+    def __init__(self, module, args):
+        super(Rule, self).__init__(module, args, 'Rule 7.4', "Fabrication layer requirements")
 
     # Check for presence of component value
     def checkMissingValue(self):

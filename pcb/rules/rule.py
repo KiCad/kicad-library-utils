@@ -26,5 +26,5 @@ class KLCRule(object):
             self.verbose_message.append(msg.strip())
 
     def addFixMessage(self, msg):
-	if msg:
-	    self.fix_message.append(msg.strip())
+        if msg:
+            self.fix_message.append(msg.strip())

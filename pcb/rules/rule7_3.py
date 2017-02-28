@@ -21,7 +21,7 @@ class Rule(KLCRule):
         
         module = self.module
         err = False
-
+        
         if module.reference['layer'] not in ['F.SilkS', 'B.SilkS']:
             self.addMessage("Reference label is on layer '{0}', but should be on layer F.SilkS or B.SilkS!".format(module.reference['layer']))
             err = True
@@ -43,7 +43,7 @@ class Rule(KLCRule):
     def checkSilkscreenWidth(self):
         # check the width
         self.bad_width = []
-
+        
         for graph in (self.f_silk + self.b_silk):
             if graph['width'] != KLC_SILK_WIDTH:
                 self.bad_width.append(graph)
@@ -104,17 +104,17 @@ class Rule(KLCRule):
                     if 'offset' in pad['drill']:
                         if 'x' in pad['drill']['offset']:
                             padOffset = complex(pad['drill']['offset']['x'], pad['drill']['offset']['y'])
-
+                            
                     edgesPad = {}
                     edgesPad[0] = complex(pad['size']['x'] / 2.0, pad['size']['y'] / 2.0) + padComplex + padOffset
                     edgesPad[1] = complex(-pad['size']['x'] / 2.0, -pad['size']['y'] / 2.0) + padComplex + padOffset
                     edgesPad[2] = complex(pad['size']['x'] / 2.0, -pad['size']['y'] / 2.0) + padComplex + padOffset
                     edgesPad[3] = complex(-pad['size']['x'] / 2.0, pad['size']['y'] / 2.0) + padComplex + padOffset
-
+                    
                     vectorR = cmath.rect(1, cmath.pi / 180 * pad['pos']['orientation'])
                     for i in range(4):
                         edgesPad[i] = (edgesPad[i] - padComplex) * vectorR + padComplex
-
+                        
                     startComplex = complex(graph['start']['x'], graph['start']['y'])
                     endComplex = complex(graph['end']['x'], graph['end']['y'])
                     if endComplex.imag > startComplex.imag:
@@ -128,12 +128,12 @@ class Rule(KLCRule):
                         for i in range(4):
                             edgesPad[i] = edgesPad[i] - endComplex
                     length = abs(vector)
-
+                    
                     vectorR = cmath.rect(1, -cmath.phase(vector))
                     padComplex = padComplex * vectorR
                     for i in range(4):
                             edgesPad[i] = edgesPad[i] * vectorR
-
+                    
                     if 'circle' in pad['shape']:
                         distance = cmath.sqrt((pad['size']['x'] / 2.0) ** 2 - (padComplex.imag) ** 2).real
                         padMinX = padComplex.real - distance

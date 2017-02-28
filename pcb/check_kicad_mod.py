@@ -56,6 +56,7 @@ for filename in files:
         printer.green('rotated footprint by {deg} degrees'.format(deg=int(args.rotate)))
         
     n_violations = 0
+    
     for rule in all_rules:
         rule = rule(module,args)
         if rule.check():

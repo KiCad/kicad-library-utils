@@ -8,8 +8,8 @@ class Rule(KLCRule):
     """
     Create the methods check and fix to use with the kicad_mod files.
     """
-    def __init__(self, module):
-        super(Rule, self).__init__(module, 'Rule 8.1', 'For surface-mount devices, placement type must be set to "Surface Mount"')
+    def __init__(self, module, args):
+        super(Rule, self).__init__(module, args, 'Rule 8.1', 'For surface-mount devices, placement type must be set to "Surface Mount"')
 
     def check(self):
         """
