@@ -434,15 +434,20 @@ class SchLib(object):
             # FIELDS
             line = 'F'
             for i, f in enumerate(component.fields):
-                line = 'F' + str(i) + ' '
+                line = "F{n} ".format(n=i)
 
                 if i == 0:
                     keys_list = Component._F0_KEYS
                 else:
                     keys_list = Component._FN_KEYS
 
-                for key in keys_list:
-                    line += component.fields[i][key] + ' '
+                for k, key in enumerate(keys_list):
+                    key_val = component.fields[i][key]
+                    
+                    if k == 0 and not key_val.startswith('"'):
+                        key_val = '"' + key_val + '"'
+                        
+                    line += key_val + ' '
 
                 line = line.rstrip() + '\n'
                 to_write.append(line)
