@@ -21,17 +21,23 @@ class Rule(KLCRule):
         mod = self.module
         error = False
         
-        if mod.value['layer'] not in ['F.Fab', 'B.Fab']:
-            self.addMessage("Component value is on layer {lyr} but should be on F.Fab or B.Fab".format(lyr=mod.value['layer']))
+        val = mod.value
+        
+        # Check for presense of 'value'
+        if val['layer'] not in ['F.Fab', 'B.Fab']:
+            self.addMessage("Component value is on layer {lyr} but should be on F.Fab or B.Fab".format(lyr=val['layer']))
             error = True
-        if mod.value['font']['height'] > KLC_TEXT_HEIGHT:
-            self.addMessage("Value label has a height of {1}mm (expected: <={0}mm".format(KLC_TEXT_HEIGHT, mod.value['font']['height']))
+        if val['hide']:
+            self.addMessage("Component value is hidden (should be set to visible)")
             error = True
-        if mod.value['font']['height'] > KLC_TEXT_WIDTH:
-            self.addMessage("Value label has a width of {1}mm (expected: <={0}mm".format(KLC_TEXT_WIDTH, mod.value['font']['width']))
+        if val['font']['height'] != KLC_TEXT_SIZE:
+            self.addMessage("Value label has a height of {1}mm (expected: <={0}mm".format(KLC_TEXT_HEIGHT, val['font']['height']))
             error = True
-        if mod.value['font']['thickness'] != KLC_TEXT_THICKNESS:
-            self.addMessage("Value label has a thickness of {1}mm (expected: {0}mm".format(KLC_TEXT_THICKNESS, mod.values['font']['thickness']))
+        if val['font']['height'] != KLC_TEXT_SIZE:
+            self.addMessage("Value label has a width of {1}mm (expected: <={0}mm".format(KLC_TEXT_WIDTH, val['font']['width']))
+            error = True
+        if val['font']['thickness'] != KLC_TEXT_THICKNESS:
+            self.addMessage("Value label has a thickness of {1}mm (expected: {0}mm".format(KLC_TEXT_THICKNESS, vals['font']['thickness']))
             error = True
 
         return error
@@ -42,21 +48,68 @@ class Rule(KLCRule):
             return True
             
         return False
+        
+    # Check that there is a second ref '%R' on the fab layer
+    def checkSecondRef(self):
+        texts = self.module.userText
+        
+        ref = None
+        
+        for text in texts:
+            if text['user'] == '%R':
+                ref = text
+                break
+            
+        # Check that ref exists
+        if not ref or ref['layer'] not in ['F.Fab', 'B.Fab']:
+            self.addMessage("Reference designator not found on Fab layer")
+            return True
+            
+        # Check ref size
+        font = ref['font']
+        
+        err = False
+        
+        fh = font['height']
+        fw = font['width']
+        ft = font['thickness']
+        
+        # Font height 
+        if not fh == fw:
+            self.addMessage("Refdes aspect ratio should be 1:1")
+            err = True
+            
+        if fh < KLC_TEXT_SIZE_MIN or fh > KLC_TEXT_SIZE_MAX:
+            self.addMessage("Refdes text size ({x}mm) is outside allowed range [{y}mm - {z}mm]".format(
+                x = fh,
+                y = KLC_TEXT_SIZE_MIN,
+                z = KLC_TEXT_SIZE_MAX))
+            err = True
+                
+        # Font thickness
+        if ft < KLC_TEXT_THICKNESS_MIN or ft > KLC_TEXT_THICKNESS_MAX:
+            self.addMessage("Refdes text thickness ({x}mm) is outside allowed range [{y}mm - {z}mm]".format(
+                x = ft,
+                y = KLC_TEXT_SIZE_MIN,
+                z = KLC_TEXT_SIZE_MAX))
+            
+        return err
     
     # Check fab line widths
     def checkIncorrectWidth(self):
         self.bad_fabrication_width = []
         for graph in (self.f_fabrication_all + self.b_fabrication_all):
-            if graph['width'] != KLC_FAB_WIDTH:
+            if graph['width'] < KLC_FAB_WIDTH_MIN or graph['width'] > KLC_FAB_WIDTH_MAX:
                 self.bad_fabrication_width.append(graph)
                 
         msg = False
     
+        if len(self.bad_fabrication_width) > 0:
+            self.addMessage("Some fabrication layer lines have a width outside allowed range of [{x}mm - {y}mm]".format(
+                x = KLC_FAB_WIDTH_MIN,
+                y = KLC_FAB_WIDTH_MAX))
         for g in self.bad_fabrication_width:
-            # Only display this message once
-            if not msg:
-                self.addMessage("Some fabrication layer line has a width of {1}mm, different from {0}mm.\n".format(KLC_FAB_WIDTH,g['width']))
-            msg = True
+            self.addMessage("\t- {line}".format(line=g))
         
         return len(self.bad_fabrication_width) > 0
         
@@ -80,7 +133,8 @@ class Rule(KLCRule):
         return any([
                     self.checkMissingValue(),
                     self.checkMissingLines(),
-                    self.checkIncorrectWidth()
+                    self.checkIncorrectWidth(),
+                    self.checkSecondRef(),
                     ])
 
     def fix(self):
@@ -97,4 +151,7 @@ class Rule(KLCRule):
             module.value['font']['height'] = self.expected_val_width
             module.value['font']['width'] = self.expected_val_width
             module.value['font']['thickness'] = self.expected_val_thickness
+            
+        if self.checkSecondRef():
+            pass
 
