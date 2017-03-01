@@ -22,17 +22,28 @@ class Rule(KLCRule):
         module = self.module
         err = False
         
+        font = module.reference['font']
+        
         if module.reference['layer'] not in ['F.SilkS', 'B.SilkS']:
             self.addMessage("Reference label is on layer '{0}', but should be on layer F.SilkS or B.SilkS!".format(module.reference['layer']))
             err = True
-        if module.reference['font']['height'] > KLC_TEXT_HEIGHT:
-            self.addMessage("Reference label has a height of {1}mm (expected: <={0}mm).\n".format(KLC_TEXT_HEIGHT,module.reference['font']['height']))
+            
+        if module.reference['hide']:
+            self.addMessage("Reference label is hidden (must be set to visible")
             err = True
-        if module.reference['font']['width'] > KLC_TEXT_WIDTH:
-            self.addMessage("Reference label has a width of {1}mm (expected: <={0}mm).\n".format(KLC_TEXT_WIDTH,module.reference['font']['width']))
+            
+        if not font['width'] == font['height']:
+            self.addMessage("Reference label font aspect ratio should be 1:1")
             err = True
-        if module.reference['font']['thickness'] != KLC_TEXT_THICKNESS:
-            self.addMessage("Reference label has a thickness of {1}mm (expected: {0}mm).\n".format(KLC_TEXT_THICKNESS,module.reference['font']['thickness']))
+                
+        if font['height'] !=  KLC_TEXT_SIZE:
+            self.addMessage("Reference label has a height of {1}mm (expected: <={0}mm).\n".format(KLC_TEXT_HEIGHT,font['height']))
+            err = True
+        if font['width'] != KLC_TEXT_SIZE:
+            self.addMessage("Reference label has a width of {1}mm (expected: <={0}mm).\n".format(KLC_TEXT_WIDTH,font['width']))
+            err = True
+        if font['thickness'] != KLC_TEXT_THICKNESS:
+            self.addMessage("Reference label has a thickness of {1}mm (expected: {0}mm).\n".format(KLC_TEXT_THICKNESS,font['thickness']))
             err = True
             
         self.refDesError = err
