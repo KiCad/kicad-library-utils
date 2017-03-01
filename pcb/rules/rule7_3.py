@@ -45,7 +45,7 @@ class Rule(KLCRule):
         self.bad_width = []
         
         for graph in (self.f_silk + self.b_silk):
-            if graph['width'] != KLC_SILK_WIDTH:
+            if graph['width'] not in KLC_SILK_WIDTH_ALLOWED:
                 self.bad_width.append(graph)
              
     """ 
@@ -195,11 +195,11 @@ class Rule(KLCRule):
 
         # Display message if bad silkscreen width was found
         if self.bad_width:
-            self.addMessage("Some silkscreen lines have incorrect width:")
-            for  g in self.bad_width:
-                self.addMessage("{2}".format(KLC_SILK_WIDTH,g['width'],g))
-        # Display message if silkscreen was found intersecting with pad
+            self.addMessage("Some silkscreen lines have incorrect width: Allowed = {allowed}(mm))".format(allowed=KLC_SILK_WIDTH_ALLOWED))
+            for g in self.bad_width:
+                self.addMessage("\t- {g}".format(g=g))
         
+        # Display message if silkscreen was found intersecting with pad
         if self.intersections:
             self.addMessage("Some courtyard lines intersects with pads:")
             for ints in self.intersections:
@@ -221,7 +221,7 @@ class Rule(KLCRule):
         if self.check():
             if self.refDesError:
                 module = self.module
-                if self.check():
+                if self.checkReference():
                     module.reference['value'] = 'REF**'
                     module.reference['layer'] = 'F.SilkS'
                     module.reference['font']['width'] = KLC_TEXT_WIDTH
