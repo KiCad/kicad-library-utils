@@ -104,7 +104,9 @@ class Rule(KLCRule):
             fp_need_fix = True
             self.fp_is_missing = True
 
-        return True if (ref_need_fix or name_need_fix or fp_need_fix) else False
+        # This entire rule only generates a WARNING (won't fail a component, only display a message)
+        return False
+        #return True if (ref_need_fix or name_need_fix or fp_need_fix) else False
 
     def fix(self):
         """
