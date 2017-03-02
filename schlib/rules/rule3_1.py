@@ -46,12 +46,13 @@ class Rule(KLCRule):
                     name = pin['name'],
                     num = pin['num'],
                     length = length))
-            
-            if length < 100 or length % 50 != 0:
-                self.violating_pins.append(pin)
-                if not err:
-                    self.error("Incorrect pin length:")
-                err = True
+                    
+            # length too long flags a warning
+            if length > 200:
+                self.warning("- pin: {name} ({num}) - length ({length}mils) is too long".format(
+                    name = pin['name'],
+                    num = pin['num'],
+                    length = length))
 
         return len(self.violating_pins) > 0
     
