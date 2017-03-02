@@ -34,7 +34,6 @@ parser.add_argument('-p', '--pattern', help='Check multiple components by matchi
 parser.add_argument('-r','--rule',help='Select a particular rule (or rules) to check against (default = all rules). Use comma separated values to select multiple rules. e.g. "-r 3.1,EC02"')
 parser.add_argument('--fix', help='fix the violations if possible', action='store_true')
 parser.add_argument('--nocolor', help='does not use colors to show the output', action='store_true')
-parser.add_argument('--enable-extra', help='enable extra checking', action='store_true')
 parser.add_argument('-v', '--verbose', help='show status of all components and extra information about the violation', action='count')
 parser.add_argument('-s', '--silent', help='skip output for symbols passing all checks', action='store_true')
 
@@ -64,15 +63,11 @@ for f in dir():
         if (selected_rules == None) or (f[4:].replace("_",".") in selected_rules):
             all_rules.append(globals()[f].Rule)
 
-# gel all extra checking
-all_ec = []
+# add all extra checking
 for f in dir():
     if f.startswith('EC'):
         if (selected_rules is None) or (f.lower() in [r.lower() for r in selected_rules]):
-            all_ec.append(globals()[f].Rule)
-            #force --enable-extra on if an EC rule is selected
-            if selected_rules is not None:
-                args.enable_extra = True
+            all_rules.append(globals()[f].Rule)
 
 #grab list of libfiles (even on windows!)
 libfiles = []
@@ -128,25 +123,6 @@ for libfile in libfiles:
                     rule.fix()
 
                 processVerboseOutput(rule.messageBuffer)
-
-        # extra checking
-        if args.enable_extra:
-            for ec in all_ec:
-                ec = ec(component)
-                if ec.check():
-                    if first:
-                        first = False
-                        printer.green('checking component: %s' % component.name)
-                    #n_violations += 1
-                    printer.yellow('Violating ' +  ec.name, indentation=2)
-
-                    if args.verbose:
-                        printer.light_blue(ec.description, indentation=4, max_width=100)
-
-                    if args.fix:
-                        ec.fix()
-
-                    processVerboseOutput(ec.messageBuffer)
 
         # check the number of violations
         if n_violations == 0:
