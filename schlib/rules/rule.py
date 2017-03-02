@@ -77,7 +77,16 @@ class KLCRule(object):
     #adds message into buffer only if such level of verbosity is wanted
     def verboseOut(self, msgVerbosity, severity, message):
         self.messageBuffer.append([message,msgVerbosity,severity])
+        
+    def warning(self, msg, verbosity=Verbosity.HIGH):
+        self.verboseOut(verbosity, Severity.WARNING, msg)
 
+    def error(self, msg, verbosity=Verbosity.HIGH):
+        self.verboseOut(verbosity, Severity.ERROR, msg)
+        
+    def info(self, msg, verbosity=Verbosity.NORMAL):
+        self.verboseOut(verbosity, Severity.INFO, msg)
+        
     def check(self, component):
         raise NotImplementedError('The check method must be implemented')
 
