@@ -22,7 +22,7 @@ class Rule(KLCRule):
                 # if group 2 is empty there are only letters in the pin name
                 if m.group(2) == '':
                     self.wrong_pin_numbers.append(pin)
-                    self.verboseOut(Verbosity.HIGH, Severity.WARNING, "pin: {0} number {1} is not valid, should contain at least 1 number".format(pin['name'], pin['num']))
+                    self.verboseOut(Verbosity.HIGH, Severity.ERROR, "pin: {0} number {1} is not valid, should contain at least 1 number".format(pin['name'], pin['num']))
 
                     
         return len(self.wrong_pin_numbers) > 0
@@ -50,10 +50,10 @@ class Rule(KLCRule):
 
             if len(pin_list) > 1:
                 duplicate = True
-                self.verboseOut(Verbosity.NORMAL, Severity.WARNING, "Pin {n} is duplicated".format(n=number))
+                self.verboseOut(Verbosity.NORMAL, Severity.ERROR, "Pin {n} is duplicated".format(n=number))
 
                 for pin in pin_list:
-                    self.verboseOut(Verbosity.HIGH, Severity.WARNING, "{n} - {name} @ {x},{y}".format(
+                    self.verboseOut(Verbosity.HIGH, Severity.ERROR, "{n} - {name} @ {x},{y}".format(
                         n = pin['num'],
                         name = pin['name'],
                         x = pin['posx'],
@@ -61,6 +61,8 @@ class Rule(KLCRule):
 
         return duplicate
         
+        
+    # Check pin numbers only generates a warning
     def checkPinNumbers(self):
         #check for missing pins within the range of pins
         missing = False
@@ -83,8 +85,7 @@ class Rule(KLCRule):
     
         return any([
             self.checkPinNames(),
-            self.checkDuplicatePins(),
-            self.checkPinNumbers()
+            self.checkDuplicatePins()
             ])
 
     def fix(self):
