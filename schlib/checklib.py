@@ -88,6 +88,8 @@ for libfile in libfiles:
     for component in lib.components:
         # skip components with non matching names
 
+        output = []
+        
         #simple match
         match = True
         if args.component:
@@ -104,7 +106,6 @@ for libfile in libfiles:
         # check the rules
         n_violations = 0
         
-        printer.green('checking component: %s' % component.name)
         
         for rule in all_rules:
             rule = rule(component)
@@ -118,14 +119,19 @@ for libfile in libfiles:
                 if args.fix:
                     rule.fix()
 
-            processVerboseOutput(rule.messageBuffer)
-
-        # check the number of violations
-        if n_violations == 0:
+            output += rule.messageBuffer
+            
+        # No violations
+        if len(output) == 0:
             if not args.silent:
-                printer.light_green('Component: {cmp}'.format(cmp=component.name))
-                printer.light_green('No violations found', indentation=2)
+                printer.green('checking component: %s - No errors' % component.name)
+            
         else:
+            printer.green("checking component: %s" % component.name)
+            processVerboseOutput(rule.messageBuffer)
+            
+        # check the number of violations
+        if n_violations > 0:
             exit_code += 1
 
     if args.fix:
