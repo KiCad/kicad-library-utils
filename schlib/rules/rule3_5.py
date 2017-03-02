@@ -61,12 +61,9 @@ class Rule(KLCRule):
         if self.test(name.lower(), self.POWER_INPUTS) and not etype.lower() == 'w':
             err = True
             self.power_errors.append(pin)
-            self.verboseOut(Verbosity.HIGH,
-                            Severity.ERROR,
-                            "Pin {n} ({name}) should be of type POWER INPUT or POWER OUTPUT".format(
-                                n = pin['num'],
-                                name = name)
-                            )
+            self.error("Pin {n} ({name}) should be of type POWER INPUT or POWER OUTPUT".format(
+                        n = pin['num'],
+                        name = name))
             
     def checkNCPin(self, pin):
         
@@ -81,24 +78,17 @@ class Rule(KLCRule):
             # NC pins should be of type N
             if not etype == 'N': # Not set to NC
                 err = True
-                self.verboseOut(Verbosity.HIGH,
-                                Severity.ERROR,
-                                "Pin {n} ({name}) should be of type NOT CONNECTED".format(
-                                    n = pin['num'],
-                                    name = name)
-                                )
+                self.error("Pin {n} ({name}) should be of type NOT CONNECTED".format(
+                            n = pin['num'],
+                            name = name))
                                 
             # NC pins should be invisible
             if not pin['pin_type'] == 'I':
                 err = True
-                self.verboseOut(Verbosity.HIGH,
-                                Severity.ERROR,
-                                "Pin {n} ({name}) is NC and should be INVISIBLE".format(
-                                    n = pin['num'],
-                                    name = name)
-                                )
-                  
-
+                self.error("Pin {n} ({name}) is NC and should be INVISIBLE".format(
+                            n = pin['num'],
+                            name = name))
+                            
         if err:
             self.nc_errors.append(pin)
             
@@ -113,14 +103,11 @@ class Rule(KLCRule):
             pins = self.warning_tests[pin_type]
             
             if self.test(name, pins) and not etype == pin_type:
-                self.verboseOut(Verbosity.HIGH,
-                                Severity.WARNING,
-                                "Pin {n} ({name}) is type {t1} : suggested {t2}".format(
-                                    n = pin['num'],
-                                    name = pin['name'],
-                                    t1 = pinElectricalTypeToStr(etype),
-                                    t2 = pinElectricalTypeToStr(pin_type))
-                                )
+                self.error("Pin {n} ({name}) is type {t1} : suggested {t2}".format(
+                            n = pin['num'],
+                            name = pin['name'],
+                            t1 = pinElectricalTypeToStr(etype),
+                            t2 = pinElectricalTypeToStr(pin_type)))
                                     
     def checkDoubleInversion(self, pin):
         
@@ -131,7 +118,7 @@ class Rule(KLCRule):
         if m and pin['pin_type'] == 'I':
             fail = True
             self.inversion_errors.append(pin)
-            self.verboseOut(Verbosity.HIGH,Severity.ERROR,'pin {0} ({1}): double inversion (overline + pin type:Inverting)'.format(pin['name'], pin['num']))
+            self.error('pin {0} ({1}): double inversion (overline + pin type:Inverting)'.format(pin['name'], pin['num']))
 
         return fail
         
@@ -168,36 +155,25 @@ class Rule(KLCRule):
         """
         Proceeds the fixing of the rule, if possible.
         """
-        self.verboseOut(Verbosity.HIGH, Severity.INFO,"Fixing...")
+        self.info("Fixing...")
         
         for pin in self.power_errors:
         
             pin['electrical_type'] = 'W' # Power Input
             
-            self.verboseOut(Verbosity.HIGH,
-                            Severity.INFO,
-                            "Changing pin {n} type to POWER_INPUT".format(n=pin['num'])
-                            )           
+            self.info("Changing pin {n} type to POWER_INPUT".format(n=pin['num']))           
 
         for pin in self.nc_errors:
             if not pin['electrical_type'] == 'N':
                 pin['electrical_type'] = 'N'
-                self.verboseOut(Verbosity.HIGH,
-                                Severity.INFO,
-                                "Changing pin {n} type to NO_CONNECT".format(n=pin['num'])
-                                )
+                self.info("Changing pin {n} type to NO_CONNECT".format(n=pin['num']))
+            
             if not pin['pin_type'] == 'I':
                 pin['pin_type'] = 'I'
-                self.verboseOut(Verbosity.HIGH,
-                                Severity.INFO,
-                                "Setting pin {n} to INVISIBLE".format(n=pin['num'])
-                                )
+                self.info("Setting pin {n} to INVISIBLE".format(n=pin['num']))
 
         for pin in self.inversion_errors:
             pin['pin_type']="" #reset pin type (removes dot at the base of pin)
-            self.verboseOut(Verbosity.HIGH,
-                            Severity.INFO,
-                            "Removing double inversion on pin {n}".format(n=pin['num'])
-                            )
+            self.info("Removing double inversion on pin {n}".format(n=pin['num']))
 
         self.recheck()

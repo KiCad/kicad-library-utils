@@ -19,7 +19,7 @@ class Rule(KLCRule):
         ref = self.component.fields[0]
         
         if not self.checkVisibility(ref):
-            self.verboseOut(Verbosity.HIGH, Severity.ERROR, "Ref field must be VISIBLE")
+            self.error("Ref field must be VISIBLE")
             fail = True
     
         return fail
@@ -36,11 +36,11 @@ class Rule(KLCRule):
             
         if not name == self.component.name:
             fail = True
-            self.verboseOut(Verbosity.HIGH, Severity.ERROR, "Value {val} does not match component name.".format(val=name))
+            self.error("Value {val} does not match component name.".format(val=name))
             
         # name field must be visible!
         if not self.checkVisibility(value):
-            self.verboseOut(Verbosity.HIGH, Severity.ERROR, "Value field must be VISIBLE")
+            self.error("Value field must be VISIBLE")
             fail = True
                 
         return fail
@@ -52,7 +52,7 @@ class Rule(KLCRule):
         fp = self.component.fields[2]
         
         if self.checkVisibility(fp):
-            self.verboseOut(Verbosity.HIGH, Severity.ERROR, "Footprint field must be INVISIBLE")
+            self.error("Footprint field must be INVISIBLE")
             fail = True
         
         return fail
@@ -65,7 +65,7 @@ class Rule(KLCRule):
         ds = self.component.fields[3]
         
         if self.checkVisibility(ds):
-            self.verboseOut(Verbosity.HIGH, Severity.ERROR, "Datasheet field must be INVISIBLE")
+            self.error("Datasheet field must be INVISIBLE")
             fail = True
             
         return fail
@@ -76,21 +76,19 @@ class Rule(KLCRule):
         # Check for required fields
         n = len(self.component.fields)
         if n < 4:
-            self.verboseOut(Verbosity.HIGH,
-                            Severity.ERROR,
-                            "Component does not have minimum required fields!")
+            self.error("Component does not have minimum required fields!")
                             
             if n < 1:
-                self.verboseOut(Verbosity.HIGH, Severity.ERROR, "Missing REFERENCE field")
+                self.error("Missing REFERENCE field")
                             
             if n < 2:
-                self.verboseOut(Verbosity.HIGH, Severity.ERROR, "Missing VALUE field")
+                self.error("Missing VALUE field")
                             
             if n < 3:
-                self.verboseOut(Verbosity.HIGH, Severity.ERROR, "Missing FOOTPRINT field")
+                self.error("Missing FOOTPRINT field")
                             
             if n < 4:
-                self.verboseOut(Verbosity.HIGH, Severity.ERROR, "Missing DATASHEET field")
+                self.error("Missing DATASHEET field")
                             
             return True
     
@@ -107,7 +105,7 @@ class Rule(KLCRule):
         """
         Proceeds the fixing of the rule, if possible.
         """
-        self.verboseOut(Verbosity.HIGH, Severity.INFO, "Fixing..")
+        self.info( "Fixing..")
         self.component.fields[1]['name'] = self.component.name
         
         self.recheck()

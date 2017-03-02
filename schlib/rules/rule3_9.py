@@ -26,7 +26,7 @@ class Rule(KLCRule):
         #check all its aliases too
         if self.component.aliases:
             for alias in self.component.aliases.keys():
-                self.verboseOut(Verbosity.HIGH,Severity.INFO,"checking alias: {0}".format(alias))
+                self.info("checking alias: {0}".format(alias))
                 if self.checkDocumentation(alias, self.component.aliases[alias], indentation=2):
                     invalid_documentation+=1
 
@@ -35,7 +35,7 @@ class Rule(KLCRule):
 
     def checkDocumentation(self, name, documentation, indentation=0):
         if not documentation:
-            self.verboseOut(Verbosity.HIGH,Severity.ERROR," "*indentation+"missing whole documentation (description, keywords, datasheet)")
+            self.error(" "*indentation+"missing whole documentation (description, keywords, datasheet)")
             return True
 
         elif (not documentation['description'] or
@@ -43,11 +43,11 @@ class Rule(KLCRule):
             not documentation['datasheet']):
 
             if (not documentation['description']):
-                self.verboseOut(Verbosity.HIGH,Severity.ERROR," "*indentation+"missing description")
+                self.error(" "*indentation+"missing description")
             if (not documentation['keywords']):
-                self.verboseOut(Verbosity.HIGH,Severity.ERROR," "*indentation+"missing keywords")
+                self.error(" "*indentation+"missing keywords")
             if (not documentation['datasheet']):
-                self.verboseOut(Verbosity.HIGH,Severity.WARNING," "*indentation+"missing datasheet, please provide a datasheet link if it isn't a generic component")
+                self.warning(" "*indentation+"missing datasheet, please provide a datasheet link if it isn't a generic component")
                 if (documentation['description'] and
                     documentation['keywords']):
                     self.only_datasheet_missing = True
@@ -59,16 +59,14 @@ class Rule(KLCRule):
             return not self.only_datasheet_missing
 
         elif name.lower() in documentation['description'].lower():
-            self.verboseOut(Verbosity.HIGH, Severity.WARNING, " "*indentation + "symbol name should not be included in description")
+            self.warning( " "*indentation + "symbol name should not be included in description")
             return True
 
-        else:
-            self.verboseOut(Verbosity.HIGH,Severity.SUCCESS," "*indentation+"documentation OK")
-            return False
+        return False
 
 
     def fix(self):
         """
         Proceeds the fixing of the rule, if possible.
         """
-        self.verboseOut(Verbosity.NORMAL, Severity.INFO, "FIX: not supported" )
+        self.info("FIX: not supported" )

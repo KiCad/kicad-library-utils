@@ -18,8 +18,8 @@ class Rule(KLCRule):
             if (posx % 100) != 0 or (posy % 100) != 0:
                 self.violating_pins.append(pin)
                 if not err:
-                    self.verboseOut(Verbosity.HIGH, Severity.ERROR, "Pins not located on 100mil grid:")
-                self.verboseOut(Verbosity.HIGH, Severity.ERROR, ' - pin: {0} ({1}), {2}'.format(pin['name'], pin['num'], positionFormater(pin)))
+                    self.error("Pins not located on 100mil grid:")
+                self.error(' - pin: {0} ({1}), {2}'.format(pin['name'], pin['num'], positionFormater(pin)))
                 err = True
     
         return len(self.violating_pins) > 0
@@ -33,8 +33,8 @@ class Rule(KLCRule):
             if (length < 100) or (length % 50 != 0):
                 self.violating_pins.append(pin)
                 if not err:
-                    self.verboseOut(Verbosity.HIGH, Severity.ERROR, "Incorrect pin length:")
-                self.verboseOut(Verbosity.HIGH, Severity.ERROR, ' - pin: {0} ({1}), {2}, length={3}'.format(pin['name'], pin['num'], positionFormater(pin), length))
+                    self.error("Incorrect pin length:")
+                self.error(' - pin: {0} ({1}), {2}, length={3}'.format(pin['name'], pin['num'], positionFormater(pin), length))
                 err = True
 
         return len(self.violating_pins) > 0
@@ -53,6 +53,8 @@ class Rule(KLCRule):
         """
         Proceeds the fixing of the rule, if possible.
         """
+        
+        self.info("Fix not supported")
         
         if self.checkPinOrigin():
             pass
