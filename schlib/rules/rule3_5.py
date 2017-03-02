@@ -22,16 +22,12 @@ class Rule(KLCRule):
     #Bidirectional pins should be "B"
     BIDIR_PINS = ['^sda$', '^s*dio$']
 
-    #No-connect pins should be "N"
-    NC_PINS = ['^nc$', '^dnc$', '^n\.c\.$']
-
     warning_tests = {
         "w" : POWER_OUTPUTS,
         "P" : PASSIVE_PINS,
         "I" : INPUT_PINS,
         "O" : OUTPUT_PINS,
         "B" : BIDIR_PINS,
-        "N" : NC_PINS,
         }
 
     #check if a pin name fits within a list of possible pins (using regex testing)
@@ -64,35 +60,6 @@ class Rule(KLCRule):
             self.error("Pin {n} ({name}) should be of type POWER INPUT or POWER OUTPUT".format(
                         n = pin['num'],
                         name = name))
-            
-    def checkNCPin(self, pin):
-        
-        err = False
-    
-        name = pin['name'].lower()
-        etype = pin['electrical_type']
-        
-        # Check NC pins
-        if self.test(name.lower(), self.NC_PINS) or etype == 'N':
-        
-            # NC pins should be of type N
-            if not etype == 'N': # Not set to NC
-                err = True
-                self.error("Pin {n} ({name}) should be of type NOT CONNECTED".format(
-                            n = pin['num'],
-                            name = name))
-                                
-            # NC pins should be invisible
-            if not pin['pin_type'] == 'I':
-                err = True
-                self.error("Pin {n} ({name}) is NC and should be INVISIBLE".format(
-                            n = pin['num'],
-                            name = name))
-                            
-        if err:
-            self.nc_errors.append(pin)
-            
-        return err
     
     # These pin types are suggestions
     def checkSuggestions(self, pin):
@@ -131,7 +98,6 @@ class Rule(KLCRule):
         """
         
         self.power_errors = []
-        self.nc_errors = []
         self.inversion_errors = []
 
         fail = False
@@ -139,9 +105,6 @@ class Rule(KLCRule):
         for pin in self.component.pins:
         
             if self.checkPowerPin(pin):
-                fail = True
-                
-            if self.checkNCPin(pin):
                 fail = True
                 
             if self.checkDoubleInversion(pin):
@@ -161,16 +124,7 @@ class Rule(KLCRule):
         
             pin['electrical_type'] = 'W' # Power Input
             
-            self.info("Changing pin {n} type to POWER_INPUT".format(n=pin['num']))           
-
-        for pin in self.nc_errors:
-            if not pin['electrical_type'] == 'N':
-                pin['electrical_type'] = 'N'
-                self.info("Changing pin {n} type to NO_CONNECT".format(n=pin['num']))
-            
-            if not pin['pin_type'] == 'I':
-                pin['pin_type'] = 'I'
-                self.info("Setting pin {n} to INVISIBLE".format(n=pin['num']))
+            self.info("Changing pin {n} type to POWER_INPUT".format(n=pin['num']))
 
         for pin in self.inversion_errors:
             pin['pin_type']="" #reset pin type (removes dot at the base of pin)

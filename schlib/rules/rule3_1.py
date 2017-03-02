@@ -29,8 +29,11 @@ class Rule(KLCRule):
         err = False
         for pin in self.component.pins:
             length = int(pin['length'])
+            
+            # ignore zero-length pins e.g. hidden power pins
             if length == 0: continue
-            if (length < 100) or (length % 50 != 0):
+            
+            if length < 100 or length % 50 != 0:
                 self.violating_pins.append(pin)
                 if not err:
                     self.error("Incorrect pin length:")
