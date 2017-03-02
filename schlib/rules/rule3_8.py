@@ -72,7 +72,6 @@ class Rule(KLCRule):
         
     def check(self):
     
-    
         # Check for required fields
         n = len(self.component.fields)
         if n < 4:
@@ -99,8 +98,6 @@ class Rule(KLCRule):
             self.checkDatasheet()
             ])
         
-        
-
     def fix(self):
         """
         Proceeds the fixing of the rule, if possible.
