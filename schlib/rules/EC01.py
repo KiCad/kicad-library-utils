@@ -22,7 +22,7 @@ class Rule(KLCRule):
                 # if group 2 is empty there are only letters in the pin name
                 if m.group(2) == '':
                     self.wrong_pin_numbers.append(pin)
-                    self.verboseOut(Verbosity.HIGH, Severity.ERROR, "pin: {0} number {1} is not valid, should contain at least 1 number".format(pin['name'], pin['num']))
+                    self.error("pin: {0} number {1} is not valid, should contain at least 1 number".format(pin['name'], pin['num']))
 
                     
         return len(self.wrong_pin_numbers) > 0
@@ -50,10 +50,10 @@ class Rule(KLCRule):
 
             if len(pin_list) > 1:
                 duplicate = True
-                self.verboseOut(Verbosity.NORMAL, Severity.ERROR, "Pin {n} is duplicated".format(n=number))
+                self.error("Pin {n} is duplicated".format(n=number))
 
                 for pin in pin_list:
-                    self.verboseOut(Verbosity.HIGH, Severity.ERROR, "{n} - {name} @ {x},{y}".format(
+                    self.error("{n} - {name} @ {x},{y}".format(
                         n = pin['num'],
                         name = pin['name'],
                         x = pin['posx'],
@@ -76,7 +76,7 @@ class Rule(KLCRule):
         
         for i in range(1, max(int_pins) + 1):
             if i not in int_pins:
-                self.verboseOut(Verbosity.NORMAL, Severity.WARNING, "Pin {n} is missing".format(n=i))
+                self.warning("Pin {n} is missing".format(n=i))
                 missing = True
                 
         return missing
@@ -92,4 +92,4 @@ class Rule(KLCRule):
         """
         Proceeds the fixing of the rule, if possible.
         """
-        self.verboseOut(Verbosity.NORMAL, Severity.INFO, "FIX: not supported" )
+        self.info("FIX: not supported" )

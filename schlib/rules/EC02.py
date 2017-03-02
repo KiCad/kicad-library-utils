@@ -45,10 +45,10 @@ class Rule(KLCRule):
         ref_need_fix = False
         pos = {'posx':int(self.component.fields[0]['posx']), 'posy':int(self.component.fields[0]['posy'])}
         if (pos != self.recommended_ref_pos):
-            self.verboseOut(Verbosity.HIGH, Severity.WARNING,"field: reference, {0}, recommended {1}".format(positionFormater(pos), positionFormater(self.recommended_ref_pos)))
+            self.warning("field: reference, {0}, recommended {1}".format(positionFormater(pos), positionFormater(self.recommended_ref_pos)))
             ref_need_fix = True
         if (self.component.fields[0]['htext_justify'] != self.recommended_ref_alignment):
-            self.verboseOut(Verbosity.HIGH, Severity.WARNING,"field: reference, justification {0}, recommended {1}".format(self.component.fields[0]['htext_justify'],self.recommended_ref_alignment))
+            self.warning("field: reference, justification {0}, recommended {1}".format(self.component.fields[0]['htext_justify'],self.recommended_ref_alignment))
             ref_need_fix = True
         #Does vertical alignment matter too?
         #What about orientation checking?
@@ -70,10 +70,10 @@ class Rule(KLCRule):
         name_need_fix = False
         pos = {'posx':int(self.component.fields[1]['posx']), 'posy':int(self.component.fields[1]['posy'])}
         if (pos != self.recommended_name_pos):
-            self.verboseOut(Verbosity.HIGH, Severity.WARNING,"field: name, {0}, recommended {1}".format(positionFormater(pos), positionFormater(self.recommended_name_pos)))
+            self.warning("field: name, {0}, recommended {1}".format(positionFormater(pos), positionFormater(self.recommended_name_pos)))
             name_need_fix = True
         if (self.component.fields[1]['htext_justify'] != self.recommended_name_alignment):
-            self.verboseOut(Verbosity.HIGH, Severity.WARNING,"field: name, justification {0}, recommended {1}".format(self.component.fields[1]['htext_justify'],self.recommended_name_alignment))
+            self.warning("field: name, justification {0}, recommended {1}".format(self.component.fields[1]['htext_justify'],self.recommended_name_alignment))
             name_need_fix = True
         ## footprint checking
 
@@ -94,13 +94,13 @@ class Rule(KLCRule):
         if len(self.component.fields) >= 3:
             pos = {'posx':int(self.component.fields[2]['posx']), 'posy':int(self.component.fields[2]['posy'])}
             if (pos != self.recommended_fp_pos):
-                self.verboseOut(Verbosity.HIGH, Severity.WARNING,"field: footprint, {0}, recommended {1}".format( positionFormater(pos), positionFormater(self.recommended_fp_pos)))
+                self.warning("field: footprint, {0}, recommended {1}".format( positionFormater(pos), positionFormater(self.recommended_fp_pos)))
                 fp_need_fix = True
             if (self.component.fields[2]['htext_justify'] != self.recommended_fp_alignment):
-                self.verboseOut(Verbosity.HIGH, Severity.WARNING,"field: footprint, justification {0}, recommended {1}".format(self.component.fields[2]['htext_justify'],self.recommended_fp_alignment))
+                self.warning("field: footprint, justification {0}, recommended {1}".format(self.component.fields[2]['htext_justify'],self.recommended_fp_alignment))
                 fp_need_fix = True
         else:
-            self.verboseOut(Verbosity.HIGH, Severity.WARNING,"field: footprint is missing, please re-save symbol using KiCad")
+            self.warning("field: footprint is missing, please re-save symbol using KiCad")
             fp_need_fix = True
             self.fp_is_missing = True
 
@@ -112,7 +112,7 @@ class Rule(KLCRule):
         """
         Proceeds the fixing of the rule, if possible.
         """
-        self.verboseOut(Verbosity.HIGH, Severity.INFO,"Fixing...")
+        self.info("Fixing...")
         self.component.fields[0]['posx'] = str(self.recommended_ref_pos['posx'])
         self.component.fields[0]['posy'] = str(self.recommended_ref_pos['posy'])
         self.component.fields[0]['htext_justify'] = self.recommended_ref_alignment
