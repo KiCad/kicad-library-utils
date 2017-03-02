@@ -72,6 +72,28 @@ class Rule(KLCRule):
         
     def check(self):
     
+    
+        # Check for required fields
+        n = len(self.component.fields)
+        if n < 4:
+            self.verboseOut(Verbosity.HIGH,
+                            Severity.ERROR,
+                            "Component does not have minimum required fields!")
+                            
+            if n < 1:
+                self.verboseOut(Verbosity.HIGH, Severity.ERROR, "Missing REFERENCE field")
+                            
+            if n < 2:
+                self.verboseOut(Verbosity.HIGH, Severity.ERROR, "Missing VALUE field")
+                            
+            if n < 3:
+                self.verboseOut(Verbosity.HIGH, Severity.ERROR, "Missing FOOTPRINT field")
+                            
+            if n < 4:
+                self.verboseOut(Verbosity.HIGH, Severity.ERROR, "Missing DATASHEET field")
+                            
+            return True
+    
         return any([
             self.checkReference(),
             self.checkValue(),
