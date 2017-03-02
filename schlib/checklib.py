@@ -87,8 +87,6 @@ for libfile in libfiles:
 
     for component in lib.components:
         # skip components with non matching names
-        
-        first = True
 
         #simple match
         match = True
@@ -106,13 +104,11 @@ for libfile in libfiles:
         # check the rules
         n_violations = 0
         
+        printer.green('checking component: %s' % component.name)
+        
         for rule in all_rules:
             rule = rule(component)
             if rule.check():
-                #this is the first violation
-                if first:
-                    first = False
-                    printer.green('checking component: %s' % component.name)
 
                 n_violations += 1
                 printer.yellow('Violating ' +  rule.name, indentation=2)
@@ -122,7 +118,7 @@ for libfile in libfiles:
                 if args.fix:
                     rule.fix()
 
-                processVerboseOutput(rule.messageBuffer)
+            processVerboseOutput(rule.messageBuffer)
 
         # check the number of violations
         if n_violations == 0:
