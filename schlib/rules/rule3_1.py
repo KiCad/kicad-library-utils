@@ -33,11 +33,24 @@ class Rule(KLCRule):
             # ignore zero-length pins e.g. hidden power pins
             if length == 0: continue
             
+            if length < 100:
+                self.violating_pins.append(pin)
+                if not err:
+                    self.error("Incorrect pin length:")
+                err = True
+                self.error(' - pin: {0} ({1}), {2}, length={3}'.format(pin['name'], pin['num'], positionFormater(pin), length))
+                
+            # length not multiple of 50 mils flags a warning
+            if length % 50 != 0:
+                self.warning("- pin: {name} ({num}) - length ({length}mils) is not a multiple of 50mils".format(
+                    name = pin['name'],
+                    num = pin['num'],
+                    length = length))
+            
             if length < 100 or length % 50 != 0:
                 self.violating_pins.append(pin)
                 if not err:
                     self.error("Incorrect pin length:")
-                self.error(' - pin: {0} ({1}), {2}, length={3}'.format(pin['name'], pin['num'], positionFormater(pin), length))
                 err = True
 
         return len(self.violating_pins) > 0
