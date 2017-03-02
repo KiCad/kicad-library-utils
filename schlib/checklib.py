@@ -12,6 +12,14 @@ from rules.rule import KLCRule
 #enable windows wildcards
 from glob import glob
 
+def checkVerboseOutput(messageBuffer):
+    if args.verbose:
+        for msg in messageBuffer:
+            if msg[1] <= args.verbose:
+                return True
+                
+    return False
+
 def processVerboseOutput(messageBuffer):
     if args.verbose:
         for msg in messageBuffer:
@@ -105,12 +113,17 @@ for libfile in libfiles:
 
         # check the rules
         n_violations = 0
-        
+
+        first = True
         
         for rule in all_rules:
             rule = rule(component)
             if rule.check():
 
+                if first:
+                    first = False
+                    printer.green("checking component: %s" % component.name)
+                    
                 n_violations += 1
                 printer.yellow('Violating ' +  rule.name, indentation=2)
                 if args.verbose:
@@ -121,14 +134,12 @@ for libfile in libfiles:
 
             output += rule.messageBuffer
             
-        # No violations
-        if len(output) == 0:
+        # Are there any messages to process?
+        if checkVerboseOutput(output):
+            processVerboseOutput(output)            
+        else:
             if not args.silent:
                 printer.green('checking component: %s - No errors' % component.name)
-            
-        else:
-            printer.green("checking component: %s" % component.name)
-            processVerboseOutput(rule.messageBuffer)
             
         # check the number of violations
         if n_violations > 0:
