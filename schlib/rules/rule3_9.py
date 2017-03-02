@@ -7,66 +7,102 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad lib files.
     """
     def __init__(self, component):
-        super(Rule, self).__init__(component, 'Rule 3.9', 'Part meta-data is filled out as appropriate')
-
+        super(Rule, self).__init__(component, 'Rule 3.9', 'Default fields contain the correct information')
+        
+    def checkVisibility(self, field):
+        return field['visibility'] == 'V'
+        
+    def checkReference(self):
+        
+        fail = False
+        
+        ref = self.component.fields[0]
+        
+        if not self.checkVisibility(ref):
+            self.error("Ref field must be VISIBLE")
+            fail = True
+    
+        return fail
+        
+    def checkValue(self):
+        fail = False
+        
+        value = self.component.fields[1]
+        
+        name = value['name']
+        
+        if name.startswith('"') and name.endswith('"'):
+            name = name[1:-1]
+            
+        if not name == self.component.name:
+            fail = True
+            self.error("Value {val} does not match component name.".format(val=name))
+            
+        # name field must be visible!
+        if not self.checkVisibility(value):
+            self.error("Value field must be VISIBLE")
+            fail = True
+                
+        return fail
+    
+    def checkFootprint(self):
+        # Footprint field must be invisible
+        fail = False
+        
+        fp = self.component.fields[2]
+        
+        if self.checkVisibility(fp):
+            self.error("Footprint field must be INVISIBLE")
+            fail = True
+        
+        return fail
+    
+    def checkDatasheet(self):
+        
+        # Datasheet field must be invisible
+        fail = False
+        
+        ds = self.component.fields[3]
+        
+        if self.checkVisibility(ds):
+            self.error("Datasheet field must be INVISIBLE")
+            fail = True
+            
+        return fail
+        
     def check(self):
-        """
-        Proceeds the checking of the rule.
-        The following variables will be accessible after checking:
-            * only_datasheet_missing
-        """
-
-        self.only_datasheet_missing = False
-        invalid_documentation = 0
-
-        #check part itself
-        if self.checkDocumentation(self.component.name, self.component.documentation):
-            invalid_documentation += 1
-
-        #check all its aliases too
-        if self.component.aliases:
-            for alias in self.component.aliases.keys():
-                self.info("checking alias: {0}".format(alias))
-                if self.checkDocumentation(alias, self.component.aliases[alias], indentation=2):
-                    invalid_documentation+=1
-
-        return True if invalid_documentation>0 else False
-
-
-    def checkDocumentation(self, name, documentation, indentation=0):
-        if not documentation:
-            self.error(" "*indentation+"missing whole documentation (description, keywords, datasheet)")
+    
+        # Check for required fields
+        n = len(self.component.fields)
+        if n < 4:
+            self.error("Component does not have minimum required fields!")
+                            
+            if n < 1:
+                self.error("Missing REFERENCE field")
+                            
+            if n < 2:
+                self.error("Missing VALUE field")
+                            
+            if n < 3:
+                self.error("Missing FOOTPRINT field")
+                            
+            if n < 4:
+                self.error("Missing DATASHEET field")
+                            
             return True
-
-        elif (not documentation['description'] or
-            not documentation['keywords'] or
-            not documentation['datasheet']):
-
-            if (not documentation['description']):
-                self.error(" "*indentation+"missing description")
-            if (not documentation['keywords']):
-                self.error(" "*indentation+"missing keywords")
-            if (not documentation['datasheet']):
-                self.warning(" "*indentation+"missing datasheet, please provide a datasheet link if it isn't a generic component")
-                if (documentation['description'] and
-                    documentation['keywords']):
-                    self.only_datasheet_missing = True
-
-            # counts as violation if only datasheet is missing and verbosity is high
-            if self.verbosity and self.verbosity > Verbosity.NORMAL:
-                return True
-
-            return not self.only_datasheet_missing
-
-        elif name.lower() in documentation['description'].lower():
-            self.warning( " "*indentation + "symbol name should not be included in description")
-            return True
-
-        return False
-
-
+    
+        return any([
+            self.checkReference(),
+            self.checkValue(),
+            self.checkFootprint(),
+            self.checkDatasheet()
+            ])
+        
     def fix(self):
         """
         Proceeds the fixing of the rule, if possible.
         """
-        self.info("FIX: not supported" )
+        self.info( "Fixing..")
+        self.component.fields[1]['name'] = self.component.name
+        
+        self.recheck()

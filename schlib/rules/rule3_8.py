@@ -7,102 +7,55 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad lib files.
     """
     def __init__(self, component):
-        super(Rule, self).__init__(component, 'Rule 3.8', 'Default fields contain the correct information')
-        
-    def checkVisibility(self, field):
-        return field['visibility'] == 'V'
-        
-    def checkReference(self):
-        
-        fail = False
-        
-        ref = self.component.fields[0]
-        
-        if not self.checkVisibility(ref):
-            self.error("Ref field must be VISIBLE")
-            fail = True
-    
-        return fail
-        
-    def checkValue(self):
-        fail = False
-        
-        value = self.component.fields[1]
-        
-        name = value['name']
-        
-        if name.startswith('"') and name.endswith('"'):
-            name = name[1:-1]
-            
-        if not name == self.component.name:
-            fail = True
-            self.error("Value {val} does not match component name.".format(val=name))
-            
-        # name field must be visible!
-        if not self.checkVisibility(value):
-            self.error("Value field must be VISIBLE")
-            fail = True
-                
-        return fail
-    
-    def checkFootprint(self):
-        # Footprint field must be invisible
-        fail = False
-        
-        fp = self.component.fields[2]
-        
-        if self.checkVisibility(fp):
-            self.error("Footprint field must be INVISIBLE")
-            fail = True
-        
-        return fail
-    
-    def checkDatasheet(self):
-        
-        # Datasheet field must be invisible
-        fail = False
-        
-        ds = self.component.fields[3]
-        
-        if self.checkVisibility(ds):
-            self.error("Datasheet field must be INVISIBLE")
-            fail = True
-            
-        return fail
-        
+        super(Rule, self).__init__(component, 'Rule 3.8', 'Field text uses a common size of 50mils.')
+
     def check(self):
-    
-        # Check for required fields
-        n = len(self.component.fields)
-        if n < 4:
-            self.error("Component does not have minimum required fields!")
-                            
-            if n < 1:
-                self.error("Missing REFERENCE field")
-                            
-            if n < 2:
-                self.error("Missing VALUE field")
-                            
-            if n < 3:
-                self.error("Missing FOOTPRINT field")
-                            
-            if n < 4:
-                self.error("Missing DATASHEET field")
-                            
+        """
+        Proceeds the checking of the rule.
+        The following variables will be accessible after checking:
+            * violating_pins
+            * violating_fields
+        """
+        self.violating_fields = []
+        for field in self.component.fields:
+            text_size = int(field['text_size'])
+            if (text_size != 50):
+                self.violating_fields.append(field)
+                if("reference" in field.keys()):
+                    message=field["reference"][1:-1]
+                elif (len(field["name"])>2):
+                    message=field["name"][1:-1]
+                else:
+                    message="UNKNOWN"
+                message+=(" at posx {0} posy {1}".format(field["posx"],field["posy"]))
+                self.error("field: {0} size {1}".format(message,field["text_size"]) )
+
+
+        self.violating_pins = []
+        for pin in self.component.pins:
+            name_text_size = int(pin['name_text_size'])
+            num_text_size = int(pin['num_text_size'])
+            if (name_text_size != 50) or (num_text_size != 50):
+                self.violating_pins.append(pin)
+                self.error('pin: {0} ({1}), text size {2}, number size {3}'.format(pin['name'], pin['num'], pin['name_text_size'], pin['num_text_size']))
+
+        if (len(self.violating_fields) > 0 or
+            len(self.violating_pins) > 0):
             return True
-    
-        return any([
-            self.checkReference(),
-            self.checkValue(),
-            self.checkFootprint(),
-            self.checkDatasheet()
-            ])
-        
+
+        return False
+
     def fix(self):
         """
         Proceeds the fixing of the rule, if possible.
         """
-        self.info( "Fixing..")
-        self.component.fields[1]['name'] = self.component.name
-        
+        self.info("Fixing...")
+        for field in self.violating_fields:
+            field['text_size'] = '50'
+
+        for pin in self.violating_pins:
+            pin['name_text_size'] = '50'
+            pin['num_text_size'] = '50'
         self.recheck()
+
+

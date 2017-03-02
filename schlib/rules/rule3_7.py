@@ -1,61 +1,90 @@
 # -*- coding: utf-8 -*-
 
 from rules.rule import *
+import re
 
 class Rule(KLCRule):
+
+    #No-connect pins should be "N"
+    NC_PINS = ['^nc$', '^dnc$', '^n\.c\.$']
+
+
+    #check if a pin name fits within a list of possible pins (using regex testing)
+    def test(self, pinName, nameList):
+
+        for name in nameList:
+            if re.search(name,pinName,flags=re.IGNORECASE) is not None:
+                return True
+
+        return False
+
     """
     Create the methods check and fix to use with the kicad lib files.
     """
     def __init__(self, component):
-        super(Rule, self).__init__(component, 'Rule 3.7', 'Field text uses a common size of 50mils.')
-
+        super(Rule, self).__init__(component, '3.7', 'NC pin checking')
+            
+    def checkNCPin(self, pin):
+        
+        err = False
+    
+        name = pin['name'].lower()
+        etype = pin['electrical_type']
+        
+        # Check NC pins
+        if self.test(name.lower(), self.NC_PINS) or etype == 'N':
+        
+            # NC pins should be of type N
+            if not etype == 'N': # Not set to NC
+                err = True
+                self.error("Pin {n} ({name}) should be of type NOT CONNECTED".format(
+                            n = pin['num'],
+                            name = name))
+                                
+            # NC pins should be invisible
+            if not pin['pin_type'] == 'I':
+                err = True
+                self.error("Pin {n} ({name}) is NC and should be INVISIBLE".format(
+                            n = pin['num'],
+                            name = name))
+                            
+        if err:
+            self.nc_errors.append(pin)
+            
+        return err
+        
     def check(self):
         """
         Proceeds the checking of the rule.
         The following variables will be accessible after checking:
-            * violating_pins
-            * violating_fields
+            * probably_wrong_pin_types
+            * double_inverted_pins
         """
-        self.violating_fields = []
-        for field in self.component.fields:
-            text_size = int(field['text_size'])
-            if (text_size != 50):
-                self.violating_fields.append(field)
-                if("reference" in field.keys()):
-                    message=field["reference"][1:-1]
-                elif (len(field["name"])>2):
-                    message=field["name"][1:-1]
-                else:
-                    message="UNKNOWN"
-                message+=(" at posx {0} posy {1}".format(field["posx"],field["posy"]))
-                self.error("field: {0} size {1}".format(message,field["text_size"]) )
-
-
-        self.violating_pins = []
+        
+        self.nc_errors = []
+        
+        fail = False
+        
         for pin in self.component.pins:
-            name_text_size = int(pin['name_text_size'])
-            num_text_size = int(pin['num_text_size'])
-            if (name_text_size != 50) or (num_text_size != 50):
-                self.violating_pins.append(pin)
-                self.error('pin: {0} ({1}), text size {2}, number size {3}'.format(pin['name'], pin['num'], pin['name_text_size'], pin['num_text_size']))
-
-        if (len(self.violating_fields) > 0 or
-            len(self.violating_pins) > 0):
-            return True
-
-        return False
-
+                
+            if self.checkNCPin(pin):
+                fail = True
+        
+        return fail
+        
     def fix(self):
         """
         Proceeds the fixing of the rule, if possible.
         """
         self.info("Fixing...")
-        for field in self.violating_fields:
-            field['text_size'] = '50'
+        
+        for pin in self.nc_errors:
+            if not pin['electrical_type'] == 'N':
+                pin['electrical_type'] = 'N'
+                self.info("Changing pin {n} type to NO_CONNECT".format(n=pin['num']))
+            
+            if not pin['pin_type'] == 'I':
+                pin['pin_type'] = 'I'
+                self.info("Setting pin {n} to INVISIBLE".format(n=pin['num']))
 
-        for pin in self.violating_pins:
-            pin['name_text_size'] = '50'
-            pin['num_text_size'] = '50'
         self.recheck()
-
-
