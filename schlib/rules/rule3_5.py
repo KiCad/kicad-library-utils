@@ -70,11 +70,14 @@ class Rule(KLCRule):
             pins = self.warning_tests[pin_type]
             
             if self.test(name, pins) and not etype == pin_type:
-                self.error("Pin {n} ({name}) is type {t1} : suggested {t2}".format(
+                self.warning("Pin {n} ({name}) is type {t1} : suggested {t2}".format(
                             n = pin['num'],
                             name = pin['name'],
                             t1 = pinElectricalTypeToStr(etype),
                             t2 = pinElectricalTypeToStr(pin_type)))
+                    
+        # No error generated for this rule
+        return False
                                     
     def checkDoubleInversion(self, pin):
         
