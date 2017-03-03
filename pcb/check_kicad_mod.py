@@ -64,26 +64,38 @@ for filename in files:
         
     n_violations = 0
     
+    no_warnings = True
+    
+    output = []
+    
+    first = True
+    
     for rule in all_rules:
     
         rule = rule(module,args)
-        if rule.check():
-            #this is the first violation
-            if n_violations == 0:
-                printer.green('checking module: %s' % module.name)
+        
+        error = rule.check()
+        
+        if error:
             n_violations += 1
+        
+        # Any messages (either warnings OR errors)
+        if error or len(rule.verbose_message) > 0:
+        
+            no_warnings = False
+        
+            if first:
+                first = False
+                printer.green('checking module: %s' % module.name)
+                        
             printer.yellow('Violating ' + rule.name, indentation=2)
             if args.verbose:
-                printer.light_blue(rule.description, indentation=4, max_width=100)
                 if len(rule.verbose_message)>0:
-                    for msg in rule.verbose_message:
-                        for v in msg.split("\n"):
-                            printer.blue(v, indentation=6, max_width=100)
-
-                # example of customized printing feedback by checking the rule name
-                # and a specific variable of the rule
-                #if rule.name == 'Rule 6.6' and len(rule.f_courtyard_all) == 0:
-                #    printer.red('No courtyard line found in the module', indentation=4)
+                    printer.light_blue(rule.description, indentation=4, max_width=100)
+                for msg in rule.verbose_message:
+                    for v in msg.split("\n"):
+                        printer.blue(v, indentation=6, max_width=100)
+                
         if args.fix:
             rule.fix()
             if args.verbose:
@@ -91,6 +103,7 @@ for filename in files:
                     vm=rule.fix_verbose_message.split('\n');
                     for v in vm:
                         printer.red(v, indentation=8, max_width=100)
+            
 
     if args.addsilkscreenrect:
         # create courtyard if does not exists
@@ -120,7 +133,8 @@ for filename in files:
             printer.green('added silkscreen rectangle around drawing')
         else:
             printer.red('unable to add silkscreen rectangle around drawing')
-    if n_violations == 0 and not args.silent and args.rotate==0:
+            
+    if n_violations == 0 and no_warnings and not args.silent and args.rotate==0:
         printer.green('checking module: {mod}'.format(mod = module.name))
         printer.light_green('No violations found', indentation=2)
         if args.addsilkscreenrect:
