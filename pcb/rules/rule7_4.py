@@ -31,13 +31,13 @@ class Rule(KLCRule):
             self.addMessage("Component value is hidden (should be set to visible)")
             error = True
         if val['font']['height'] != KLC_TEXT_SIZE:
-            self.addMessage("Value label has a height of {1}mm (expected: <={0}mm".format(KLC_TEXT_HEIGHT, val['font']['height']))
+            self.addMessage("Value label has a height of {1}mm (expected: <={0}mm".format(KLC_TEXT_SIZE, val['font']['height']))
             error = True
         if val['font']['height'] != KLC_TEXT_SIZE:
-            self.addMessage("Value label has a width of {1}mm (expected: <={0}mm".format(KLC_TEXT_WIDTH, val['font']['width']))
+            self.addMessage("Value label has a width of {1}mm (expected: <={0}mm".format(KLC_TEXT_SIZE, val['font']['width']))
             error = True
         if val['font']['thickness'] != KLC_TEXT_THICKNESS:
-            self.addMessage("Value label has a thickness of {1}mm (expected: {0}mm".format(KLC_TEXT_THICKNESS, vals['font']['thickness']))
+            self.addMessage("Value label has a thickness of {1}mm (expected: {0}mm".format(KLC_TEXT_THICKNESS, val['font']['thickness']))
             error = True
 
         return error

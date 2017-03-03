@@ -37,10 +37,10 @@ class Rule(KLCRule):
             err = True
                 
         if font['height'] !=  KLC_TEXT_SIZE:
-            self.addMessage("Reference label has a height of {1}mm (expected: <={0}mm).\n".format(KLC_TEXT_HEIGHT,font['height']))
+            self.addMessage("Reference label has a height of {1}mm (expected: <={0}mm).\n".format(KLC_TEXT_SIZE,font['height']))
             err = True
         if font['width'] != KLC_TEXT_SIZE:
-            self.addMessage("Reference label has a width of {1}mm (expected: <={0}mm).\n".format(KLC_TEXT_WIDTH,font['width']))
+            self.addMessage("Reference label has a width of {1}mm (expected: <={0}mm).\n".format(KLC_TEXT_SIZE,font['width']))
             err = True
         if font['thickness'] != KLC_TEXT_THICKNESS:
             self.addMessage("Reference label has a thickness of {1}mm (expected: {0}mm).\n".format(KLC_TEXT_THICKNESS,font['thickness']))
