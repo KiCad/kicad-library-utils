@@ -82,7 +82,8 @@ for libfile in libfiles:
     n_components = 0
 
     # Print library name
-    printer.purple('Library: %s' % libfile)
+    if len(libfiles) > 1:
+        printer.purple('Library: %s' % libfile)
 
     for component in lib.components:
         # skip components with non matching names
