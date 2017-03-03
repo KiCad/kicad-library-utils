@@ -35,9 +35,12 @@ class Rule(KLCRule):
         
         for pin in self.component.pins:
             
-            pinx = pin['posx']
-            piny = pin['posy']
-            pinu = pin['unit']
+            # To be "identical", all following properties much be the same
+            
+            pinx = pin['posx']    # x coordinate
+            piny = pin['posy']    # y coordinate
+            pinu = pin['unit']    # unit (for multi-unit parts)
+            pinc = pin['convert'] # convert (de morgan)
             
             dupe = False
             
@@ -46,13 +49,14 @@ class Rule(KLCRule):
                 locx = loc['x']
                 locy = loc['y']
                 locu = loc['u']
+                locc = loc['c']
                 
-                if pinx == locx and piny == locy and pinu == locu:
+                if pinx == locx and piny == locy and pinu == locu and pinc == locc:
                     loc['pins'].append(pin)
                     dupe = True
                     
             if not dupe:
-                new_loc = {'x': pinx, 'y': piny, 'u': pinu}
+                new_loc = {'x': pinx, 'y': piny, 'u': pinu, 'c': pinc}
                 new_loc['pins'] = [pin]
                 pin_locations.append(new_loc)
                     
@@ -150,7 +154,7 @@ class Rule(KLCRule):
                     p_test = el[1]
                 
                     # All these keys must be identical!
-                    keys = ['name','num','unit','posx','posy']
+                    keys = ['name','num','unit','posx','posy','convert']
                     
                     # Found duplicate
                     if all([p_test[key] == pin[key] for key in keys]):
