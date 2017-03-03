@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from rules.rule import *
+import re
 
 class Rule(KLCRule):
     """
@@ -8,33 +9,59 @@ class Rule(KLCRule):
     """
     def __init__(self, component):
         super(Rule, self).__init__(component, '3.5', 'Pin orientation')
+        
+    def checkGroundPins(self):
+    
+        GND = ['^[ad]*g(rou)*nd$']
+        
+        first = True
+        
+        for pin in self.component.pins:
+            name = str(pin['name'].lower())
+            for gnd in GND:
+                if re.search(gnd, name, flags=re.IGNORECASE) is not None:
+                    # Pin orientation should be "up"
+                    if not pin['direction'] == 'U':
+                        if first:
+                            first = False
+                            self.warning("Ground pins should be placed at bottom of symbol")
+                        self.warning(" - Pin {name} ({num}) @ ({x}, {y})".format(
+                            name = pin['name'],
+                            num = pin['num'],
+                            x = pin['posx'],
+                            y = pin['posy']))
+                           
+    def checkPowerPins(self):
+    
+        PWR = ['^[ad]*v(aa|cc|dd|ss|bat|in)$']
+    
+        first = True
+        
+        for pin in self.component.pins:
+            name = str(pin['name'].lower())
+            for pwr in PWR:
+                if re.search(pwr, name, flags=re.IGNORECASE) is not None:
+                    # Pin orientation should be "down"
+                    if not pin['direction'] == 'D':
+                        if first:
+                            first = False
+                            self.warning("Power pins should be placed at top of symbol")
+                        self.warning(" - Pin {name} ({num}) @ ({x}, {y})".format(
+                            name = pin['name'],
+                            num = pin['num'],
+                            x = pin['posx'],
+                            y = pin['posy']))
 
     def check(self):
-        """
-        Proceeds the checking of the rule.
-        The following variables will be accessible after checking:
-            * n_rectangles
-        """
-        rectangle_need_fix = False
-        # check if component has just one rectangle, if not, skip checking
-        self.n_rectangles = len(self.component.draw['rectangles'])
-        if self.n_rectangles != 1: return False
+        
+        self.checkGroundPins()
+        self.checkPowerPins()
 
-        if (self.component.draw['rectangles'][0]['thickness'] != '10'):
-            self.error("Component line thickness {0}, recommended {1}".format(self.component.draw['rectangles'][0]['thickness'],10))
-            rectangle_need_fix = True
-        if (self.component.draw['rectangles'][0]['fill'] != 'f'):
-            self.error("Component background filled with {0} color, recommended is {1} color".format(backgroundFillToStr(self.component.draw['rectangles'][0]['fill']),backgroundFillToStr('f')))
-            rectangle_need_fix = True
-
-        return True if rectangle_need_fix else False
+        # No errors, only warnings
+        return False
 
     def fix(self):
         """
         Proceeds the fixing of the rule, if possible.
         """
-        self.info("Fixing...")
-        self.component.draw['rectangles'][0]['thickness'] = '10'
-        self.component.draw['rectangles'][0]['fill'] = 'f'
-
-        self.recheck()
+        self.info("Fixing not supported")
