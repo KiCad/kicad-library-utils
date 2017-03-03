@@ -44,6 +44,15 @@ for f in args.kicad_mod_files:
     files += glob(f)
 
 for filename in files:
+
+    if not os.path.exists(filename):
+        printer.red("File not found: %s" % filename)
+        continue
+        
+    if not filename.endswith(".kicad_mod"):
+        printer.red("File is not .kicad_mod : %s" % filename)
+        continue
+
     try:
         module = KicadMod(filename)
     except:
