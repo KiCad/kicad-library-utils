@@ -89,8 +89,6 @@ class Documentation(object):
 
         if not filename: filename = self.filename
 
-
-
         to_write=self.header
         for name,doc in self.components.items():
             to_write.append('#\n')#just spacer (no even in dcm format specification, but used everywhere)
