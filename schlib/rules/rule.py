@@ -26,12 +26,12 @@ def pinTypeToStr(pinType):
     "CL":"CLOCK LOW",\
     "V":"OUTPUT LOW",\
     "F":"FALLING EDGE CLOCK",\
-    "X":"NON LOGIc"}
+    "X":"NON LOGIC"}
     if pinType in pinMap.keys():
         return pinMap[pinType]
     else:
         return "INVALID"
-
+        
 def backgroundFillToStr(bgFill):
     bgMap={
     "F":"FOREGROUND",

@@ -114,8 +114,6 @@ class Documentation(object):
         if doc:#do not create empty records
             self.components[name]=doc
 
-
-
 class Component(object):
     """
     A class to parse components of Schematic Libraries Files Format of the KiCad
