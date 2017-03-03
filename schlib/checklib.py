@@ -75,6 +75,10 @@ libfiles = []
 for libfile in args.libfiles:
     libfiles += glob(libfile)
 
+if len(libfiles) == 0:
+    printer.red("File argument invalid: {f}".format(f=args.libfiles))
+    sys.exit(1)
+    
 exit_code = 0
 
 for libfile in libfiles:
