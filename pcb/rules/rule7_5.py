@@ -154,7 +154,6 @@ class Rule(KLCRule):
         module = self.module
         self.f_courtyard_all = module.filterGraphs('F.CrtYd')
         self.b_courtyard_all = module.filterGraphs('B.CrtYd')
-        
 
         # check the width
         self.bad_width = []
@@ -185,8 +184,7 @@ class Rule(KLCRule):
                 #self.verbose_message=self.verbose_message+"For this footprint a rectangular courtyard {0} was expected, but a courtyard rectangle {1} was found\n".format(self.expected_crt_rectangle,self.actual_crt_rectangle)
                 self.addMessage("A courtyard clearance in the range {1}...{2}mm was found, but {0}mm was expected.\nThe recommendet courtyard rectangle would be:\n    {3}mm.".format(self.crt_offset, round(min(clearancemin, clearancemax)*100)/100, round(max(clearancemin, clearancemax)*100)/100, self.expected_crt_rectangle))
                 error = True
-
-        
+                
         # check if there is proper rounding 0.01 of courtyard lines
         # convert position to nanometers (add/subtract 1/10^7 to avoid wrong rounding and cast to int)
         # int pos_x = (d_pos_x + ((d_pos_x >= 0) ? 0.0000001 : -0.0000001)) * 1000000;

@@ -31,10 +31,10 @@ class Rule(KLCRule):
             self.addMessage("Component value is hidden (should be set to visible)")
             error = True
         if val['font']['height'] != KLC_TEXT_SIZE:
-            self.addMessage("Value label has a height of {1}mm (expected: <={0}mm".format(KLC_TEXT_SIZE, val['font']['height']))
+            self.addMessage("Value label has a height of {1}mm (expected: {0}mm".format(KLC_TEXT_SIZE, val['font']['height']))
             error = True
         if val['font']['height'] != KLC_TEXT_SIZE:
-            self.addMessage("Value label has a width of {1}mm (expected: <={0}mm".format(KLC_TEXT_SIZE, val['font']['width']))
+            self.addMessage("Value label has a width of {1}mm (expected: {0}mm".format(KLC_TEXT_SIZE, val['font']['width']))
             error = True
         if val['font']['thickness'] != KLC_TEXT_THICKNESS:
             self.addMessage("Value label has a thickness of {1}mm (expected: {0}mm".format(KLC_TEXT_THICKNESS, val['font']['thickness']))
@@ -63,6 +63,7 @@ class Rule(KLCRule):
         # Check that ref exists
         if not ref or ref['layer'] not in ['F.Fab', 'B.Fab']:
             self.addMessage("Reference designator not found on Fab layer")
+            self.addMessage("Add RefDes to F.Fab layer with text value '%R'")
             return True
             
         # Check ref size
@@ -92,6 +93,7 @@ class Rule(KLCRule):
                 x = ft,
                 y = KLC_TEXT_SIZE_MIN,
                 z = KLC_TEXT_SIZE_MAX))
+            err = True
             
         return err
     
