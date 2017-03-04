@@ -14,33 +14,30 @@ class Rule(KLCRule):
         Proceeds the checking of the rule.
         """
         module = self.module
-        ok=False
+        
+        err = False
+        
         if module.locked:
             self.addMessage("Module is locked!")
-            ok=True
+            err = True
         if module.autoplace_cost90 != 0:
             self.addMessage("Attribute autoplace_cost90 == {0} != 0!".format(module.autoplace_cost90))
-            ok=True
+            err = True
         if module.autoplace_cost180 != 0:
             self.addMessage("Attribute autoplace_cost180 == {0} != 0!".format(module.autoplace_cost180))
-            ok=True
+            err = True
+            
+        # Following is allowed to conform to manufacturer specifications
         if module.clearance != 0:
             self.addMessage("Attribute clearance == {0} != 0!".format(module.clearance))
-            ok=True
         if module.solder_mask_margin != 0:
             self.addMessage("Attribute solder_mask_margin == {0} != 0!".format(module.solder_mask_margin))
-            ok=True
         if module.solder_paste_margin != 0:
             self.addMessage("Attribute solder_paste_margin == {0} != 0!".format(module.solder_paste_margin))
-            ok=True
         if module.solder_paste_ratio != 0:
             self.addMessage("Attribute solder_paste_ratio == {0} != 0!".format(module.solder_paste_ratio))
-            ok=True
-        if module.locked:
-            self.addMessage("Module is locked!\n")
-            ok=True
         
-        return ok
+        return err
 
     def fix(self):
         """

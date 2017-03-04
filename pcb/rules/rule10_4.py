@@ -65,11 +65,11 @@ class Rule(KLCRule):
         
         if len(models) == 0:
             # Warning msg
-            self.addMessage("Warning: No 3D model given")
+            self.addMessage("Warning: No 3D model provided")
             return False
         
         if len(models) > 1:
-            self.addMessage("Warning: More than one 3D model given")
+            self.addMessage("Warning: More than one 3D model provided")
             
         model_error = False
             
