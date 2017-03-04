@@ -9,8 +9,6 @@ class Rule(KLCRule):
     def __init__(self, module, args):
         super(Rule, self).__init__(module, args, 'Rule 9.6', 'Minimum annular ring')
         
-        self.required_layers = ["*.Cu","*.Mask"]
-        
     def checkPad(self, pad):
         
         drill_size = pad['drill']['size']
@@ -23,48 +21,38 @@ class Rule(KLCRule):
 
         err = False
         
+        MIN_RING = 0.15
+        
         # Circular pad
         if drill_x == drill_y and pad_x == pad_y:
             ring = (pad_x - drill_x) / 2
             
-            if ring < 0.05:
-                self.addMessage("Pad {n} annular ring ({d}mm) is below minimum (0.05mm)".format(
+            if ring < MIN_RING:
+                self.addMessage("Pad {n} annular ring ({d}mm) is below minimum ({mr}mm)".format(
                     n = pad['number'],
-                    d = ring))
+                    d = ring,
+                    mr = MIN_RING))
                 err = True
-                
-            elif ring < 0.15:
-                self.addMessage("Pad {n} annular ring ({d}mm) is below recommended (0.15mm)".format(
-                    n = pad['number'],
-                    d = ring))
             
         # Non circular pad
         else:
             ring_x = (pad_x - drill_x) / 2
             
-            if ring_x < 0.05:
-                self.addMessage("Pad {n} x-dimension annular ring ({d}mm) is below minimum (0.05mm)".format(
+            if ring_x < MIN_RING:
+                self.addMessage("Pad {n} x-dimension annular ring ({d}mm) is below minimum ({mr}mm)".format(
                     n = pad['number'],
-                    d = ring_x))
+                    d = ring_x,
+                    mr = MIN_RING))
                 err = True
-                
-            elif ring_x < 0.15:
-                self.addMessage("Pad {n} x-dimension annular ring ({d}mm) is below recommended (0.15mm)".format(
-                    n = pad['number'],
-                    d = ring_x))
                     
             ring_y = (pad_y - drill_y) / 2
             
-            if ring_y < 0.05:
-                self.addMessage("Pad {n} y-dimension annular ring ({d}mm) is below minimum (0.05mm)".format(
+            if ring_y < MIN_RING:
+                self.addMessage("Pad {n} y-dimension annular ring ({d}mm) is below minimum ({mr}mm)".format(
                     n = pad['number'],
-                    d = ring_y))
+                    d = ring_y,
+                    mr = MIN_RING))
                 err = True
-                
-            elif ring_y < 0.15:
-                self.addMessage("Pad {n} y-dimension annular ring ({d}mm) is below recommended (0.15mm)".format(
-                    n = pad['number'],
-                    d = ring_y))
                 
         return err        
         

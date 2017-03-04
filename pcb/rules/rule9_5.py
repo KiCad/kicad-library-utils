@@ -9,8 +9,6 @@ class Rule(KLCRule):
     def __init__(self, module, args):
         super(Rule, self).__init__(module, args, 'Rule 9.5', 'Minimum drill size')
         
-        self.required_layers = ["*.Cu","*.Mask"]
-        
     def checkPad(self, pad):
         
         drill = pad['drill']
