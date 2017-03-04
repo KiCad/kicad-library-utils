@@ -8,7 +8,7 @@ __all__ = [
 "rule3_9", 
 "EC01", 
 "EC02", 
-"EC03", 
+#"EC03", # Generating too much noise 
 "EC04",
 "EC05"
 ]
