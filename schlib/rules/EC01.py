@@ -28,32 +28,45 @@ class Rule(KLCRule):
         return len(self.wrong_pin_numbers) > 0
         
     def checkDuplicatePins(self):
-        #dict of pins
-        pins = {}
+        # List of lists of pins
+        pin_lists = []
         
-        #look for duplicate pins
+        # look for duplicate pin numbers
+        # For a pin to be considered a duplicate, it must have:
+        # - The same number
+        # - Be in the same unit
+        # - Be in the same "convert"
+        
+        keys = ['num', 'unit', 'convert']
+        
         for pin in self.component.pins:
-
-            pin_number = pin['num']
-            pin_name = pin['name']
-
-            #Check if there is already a match for this pin number
-            if pin_number in pins.keys():
-                pins[pin_number].append(pin)
-            else:
-                pins[pin_number] = [pin]
-
+            
+            found = False
+            
+            for i,pin_list in enumerate(pin_lists):
+                
+                # Compare against first item
+                p_test = pin_list[0]
+                
+                # Test each key
+                if all([pin[k] == p_test[k] for k in keys]):
+                    found = True
+                    pin_lists[i].append(pin)
+                    break
+                    
+            if not found:
+                pin_lists.append([pin])
+                
         duplicate = False
-        
-        for number in pins.keys():
-            pin_list = pins[number]
-
+                
+        for pin_list in pin_lists:
+            # Look for duplicate groups
             if len(pin_list) > 1:
                 duplicate = True
-                self.error("Pin {n} is duplicated".format(n=number))
-
+                self.error("Pin {n} is duplicated:".format(n=pin_list[0]['num']))
+                
                 for pin in pin_list:
-                    self.error("{n} - {name} @ {x},{y}".format(
+                    self.error("Pin {n} - {name} @ {x},{y}".format(
                         n = pin['num'],
                         name = pin['name'],
                         x = pin['posx'],
