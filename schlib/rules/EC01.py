@@ -16,11 +16,9 @@ class Rule(KLCRule):
             try:
                 num = int(pin['num'])
             except ValueError:
-                # BGA pins checking
-                m = re.search('([A-z]*)([0-9]*)', pin['num'])
-
-                # if group 2 is empty there are only letters in the pin name
-                if m.group(2) == '':
+                nums = map(str,range(10))
+                
+                if not any([num in pin['num'] for num in nums]):
                     self.wrong_pin_numbers.append(pin)
                     self.error("pin: {0} number {1} is not valid, should contain at least 1 number".format(pin['name'], pin['num']))
 
