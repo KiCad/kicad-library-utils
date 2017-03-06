@@ -22,14 +22,20 @@ class KLCRule(object):
         self.illegal_chars = ['*', '?', ':', '/', '\\', '[', ']', ';', '|', '=', ',']
         
     def isValidName(self, name):
-        name = str(name)
+        name = str(name).lower()
         for c in name:
-            if c.isalpha() or c.isnumeric():
+            # Numeric characters
+            if c.isnumeric():
                 continue
-            elif c in ['_', '-', '.']:
+                
+            # Alpha characters (simple set only)
+            if c >= 'a' and c <= 'z':
                 continue
-            else:
-                return False
+                
+            if c in ['_', '-', '.']:
+                continue
+            
+            return False
                 
         return True
 

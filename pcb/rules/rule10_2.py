@@ -13,7 +13,7 @@ class Rule(KLCRule):
         mod = self.module
         error = False
         if not mod.description:
-            self.addMessage("Description field is empty")
+            self.addMessage("Description field is empty - add footprint description")
             return True
             
         return error
@@ -22,7 +22,7 @@ class Rule(KLCRule):
         mod = self.module
         error = False    
         if not mod.tags:
-            self.addMessage("No keyword tags")
+            self.addMessage("Keyword field is empty - add keyword tags")
             return True
         
         illegal = [',', ';', ':']

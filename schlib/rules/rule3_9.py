@@ -35,8 +35,13 @@ class Rule(KLCRule):
             name = name[1:-1]
             
         if not name == self.component.name:
-            fail = True
             self.error("Value {val} does not match component name.".format(val=name))
+            fail = True
+            
+        if not self.isValidName(self.component.name):
+            self.error("Symbol name '{val}' contains invalid characters as per KLC 1.7".format(
+                val = self.component.name))
+            fail = True
             
         # name field must be visible!
         if not self.checkVisibility(value):

@@ -28,12 +28,13 @@ class Rule(KLCRule):
                 fn = module.name))
             err = True
             
+            
         self.has_illegal_chars = False
-        for c in self.illegal_chars:
-            if c in module.name:
-                self.addMessage("Illegal character in filename: '{c}'".format(c=c))
-                err = True
-                self.has_illegal_chars = True
+        if not self.isValidName(module.name):
+            self.addMessage("Module name '{name}' contains invalid characters as per KLC 1.7".format(
+                name = module.name))
+            err = True
+            self.has_illegal_chars = True
             
         return err
 

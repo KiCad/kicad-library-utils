@@ -43,9 +43,14 @@ class Rule(KLCRule):
         if not model_dir == fp_dir:
             self.addMessage("3D model directory is different from footprint directory (found '{n1}', should be '{n2}')".format(n1=model_dir, n2=fp_dir))
             error = True
+            
         if not model_file == fp_name:
             self.addMessage("3D model name is different from footprint name (found '{n1}', should be '{n2}')".format(n1=model_file, n2=fp_name))
             error = True
+            
+        if not self.isValidName(model):
+            self.addMessage("3D model path '{p}' contains invalid characters as per KLC 1.7".format(
+                p = model))
             
         return error
         
