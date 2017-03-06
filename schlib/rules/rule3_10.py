@@ -38,24 +38,24 @@ class Rule(KLCRule):
         warnings = []
     
         if not documentation:
-            errors.append(" - Missing all documentation fields (description, keywords, datasheet)")
+            errors.append("Missing all documentation fields (description, keywords, datasheet)")
         elif (not documentation['description'] or
             not documentation['keywords'] or
             not documentation['datasheet']):
 
             if (not documentation['description']):
-                errors.append(" - Missing DESCRIPTION field")
+                errors.append("Missing DESCRIPTION field")
             if (not documentation['keywords']):
-                errors.append(" - Missing KEYWORDS field")
+                errors.append("Missing KEYWORDS field")
             if (not documentation['datasheet']):
-                errors.append(" - Missing DATASHEET field")
+                errors.append("Missing DATASHEET field")
                 
                 if (documentation['description'] and
                     documentation['keywords']):
                     self.only_datasheet_missing = True
 
         elif name.lower() in documentation['description'].lower():
-            warnings.append(" - Symbol name should not be included in description")
+            warnings.append("Symbol name should not be included in description")
             
         if len(errors) > 0 or len(warnings) > 0:
             msg = "{cmp} {name} has metadata errors:".format(
@@ -67,9 +67,9 @@ class Rule(KLCRule):
                 self.error(msg)
                 
             for err in errors:
-                self.error(err)
+                self.errorExtra(err)
             for warn in warnings:
-                self.warning(warn)
+                self.warningExtra(warn)
                 
         return len(errors) > 0
 

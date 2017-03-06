@@ -46,51 +46,68 @@ class Rule(KLCRule):
         super(Rule, self).__init__(component, 'Rule 3.6 - Pin types', 'Pin electrical type should match pin function')
 
     # These pin types must be satisfied
-    def checkPowerPin(self, pin):
+    def checkPowerPins(self, pins):
     
-        err = False
-    
-        name = pin['name'].lower()
-        etype = pin['electrical_type']
+        self.power_errors = []
         
-        # Check power pins (can be either power inputs or outputs)
-        if self.test(name.lower(), self.POWER_INPUTS) and not etype.lower() == 'w':
-            err = True
-            self.power_errors.append(pin)
-            self.error(" - Pin {n} ({name}) should be of type POWER INPUT or POWER OUTPUT".format(
-                        n = pin['num'],
-                        name = name))
+        for pin in pins:
+            name = pin['name'].lower()
+            etype = pin['electrical_type']
+
+            if self.test(name.lower(), self.POWER_INPUTS) and not etype.lower() == 'w':
+                if len(self.power_errors) == 0:
+                    self.error("Power pins should be of type POWER INPUT or POWER OUTPUT")
+                self.power_errors.append(pin)
+                self.errorExtra("{pin} is of type {t}".format(
+                    pin = pinString(pin),
+                    t = pinElectricalTypeToStr(etype)))
+            
+        
+        return len(self.power_errors) > 0
     
     # These pin types are suggestions
-    def checkSuggestions(self, pin):
-        name = pin['name'].lower()
-        etype = pin['electrical_type']
+    def checkSuggestions(self, pins):
+    
+        self.suggestions = []
+    
+        for pin in pins:
+            name = pin['name'].lower()
+            etype = pin['electrical_type']
         
-        for pin_type in self.warning_tests.keys():
-            pins = self.warning_tests[pin_type]
-            
-            if self.test(name, pins) and not etype == pin_type:
-                self.warning(" - Pin {n} ({name}) is type {t1} : suggested {t2}".format(
-                            n = pin['num'],
-                            name = pin['name'],
-                            t1 = pinElectricalTypeToStr(etype),
-                            t2 = pinElectricalTypeToStr(pin_type)))
+            for pin_type in self.warning_tests.keys():
+                pins = self.warning_tests[pin_type]
+                
+                tests = self.warning_tests[pin_type]
+                
+                if self.test(name, tests):
+                
+                    if not pin_type == etype:
+                        if len(self.suggestions) == 0:
+                            self.warning("Pin types should match pin function")
+                        self.suggestions.append(pin)
+                        self.warningExtra("{pin} is type {t1} : suggested {t2}".format(
+                                        pin = pinString(pin),
+                                        t1 = pinElectricalTypeToStr(etype),
+                                        t2 = pinElectricalTypeToStr(pin_type)))
+                                    
+                    break
                     
         # No error generated for this rule
         return False
                                     
-    def checkDoubleInversion(self, pin):
+    def checkDoubleInversions(self, pins):
         
-        fail = False
+        self.inversion_errors = []
         
-        m = re.search('(\~)(.+)', pin['name'])
-        
-        if m and pin['pin_type'] == 'I':
-            fail = True
-            self.inversion_errors.append(pin)
-            self.error(' - Pin {0} ({1}): double inversion (overline + pin type:Inverting)'.format(pin['name'], pin['num']))
+        for pin in pins:
+            m = re.search('(\~)(.+)', pin['name'])
+            if m and pin['pin_type'] == 'I':
+                if len(self.inversion_errors) == 0:
+                    self.error("Pins should not be inverted twice")
+                self.inversion_errors.append(pin)
+                self.errorExtra("{pin} : double inversion (overline + pin type:Inverting)".format(pin=pinString(pin)))
 
-        return fail
+        return len(self.inversion_errors) > 0
         
     def check(self):
         """
@@ -100,22 +117,13 @@ class Rule(KLCRule):
             * double_inverted_pins
         """
         
-        self.power_errors = []
-        self.inversion_errors = []
-
-        fail = False
+        pins = self.component.pins
         
-        for pin in self.component.pins:
-        
-            if self.checkPowerPin(pin):
-                fail = True
-                
-            if self.checkDoubleInversion(pin):
-                fail = True
-                
-            self.checkSuggestions(pin)
-        
-        return fail
+        return any([
+            self.checkPowerPins(pins),
+            self.checkDoubleInversions(pins),
+            self.checkSuggestions(pins)
+            ])
         
     def fix(self):
         """

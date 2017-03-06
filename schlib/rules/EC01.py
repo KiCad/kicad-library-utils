@@ -63,11 +63,7 @@ class Rule(KLCRule):
                 self.error("Pin {n} is duplicated:".format(n=pin_list[0]['num']))
                 
                 for pin in pin_list:
-                    self.error("Pin {n} - {name} @ {x},{y}".format(
-                        n = pin['num'],
-                        name = pin['name'],
-                        x = pin['posx'],
-                        y = pin['posy']))
+                    self.errorExtra(pinString(pin))
 
         return duplicate
         

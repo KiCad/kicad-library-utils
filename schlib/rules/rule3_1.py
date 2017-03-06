@@ -26,33 +26,33 @@ class Rule(KLCRule):
     
     def checkPinLength(self):
         self.violating_pins = []
-        err = False
+        
         for pin in self.component.pins:
             length = int(pin['length'])
+            
+            err = False
             
             # ignore zero-length pins e.g. hidden power pins
             if length == 0: continue
             
-            if length < 100:
-                self.violating_pins.append(pin)
-                if not err:
-                    self.error("Incorrect pin length:")
-                err = True
-                self.error(' - Pin {0} ({1}), {2}, length={3}'.format(pin['name'], pin['num'], positionFormater(pin), length))
+            if length < 50:
+                self.error("{pin} length ({len}mils) is below 50mils".format(pin=pinString(pin), len=length))
+            elif length < 100:
+                self.warning("{pin} length ({len}mils) is below 100mils".format(pin=pinString(pin), len=length))
+            
                 
-            # length not multiple of 50 mils flags a warning
             if length % 50 != 0:
-                self.warning(" - Pin {name} ({num}) - length ({length}mils) is not a multiple of 50mils".format(
-                    name = pin['name'],
-                    num = pin['num'],
-                    length = length))
+                self.warning("{pin} length ({len}mils) is not a multiple of 50mils".format(pin=pinString(pin), len=length))
                     
             # length too long flags a warning
-            if length > 200:
-                self.warning(" - Pin {name} ({num}) - length ({length}mils) is longer than maximum (200mils)".format(
-                    name = pin['name'],
-                    num = pin['num'],
+            if length > 300:
+                err = True
+                self.error("{pin} length ({length}mils) is longer than maximum (300mils)".format(
+                    pin = pinString(pin),
                     length = length))
+                    
+            if err:
+                self.violating_pins.append(pin)
 
         return len(self.violating_pins) > 0
     

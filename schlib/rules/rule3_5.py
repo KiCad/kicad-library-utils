@@ -25,14 +25,9 @@ class Rule(KLCRule):
                         if first:
                             first = False
                             self.warning("Ground pins should be placed at bottom of symbol")
-                        self.warning(" - Pin {name} ({num}) @ ({x}, {y})".format(
-                            name = pin['name'],
-                            num = pin['num'],
-                            x = pin['posx'],
-                            y = pin['posy']))
+                        self.warningExtra(pinString(pin))
                            
     def checkPowerPins(self):
-    
         PWR = ['^[ad]*v(aa|cc|dd|ss|bat|in)$']
     
         first = True
@@ -46,11 +41,7 @@ class Rule(KLCRule):
                         if first:
                             first = False
                             self.warning("Power pins should be placed at top of symbol")
-                        self.warning(" - Pin {name} ({num}) @ ({x}, {y})".format(
-                            name = pin['name'],
-                            num = pin['num'],
-                            x = pin['posx'],
-                            y = pin['posy']))
+                        self.warningExtra(pinString(pin))
 
     def check(self):
         

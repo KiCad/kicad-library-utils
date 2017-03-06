@@ -25,10 +25,13 @@ class Rule(KLCRule):
         
     def pinStr(self, pin):
         multi_unit = int(self.component.definition['unit_count']) > 1
-        return "Pin {name} ({num}){unit}".format(
-            name = pin['name'],
-            num = pin['num'],
-            unit = " (unit {u})".format(u=pin['unit']) if multi_unit else "")
+        
+        if multi_unit:
+            unit = pin['unit']
+        else:
+            unit = None
+            
+        return pinString(pin, unit)
         
     def check(self):
     
@@ -97,12 +100,12 @@ class Rule(KLCRule):
                             
                 # Fewer pin numbers than pins
                 if len(pin_nums) < len(loc['pins']):
-                    self.error("Duplicate pins @ ({x},{y}):".format(
+                    self.error("Duplicate pins @ ({x},{y})".format(
                         x = loc['x'],
                         y = -1 * int(loc['y'])))
                     err = True
                     for pin in loc['pins']: 
-                        self.error(" - " + self.pinStr(pin))
+                        self.errorExtra(self.pinStr(pin))
                             
                     # If ALL pins are identical, go to next group (no further checks needed)
                     if len(pin_nums) == len(pin_names) == len(pin_units) == 1:
@@ -111,41 +114,37 @@ class Rule(KLCRule):
                             
                 # Different names!
                 if len(pin_names) > 1:
-                    self.error(self.stackStr(loc) + " have different names:")
+                    self.error(self.stackStr(loc) + " have different names")
                     err = True
                     for pin in loc['pins']:
-                        self.error(" - " + self.pinStr(pin))
+                        self.errorExtra(self.pinStr(pin))
                         self.different_names=True
                             
                 # Different types!
                 if len(pin_etypes) > 1:
-                    self.error(self.stackStr(loc) + " have different types:")
+                    self.error(self.stackStr(loc) + " have different types")
                     err = True
                     for pin in loc['pins']:
-                        self.error(" - {pin} : {etype}".format(
+                        self.errorExtra("{pin} : {etype}".format(
                             pin = self.pinStr(pin),
                             etype = pinElectricalTypeToStr(pin['electrical_type'])))
                         self.different_types=True
             
                 # Only one pin should be visible
                 if not vis_pin_count == 1:
-                    self.error(self.stackStr(loc) + " must have exactly one (1) invisible pin:")
+                    self.error(self.stackStr(loc) + " must have exactly one (1) invisible pin")
                     err = True
                     for pin in loc['pins']:
-                        self.error(" - {pin} is {vis}".format(
+                        self.errorExtra("{pin} is {vis}".format(
                             pin = self.pinStr(pin),
                             vis = 'INVISIBLE' if pin['pin_type'].startswith('N') else 'VISIBLE'))
                         self.only_one_visible=True
-
-
-
         return err
                     
     def fix(self):
-    
         # Delete duplicate pins
         if len(self.duplicated_pins) > 0:
-            self.info("Removing duplicate pins:")
+            self.info("Removing duplicate pins")
             
             for pin_groups in self.duplicated_pins:
                 # Leave first pin and delete all others

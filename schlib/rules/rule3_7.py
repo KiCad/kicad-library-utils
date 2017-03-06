@@ -8,7 +8,6 @@ class Rule(KLCRule):
     #No-connect pins should be "N"
     NC_PINS = ['^nc$', '^dnc$', '^n\.c\.$']
 
-
     #check if a pin name fits within a list of possible pins (using regex testing)
     def test(self, pinName, nameList):
 
@@ -51,18 +50,15 @@ class Rule(KLCRule):
             self.error("NC pins are not correct pin-type:")
             
             for pin in self.type_errors:
-                self.error(" - Pin {name} ({num}) should be of type NOT CONNECTED, but is of type {pintype}".format(
-                    name = pin['name'],
-                    num = pin['num'],
+                self.errorExtra("{pin} should be of type NOT CONNECTED, but is of type {pintype}".format(
+                    pin = pinString(pin),
                     pintype = pinElectricalTypeToStr(pin['electrical_type'])))
                             
         if len(self.invisible_errors) > 0:
             self.error("NC pins are VISIBLE (should be INVISIBLE):")
             
             for pin in self.invisible_errors:
-                self.error(" - Pin {name} ({num}) should be INVISIBLE".format(
-                    name = pin['name'],
-                    num = pin['num']))
+                self.errorExtra("{pin} should be INVISIBLE".format(pin=pinString(pin)))
                             
         return len(self.invisible_errors) > 0 or len(self.type_errors) > 0
         

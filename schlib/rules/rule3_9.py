@@ -38,7 +38,7 @@ class Rule(KLCRule):
             self.error("Value {val} does not match component name.".format(val=name))
             fail = True
             
-        if not self.isValidName(self.component.name):
+        if not isValidName(self.component.name):
             self.error("Symbol name '{val}' contains invalid characters as per KLC 1.7".format(
                 val = self.component.name))
             fail = True
@@ -83,16 +83,16 @@ class Rule(KLCRule):
             self.error("Component does not have minimum required fields!")
                             
             if n < 1:
-                self.error(" - Missing REFERENCE field")
+                self.errorExtra(" - Missing REFERENCE field")
                             
             if n < 2:
-                self.error(" - Missing VALUE field")
+                self.errorExtra(" - Missing VALUE field")
                             
             if n < 3:
-                self.error(" - Missing FOOTPRINT field")
+                self.errorExtra(" - Missing FOOTPRINT field")
                             
             if n < 4:
-                self.error(" - Missing DATASHEET field")
+                self.errorExtra(" - Missing DATASHEET field")
                             
             return True
     
