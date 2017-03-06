@@ -76,5 +76,6 @@ class Rule(KLCRule):
         module = self.module
         
         for pad in module.filterPads('smd'):
+            self.addFixMessage("Pad {n} - Setting required layers for SMD pad".format(n=pad['number']))
             pad['layers'] = self.required_layers
         

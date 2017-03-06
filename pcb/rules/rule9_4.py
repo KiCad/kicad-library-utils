@@ -78,5 +78,6 @@ class Rule(KLCRule):
         module = self.module
         
         for pad in module.filterPads('thru_hole'):
+            self.addFixMessage("Pad {n} - Setting required layers for THT pad".format(n=pad['number']))
             pad['layers'] = self.required_layers
         

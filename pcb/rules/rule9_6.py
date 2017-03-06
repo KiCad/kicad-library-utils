@@ -76,5 +76,5 @@ class Rule(KLCRule):
         """
         Proceeds the fixing of the rule, if possible.
         """
-        pass
+        self.addFixMessage("Fix - not supported for this rule")
         

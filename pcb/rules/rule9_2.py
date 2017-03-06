@@ -45,4 +45,5 @@ class Rule(KLCRule):
         """
         module = self.module
         if self.check() and len(self.pin1_position)>0:
+            self.addFixMessage("Moved anchor position to Pin-1")
             module.setAnchor(min(self.pin1_position))

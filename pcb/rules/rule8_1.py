@@ -37,4 +37,5 @@ class Rule(KLCRule):
         """
         module = self.module
         if self.check():
+            self.addFixMessage("Set 'surface mount' attribute")
             module.attribute = 'smd'
