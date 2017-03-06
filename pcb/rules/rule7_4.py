@@ -19,29 +19,30 @@ class Rule(KLCRule):
     # Check for presence of component value
     def checkMissingValue(self):
         mod = self.module
-        error = False
         
         val = mod.value
         
+        errors = []
+        
         # Check for presense of 'value'
         if val['layer'] not in ['F.Fab', 'B.Fab']:
-            self.addMessage("Component value is on layer {lyr} but should be on F.Fab or B.Fab".format(lyr=val['layer']))
-            error = True
+            errors.append("- Component value is on layer {lyr} but should be on F.Fab or B.Fab".format(lyr=val['layer']))
         if val['hide']:
-            self.addMessage("Component value is hidden (should be set to visible)")
-            error = True
+            errors.append("- Component value is hidden (should be set to visible)")
         if val['font']['height'] != KLC_TEXT_SIZE:
-            self.addMessage("Value label has a height of {1}mm (expected: {0}mm".format(KLC_TEXT_SIZE, val['font']['height']))
-            error = True
+            errors.append("- Value label has a height of {1}mm (expected: {0}mm)".format(KLC_TEXT_SIZE, val['font']['height']))
         if val['font']['height'] != KLC_TEXT_SIZE:
-            self.addMessage("Value label has a width of {1}mm (expected: {0}mm".format(KLC_TEXT_SIZE, val['font']['width']))
-            error = True
+            errors.append("- Value label has a width of {1}mm (expected: {0}mm)".format(KLC_TEXT_SIZE, val['font']['width']))
         if val['font']['thickness'] != KLC_TEXT_THICKNESS:
-            self.addMessage("Value label has a thickness of {1}mm (expected: {0}mm".format(KLC_TEXT_THICKNESS, val['font']['thickness']))
-            error = True
+            errors.append("- Value label has a thickness of {1}mm (expected: {0}mm)".format(KLC_TEXT_THICKNESS, val['font']['thickness']))
 
-        return error
-    
+        if len(errors) > 0:
+            self.addMessage("Value Label Errors:")
+            for err in errors:
+                self.addMessage(err)
+            
+        return len(errors) > 0
+            
     def checkMissingLines(self):
         if len(self.f_fabrication_all) + len(self.b_fabrication_all) == 0:
             self.addMessage("No drawings found on fabrication layer.\n")
@@ -67,7 +68,7 @@ class Rule(KLCRule):
         ref = self.getSecondRef()
         
         if not ref:
-            self.addMessage("Second Reference Designator missing")
+            self.addMessage("Second Reference Designator missing:")
             self.addMessage(" - Add RefDes to F.Fab layer with '%R'")
             return True
             
