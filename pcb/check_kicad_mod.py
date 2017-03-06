@@ -24,6 +24,7 @@ parser.add_argument('-r', '--rule', help='specify single rule to check (default 
 parser.add_argument('--nocolor', help='does not use colors to show the output', action='store_true')
 parser.add_argument('-v', '--verbose', help='show status of all modules and extra information about the violation', action='store_true')
 parser.add_argument('-s', '--silent', help='skip output for symbols passing all checks', action='store_true')
+parser.add_argument('-e', '--errors', help='Do not suppress fatal parsing errors', action='store_true')
 
 args = parser.parse_args()
 if args.fixmore:
@@ -64,12 +65,17 @@ for filename in files:
         printer.red('File is not a .kicad_mod : %s' % filename)
         continue
 
-    try:
+    if args.errors:
         module = KicadMod(filename)
-    except:
-        printer.red('could not parse module: %s' % filename)
-        exit_code += 1
-        continue
+    else:
+        try:
+            module = KicadMod(filename)
+        except Exception as e:
+            printer.red('could not parse module: %s' % filename)
+            if args.verbose:
+                printer.red("Error: " + str(e))
+            exit_code += 1
+            continue
 
     if args.rotate!=0:
         module.rotateFootprint(int(args.rotate))
