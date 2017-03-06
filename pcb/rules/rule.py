@@ -29,13 +29,7 @@ class KLCRule(object):
     def filterMsg(self, msg):
         msg = msg.strip()
         
-        output = ''
-        
-        for letter in msg:
-            if letter in string.printable:
-                output += letter
-        
-        return output
+        return msg
         
     def addMessage(self, msg):
         if msg:

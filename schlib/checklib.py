@@ -118,7 +118,7 @@ for libfile in libfiles:
             error = rule.check()
             
             # Any messages (warnings OR errors)
-            if len(rule.messageBuffer) > 0:
+            if len(rule.messageBuffer) > 0 or error:
                 if first:
                     first = False
                     printer.green("%s:" % component.name)
