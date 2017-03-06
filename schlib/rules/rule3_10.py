@@ -7,7 +7,7 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad lib files.
     """
     def __init__(self, component):
-        super(Rule, self).__init__(component, 'Rule 3.10', 'Part meta-data is filled out as appropriate')
+        super(Rule, self).__init__(component, 'Rule 3.10 - Part metadata', 'Part meta-data is filled out as appropriate')
 
     def check(self):
         """

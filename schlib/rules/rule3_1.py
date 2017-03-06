@@ -7,7 +7,7 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad lib files.
     """
     def __init__(self, component):
-        super(Rule, self).__init__(component, 'Rule 3.1', 'Pin placement')
+        super(Rule, self).__init__(component, 'Rule 3.1 - Pin placement', 'Pin placement')
 
     def checkPinOrigin(self):
         self.violating_pins = []

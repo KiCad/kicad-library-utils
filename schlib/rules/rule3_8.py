@@ -7,7 +7,7 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad lib files.
     """
     def __init__(self, component):
-        super(Rule, self).__init__(component, 'Rule 3.8', 'Field text uses a common size of 50mils.')
+        super(Rule, self).__init__(component, 'Rule 3.8 - Field text size', 'Field text uses a common size of 50mils.')
 
     def check(self):
         """

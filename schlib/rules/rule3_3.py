@@ -7,7 +7,7 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad lib files.
     """
     def __init__(self, component):
-        super(Rule, self).__init__(component, '3.3', 'Invalid pin stacking')
+        super(Rule, self).__init__(component, '3.3 - Pin stacking', 'Pin stacking must follow strict rules')
 
     def stackStr(self, stack):
         multi_unit = int(self.component.definition['unit_count']) > 1

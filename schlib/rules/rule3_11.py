@@ -7,7 +7,7 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad lib files.
     """
     def __init__(self, component):
-        super(Rule, self).__init__(component, 'Rule 3.11', 'For components with a single default footprint, footprint field is filled with valid footprint filename')
+        super(Rule, self).__init__(component, 'Rule 3.11 - Default footprint', 'For components with a single default footprint, footprint field is filled with valid footprint filename')
 
     def check(self):
         """
