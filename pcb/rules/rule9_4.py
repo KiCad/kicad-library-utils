@@ -11,36 +11,51 @@ class Rule(KLCRule):
         
         self.required_layers = ["*.Cu","*.Mask"]
         
-    def checkPad(self, pad):
-        layers = pad['layers']
+    def checkPads(self, pads):
+    
+        self.wrong_layers = []
         
-        # For THT parts, following layers required:
-        # *.Cu
-        # F.mask
-        # B.mask
-        
-        if not pad['type'] == 'thru_hole':
-            return False
-        
-        err = False
-        
-        # check required layers
-        for layer in self.required_layers:
-            if layer not in layers:
-                self.addMessage("Pad '{n}' missing layer '{lyr}'".format(
-                    n=pad['number'],
-                    lyr=layer))
-                err = True
-                    
-        # check for extra layers
-        for layer in layers:
-            if layer not in self.required_layers:
-                self.addMessage("Pad '{n}' has extra layer '{lyr}'".format(
-                    n=pad['number'],
-                    lyr=layer))
-                err = True
+        errors = []
+    
+        for pad in pads:
+            layers = pad['layers']
+            
+            # For THT parts, following layers required:
+            # *.Cu
+            # F.Mask
+            # B.Mask
+            
+            if not pad['type'] == 'thru_hole':
+                continue
                 
-        return err
+            err = False
+            
+            # check required layers
+            for layer in self.required_layers:
+                if layer not in layers:
+                    errors.append("- Pad '{n}' missing layer '{lyr}'".format(
+                        n=pad['number'],
+                        lyr=layer))
+                    err = True
+                        
+            # check for extra layers
+            for layer in layers:
+                if layer not in self.required_layers:
+                    errors.append("- Pad '{n}' has extra layer '{lyr}'".format(
+                        n=pad['number'],
+                        lyr=layer))
+                    err = True
+                        
+            if err:
+                self.wrong_layers.append(pad)
+                    
+        if len(errors) > 0:
+            self.addMessage("Some THT pads have incorrect layer settings:")
+            for msg in errors:
+                self.addMessage(msg)
+        
+        return len(self.wrong_layers) > 0
+            
         
         
     def check(self):
@@ -52,7 +67,9 @@ class Rule(KLCRule):
         """
         module = self.module
         
-        return any([self.checkPad(pad) for pad in module.filterPads('thru_hole')])
+        return any([
+            self.checkPads(module.filterPads('thru_hole'))
+            ])
         
     def fix(self):
         """
