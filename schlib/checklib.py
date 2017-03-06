@@ -4,6 +4,9 @@
 import argparse
 import sys
 from schlib import *
+
+sys.path.append("..\common")
+
 from print_color import *
 import re
 from rules import *
@@ -11,21 +14,6 @@ from rules.rule import KLCRule
 
 #enable windows wildcards
 from glob import glob
-
-def processVerboseOutput(messageBuffer):
-    if args.verbose:
-        for msg in messageBuffer:
-            if msg[1] <= args.verbose:
-                if msg[2]==0:#Severity.INFO
-                    printer.gray(msg[0], indentation=4)
-                elif msg[2]==1:#Severity.WARNING
-                    printer.brown(msg[0], indentation=4)
-                elif msg[2]==2:#Severity.ERROR
-                    printer.red(msg[0], indentation=4)
-                elif msg[2]==3:#Severity.SUCCESS
-                    printer.green(msg[0], indentation=4)
-                else:
-                    printer.red("unknown severity: "+msg[2], indentation=4)
 
 parser = argparse.ArgumentParser(description='Checks KiCad library files (.lib) against KiCad Library Convention (KLC v2.0) rules. You can find the KLC at https://github.com/KiCad/kicad-library/wiki/Kicad-Library-Convention')
 parser.add_argument('libfiles', nargs='+')
@@ -114,18 +102,12 @@ for libfile in libfiles:
             
             error = rule.check()
             
-            # Any messages (warnings OR errors)
-            if len(rule.messageBuffer) > 0 or error:
+            if rule.hasOutput():
                 if first:
+                    printer.green("Checking symbol '{sym}':".format(sym=component.name))
                     first = False
-                    printer.green("%s:" % component.name)
-                    
-                printer.yellow('Violating ' +  rule.name, indentation=2)
-                if args.verbose:
-                    printer.light_blue(rule.description, indentation=4, max_width=100)
-                    
-                processVerboseOutput(rule.messageBuffer)
-                
+                rule.processOutput(printer, args.verbose, args.silent)
+            
             # Specifically check for errors
             if error:
                 n_violations += 1
@@ -138,7 +120,7 @@ for libfile in libfiles:
         # No messages?
         if first:
             if not args.silent:
-                printer.green('%s - No errors' % component.name)
+                printer.green("Checking symbol '{sym}' - No errors".format(sym=component.name))
             
         # check the number of violations
         if n_violations > 0:
