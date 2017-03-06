@@ -26,26 +26,26 @@ class Rule(KLCRule):
         
         # Check for presense of 'value'
         if val['layer'] not in ['F.Fab', 'B.Fab']:
-            errors.append("- Component value is on layer {lyr} but should be on F.Fab or B.Fab".format(lyr=val['layer']))
+            errors.append("Component value is on layer {lyr} but should be on F.Fab or B.Fab".format(lyr=val['layer']))
         if val['hide']:
-            errors.append("- Component value is hidden (should be set to visible)")
+            errors.append("Component value is hidden (should be set to visible)")
         if val['font']['height'] != KLC_TEXT_SIZE:
-            errors.append("- Value label has a height of {1}mm (expected: {0}mm)".format(KLC_TEXT_SIZE, val['font']['height']))
+            errors.append("Value label has a height of {1}mm (expected: {0}mm)".format(KLC_TEXT_SIZE, val['font']['height']))
         if val['font']['height'] != KLC_TEXT_SIZE:
-            errors.append("- Value label has a width of {1}mm (expected: {0}mm)".format(KLC_TEXT_SIZE, val['font']['width']))
+            errors.append("Value label has a width of {1}mm (expected: {0}mm)".format(KLC_TEXT_SIZE, val['font']['width']))
         if val['font']['thickness'] != KLC_TEXT_THICKNESS:
-            errors.append("- Value label has a thickness of {1}mm (expected: {0}mm)".format(KLC_TEXT_THICKNESS, val['font']['thickness']))
+            errors.append("Value label has a thickness of {1}mm (expected: {0}mm)".format(KLC_TEXT_THICKNESS, val['font']['thickness']))
 
         if len(errors) > 0:
-            self.addMessage("Value Label Errors:")
+            self.error("Value Label Errors")
             for err in errors:
-                self.addMessage(err)
+                self.errorExtra(err)
             
         return len(errors) > 0
             
     def checkMissingLines(self):
         if len(self.f_fabrication_all) + len(self.b_fabrication_all) == 0:
-            self.addMessage("No drawings found on fabrication layer.\n")
+            self.error("No drawings found on fabrication layer")
             return True
             
         return False
@@ -68,13 +68,13 @@ class Rule(KLCRule):
         ref = self.getSecondRef()
         
         if not ref:
-            self.addMessage("Second Reference Designator missing:")
-            self.addMessage(" - Add RefDes to F.Fab layer with '%R'")
+            self.error("Second Reference Designator missing")
+            self.errorExtra("Add RefDes to F.Fab layer with '%R'")
             return True
             
         # Check that ref exists
         if ref['layer'] not in ['F.Fab', 'B.Fab']:
-            self.addMessage("Reference designator found on layer '{lyr}', expected '{exp}'".format(
+            self.error("Reference designator found on layer '{lyr}', expected '{exp}'".format(
                 lyr = ref['layer'],
                 exp = 'F.Fab'))
             return True
@@ -90,17 +90,17 @@ class Rule(KLCRule):
         
         # Font height 
         if not fh == fw:
-            errors.append("- RefDes aspect ratio should be 1:1")
+            errors.append("RefDes aspect ratio should be 1:1")
             
         if fh < KLC_TEXT_SIZE_MIN or fh > KLC_TEXT_SIZE_MAX:
-            errors.append("- RefDes text size ({x}mm) is outside allowed range [{y}mm - {z}mm]".format(
+            errors.append("RefDes text size ({x}mm) is outside allowed range [{y}mm - {z}mm]".format(
                 x = fh,
                 y = KLC_TEXT_SIZE_MIN,
                 z = KLC_TEXT_SIZE_MAX))
                 
         # Font thickness
         if ft < KLC_TEXT_THICKNESS_MIN or ft > KLC_TEXT_THICKNESS_MAX:
-            errors.append("- RefDes text thickness ({x}mm) is outside allowed range [{y}mm - {z}mm]".format(
+            errors.append("RefDes text thickness ({x}mm) is outside allowed range [{y}mm - {z}mm]".format(
                 x = ft,
                 y = KLC_TEXT_SIZE_MIN,
                 z = KLC_TEXT_SIZE_MAX))
@@ -109,12 +109,12 @@ class Rule(KLCRule):
         pos = ref['pos']
         
         if not pos['orientation'] == 0:
-            errors.append("- RefDes on F.Fab layer should be horizontal (no rotation)")
+            errors.append("RefDes on F.Fab layer should be horizontal (no rotation)")
             
         if len(errors) > 0:
-            self.addMessage("RefDes errors:")
+            self.error("RefDes errors")
             for err in errors:
-                self.addMessage(err)
+                self.errorExtra(err)
             
         return len(errors) > 0
     
@@ -128,11 +128,12 @@ class Rule(KLCRule):
         msg = False
     
         if len(self.bad_fabrication_width) > 0:
-            self.addMessage("Some fabrication layer lines have a width outside allowed range of [{x}mm - {y}mm]".format(
+            self.error("Some fabrication layer lines have a width outside allowed range of [{x}mm - {y}mm]".format(
                 x = KLC_FAB_WIDTH_MIN,
                 y = KLC_FAB_WIDTH_MAX))
-        for g in self.bad_fabrication_width:
-            self.addMessage("\t- {line}".format(line=g))
+                
+            for g in self.bad_fabrication_width:
+                self.errorExtra("{line}".format(line=g))
         
         return len(self.bad_fabrication_width) > 0
         

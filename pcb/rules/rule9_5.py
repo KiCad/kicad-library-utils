@@ -17,17 +17,16 @@ class Rule(KLCRule):
         err = False
         
         if size < 0.15:
-            self.addMessage("Pad {n} min. drill size ({d}mm) is below minimum (0.15mm)".format(
+            self.error("Pad {n} min. drill size ({d}mm) is below minimum (0.15mm)".format(
                 n = pad['number'],
                 d = size))
             err = True
         elif size < 0.20:
-            self.addMessage("Pad {n} min. drill size ({d}mm) is below recommended (0.20mm)".format(
+            self.warning("Pad {n} min. drill size ({d}mm) is below recommended (0.20mm)".format(
                 n = pad['number'],
                 d = size))
                 
         return err
-        
         
     def check(self):
         """
@@ -44,5 +43,5 @@ class Rule(KLCRule):
         """
         Proceeds the fixing of the rule, if possible.
         """
-        self.addFixMessage("Fix - not supported for this rule")
-        
+        self.info("Fix - not supported for this rule")
+       

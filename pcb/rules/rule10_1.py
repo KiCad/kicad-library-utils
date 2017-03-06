@@ -19,19 +19,19 @@ class Rule(KLCRule):
         
         module = self.module
         if os.path.splitext(os.path.basename(module.filename))[0] != module.name:
-            self.addMessage("footprint name (in file) was '{0}', but expected (from filename) '{1}'.\n".format(module.name, os.path.splitext(os.path.basename(module.filename))[0]))
+            self.error("footprint name (in file) was '{0}', but expected (from filename) '{1}'.\n".format(module.name, os.path.splitext(os.path.basename(module.filename))[0]))
             err = True
             
         if module.value['value'] != module.name:
-            self.addMessage("Value label '{lbl}' does not match filename '{fn}'".format(
+            self.error("Value label '{lbl}' does not match filename '{fn}'".format(
                 lbl=module.value['value'],
                 fn = module.name))
             err = True
             
             
         self.has_illegal_chars = False
-        if not self.isValidName(module.name):
-            self.addMessage("Module name '{name}' contains invalid characters as per KLC 1.7".format(
+        if not isValidName(module.name):
+            self.error("Module name '{name}' contains invalid characters as per KLC 1.7".format(
                 name = module.name))
             err = True
             self.has_illegal_chars = True
@@ -44,5 +44,6 @@ class Rule(KLCRule):
         """
         module = self.module
         if self.check():
+            self.info("Setting footprint value to '{name}'".format(name = module.name))
             module.name = os.path.splitext(os.path.basename(module.filename))[0]
             module.value['value'] = module.name

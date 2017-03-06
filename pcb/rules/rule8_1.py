@@ -25,7 +25,8 @@ class Rule(KLCRule):
         self.smd_count = len(module.filterPads('smd'))
         
         if self.pth_count < self.smd_count and module.attribute != 'smd':
-            self.addMessage("Surface Mount attribute not set")
+            self.error("Surface Mount attribute not set")
+            self.errorExtra("For SMD footprints, 'Placement type' must be set to 'Surface mount'")
             return True
             
         return False
@@ -37,5 +38,5 @@ class Rule(KLCRule):
         """
         module = self.module
         if self.check():
-            self.addFixMessage("Set 'surface mount' attribute")
+            self.info("Set 'surface mount' attribute")
             module.attribute = 'smd'

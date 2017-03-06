@@ -7,11 +7,11 @@ from kicad_mod import *
 import sys
 import os
 
-# point to the correct location for the print_color script
-sys.path.append(os.path.join(sys.path[0], '..', 'schlib'))
+sys.path.append("..\common")
 
 from print_color import *
 from rules import *
+from rules.rule import KLCRule
 
 # enable windows wildcards
 from glob import glob
@@ -24,7 +24,7 @@ parser.add_argument('--addsilkscreenrect', help='adds a rectangle around the com
 parser.add_argument('--rotate', help='rotate the whole symbol by the given number of degrees', action='store', default=0)
 parser.add_argument('-r', '--rule', help='specify single rule to check (default = check all rules)', action='store')
 parser.add_argument('--nocolor', help='does not use colors to show the output', action='store_true')
-parser.add_argument('-v', '--verbose', help='Enable verbose output. -v shows brief information, -vv shows complete information', action='store_true')
+parser.add_argument('-v', '--verbose', help='Enable verbose output. -v shows brief information, -vv shows complete information', action='count')
 parser.add_argument('-s', '--silent', help='skip output for symbols passing all checks', action='store_true')
 parser.add_argument('-e', '--errors', help='Do not suppress fatal parsing errors', action='store_true')
 
@@ -97,34 +97,23 @@ for filename in files:
         
         error = rule.check()
         
+        if rule.hasOutput():
+            if first:
+                printer.green("Checking footprint '{fp}':".format(fp=module.name))
+                first = False
+            rule.processOutput(printer, args.verbose, args.silent)
+        
         if error:
             n_violations += 1
-        
-        # Any messages (either warnings OR errors)
-        if error or len(rule.verbose_message) > 0:
-        
-            no_warnings = False
-        
-            if first:
-                first = False
-                printer.green('checking module: %s' % module.name)
-                        
-            printer.yellow('Violating ' + rule.name, indentation=2)
-            if args.verbose:
-                if len(rule.verbose_message)>0:
-                    printer.light_blue(rule.description, indentation=4, max_width=100)
-                for msg in rule.verbose_message:
-                    for v in msg.split("\n"):
-                        printer.blue(v, indentation=6, max_width=100)
-                
-        if args.fix:
-            rule.fix()
-            if args.verbose:
-                if len(rule.fix_message)>0:
-                    vm=rule.fix_message.split('\n');
-                    for v in vm:
-                        printer.red(v, indentation=8, max_width=100)
             
+            if args.fix:
+                rule.fix()
+                rule.processOutput()
+                
+    # No messages?
+    if first:
+        if not args.silent:
+            printer.green("Checking footprint '{fp}' - No errors".format(fp=module.name))
 
     if args.addsilkscreenrect:
         # create courtyard if does not exists
@@ -154,17 +143,9 @@ for filename in files:
             printer.green('added silkscreen rectangle around drawing')
         else:
             printer.red('unable to add silkscreen rectangle around drawing')
-            
-    if n_violations == 0 and no_warnings and not args.silent and args.rotate==0:
-        printer.green('checking module: {mod}'.format(mod = module.name))
-        printer.light_green('No violations found', indentation=2)
-        if args.addsilkscreenrect:
-            module.save()
-    else:
-        exit_code += 1
                    
-        if args.fix or args.rotate!=0:
-            module.save()
+    if args.fix or args.rotate!=0 or args.addsilkscreenrect:
+        module.save()
 
 if args.fix:
     printer.light_red('Please, resave the files using KiCad to keep indentation standard.')

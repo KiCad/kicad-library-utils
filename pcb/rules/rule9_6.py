@@ -10,9 +10,8 @@ class Rule(KLCRule):
         super(Rule, self).__init__(module, args, 'Rule 9.6', 'Minimum annular ring')
         
     def checkPad(self, pad):
-        
         if not 'size' in pad['drill']:
-            self.addMessage("Pad {n} drill data has no 'size' attribute".format(
+            self.error("Pad {n} drill data has no 'size' attribute".format(
                 n = pad['number']))
             return True
         
@@ -33,7 +32,7 @@ class Rule(KLCRule):
             ring = (pad_x - drill_x) / 2
             
             if ring < MIN_RING:
-                self.addMessage("Pad {n} annular ring ({d}mm) is below minimum ({mr}mm)".format(
+                self.error("Pad {n} annular ring ({d}mm) is below minimum ({mr}mm)".format(
                     n = pad['number'],
                     d = ring,
                     mr = MIN_RING))
@@ -44,7 +43,7 @@ class Rule(KLCRule):
             ring_x = (pad_x - drill_x) / 2
             
             if ring_x < MIN_RING:
-                self.addMessage("Pad {n} x-dimension annular ring ({d}mm) is below minimum ({mr}mm)".format(
+                self.error("Pad {n} x-dimension annular ring ({d}mm) is below minimum ({mr}mm)".format(
                     n = pad['number'],
                     d = ring_x,
                     mr = MIN_RING))
@@ -53,7 +52,7 @@ class Rule(KLCRule):
             ring_y = (pad_y - drill_y) / 2
             
             if ring_y < MIN_RING:
-                self.addMessage("Pad {n} y-dimension annular ring ({d}mm) is below minimum ({mr}mm)".format(
+                self.error("Pad {n} y-dimension annular ring ({d}mm) is below minimum ({mr}mm)".format(
                     n = pad['number'],
                     d = ring_y,
                     mr = MIN_RING))
@@ -76,5 +75,5 @@ class Rule(KLCRule):
         """
         Proceeds the fixing of the rule, if possible.
         """
-        self.addFixMessage("Fix - not supported for this rule")
+        self.info("Fix - not supported for this rule")
         

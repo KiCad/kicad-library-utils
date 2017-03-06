@@ -75,9 +75,6 @@ for libfile in libfiles:
         printer.purple('Library: %s' % libfile)
 
     for component in lib.components:
-        # skip components with non matching names
-
-        output = []
         
         #simple match
         match = True
@@ -96,7 +93,7 @@ for libfile in libfiles:
         n_violations = 0
 
         first = True
-        
+    
         for rule in all_rules:
             rule = rule(component)
             
@@ -114,6 +111,7 @@ for libfile in libfiles:
 
                 if args.fix:
                     rule.fix()
+                    rule.processOutput()
 
             output += rule.messageBuffer
             

@@ -18,24 +18,24 @@ class Rule(KLCRule):
         err = False
         
         if module.locked:
-            self.addMessage("Module is locked!")
+            self.error("Module is locked!")
             err = True
         if module.autoplace_cost90 != 0:
-            self.addMessage("Attribute autoplace_cost90 == {0} != 0!".format(module.autoplace_cost90))
+            self.error("Attribute autoplace_cost90 == {0} != 0!".format(module.autoplace_cost90))
             err = True
         if module.autoplace_cost180 != 0:
-            self.addMessage("Attribute autoplace_cost180 == {0} != 0!".format(module.autoplace_cost180))
+            self.error("Attribute autoplace_cost180 == {0} != 0!".format(module.autoplace_cost180))
             err = True
             
         # Following is allowed to conform to manufacturer specifications
         if module.clearance != 0:
-            self.addMessage("Attribute clearance == {0} != 0!".format(module.clearance))
+            self.warning("Attribute clearance == {0} != 0!".format(module.clearance))
         if module.solder_mask_margin != 0:
-            self.addMessage("Attribute solder_mask_margin == {0} != 0!".format(module.solder_mask_margin))
+            self.warning("Attribute solder_mask_margin == {0} != 0!".format(module.solder_mask_margin))
         if module.solder_paste_margin != 0:
-            self.addMessage("Attribute solder_paste_margin == {0} != 0!".format(module.solder_paste_margin))
+            self.warning("Attribute solder_paste_margin == {0} != 0!".format(module.solder_paste_margin))
         if module.solder_paste_ratio != 0:
-            self.addMessage("Attribute solder_paste_ratio == {0} != 0!".format(module.solder_paste_ratio))
+            self.warning("Attribute solder_paste_ratio == {0} != 0!".format(module.solder_paste_ratio))
         
         return err
 
@@ -45,6 +45,7 @@ class Rule(KLCRule):
         """
         module = self.module
         if self.check():
+            self.info("Setting footprint properties to default values")
             module.locked = False
             module.autoplace_cost90 = 0
             module.autoplace_cost180 = 0

@@ -7,7 +7,7 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad_mod files.
     """
     def __init__(self, module, args):
-        super(Rule, self).__init__(module, args, 'Rule 9.2', 'For through-hole components, footprint anchor is set on pad 1.')
+        super(Rule, self).__init__(module, args, 'Rule 9.2', 'For through-hole components, footprint anchor is set on pad 1')
 
     def check(self):
         """
@@ -20,22 +20,24 @@ class Rule(KLCRule):
         # check if module is through-hole
         if module.attribute == 'pth':
             pads = module.getPadsByNumber(1)
-            if len(pads)==0:
+            if len(pads) == 0:
                 pads = module.getPadsByNumber('A1')
-            self.pin1_count = len(pads)
-            self.pin1_position = []
-
-            # check/get pads positions
-            anchor_ok = False
+                
+            if len(pads) == 0:
+                self.error("Pad 1 not found in footprint")
+                return True
+                
             for pad in pads:
-                x, y = pad['pos']['x'], pad['pos']['y']
-                self.pin1_position.append((x, y))
-                if x == 0 and y == 0:
-                    anchor_ok = True
-                else:
-                    self.addMessage(" - Pad 1 was found at ({x},{y})mm".format(x=x,y=y))
-
-            return not anchor_ok
+                pos = pad['pos']
+                
+                # Pad is located at origin
+                if pos['x'] == 0 and pos['y'] == 0:
+                    return False
+                    
+            self.error("Pad 1 not located at origin")
+            self.errorExtra("Set origin to location of Pad 1")
+            
+            return True
 
         return False
 
@@ -45,5 +47,5 @@ class Rule(KLCRule):
         """
         module = self.module
         if self.check() and len(self.pin1_position)>0:
-            self.addFixMessage("Moved anchor position to Pin-1")
+            self.info("Moved anchor position to Pin-1")
             module.setAnchor(min(self.pin1_position))

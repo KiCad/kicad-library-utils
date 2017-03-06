@@ -28,30 +28,30 @@ class Rule(KLCRule):
         errors = []
         
         if not ref['reference'] == 'REF**':
-            errors.append("- Reference value is '{v}', expected: 'REF**'".format(
+            errors.append("Reference value is '{v}', expected: 'REF**'".format(
                 v = ref['reference']))
         
         if ref['layer'] not in ['F.SilkS', 'B.SilkS']:
-            errors.append("- Reference label is on layer '{0}', but should be on layer F.SilkS or B.SilkS!".format(ref['layer']))
+            errors.append("Reference label is on layer '{0}', but should be on layer F.SilkS or B.SilkS!".format(ref['layer']))
             
         if ref['hide']:
-            errors.append("- Reference label is hidden (must be set to visible)")
+            errors.append("Reference label is hidden (must be set to visible)")
             
         if not font['width'] == font['height']:
-            errors.append("- Reference label font aspect ratio should be 1:1")
+            errors.append("Reference label font aspect ratio should be 1:1")
         if font['height'] !=  KLC_TEXT_SIZE:
-            errors.append("- Reference label has a height of {1}mm (expected: {0}mm).\n".format(KLC_TEXT_SIZE,font['height']))
+            errors.append("Reference label has a height of {1}mm (expected: {0}mm).\n".format(KLC_TEXT_SIZE,font['height']))
         if font['width'] != KLC_TEXT_SIZE:
-            errors.append("- Reference label has a width of {1}mm (expected: {0}mm).\n".format(KLC_TEXT_SIZE,font['width']))
+            errors.append("Reference label has a width of {1}mm (expected: {0}mm).\n".format(KLC_TEXT_SIZE,font['width']))
         if font['thickness'] != KLC_TEXT_THICKNESS:
-            errors.append("- Reference label has a thickness of {1}mm (expected: {0}mm).\n".format(KLC_TEXT_THICKNESS,font['thickness']))
+            errors.append("Reference label has a thickness of {1}mm (expected: {0}mm).\n".format(KLC_TEXT_THICKNESS,font['thickness']))
             
         self.refDesError = len(errors) > 0
         
         if len(errors) > 0:
-            self.addMessage("Reference label errors:")
+            self.error("Reference label errors:")
             for err in errors:
-                self.addMessage(err)
+                self.errorExtra(err)
         
     """
     Check that all silkscreen lines are of the correct width
@@ -211,7 +211,7 @@ class Rule(KLCRule):
 
         # Display message if bad silkscreen width was found
         if self.bad_width:
-            self.addMessage("Some silkscreen lines have incorrect width: Allowed = {allowed}(mm))".format(allowed=KLC_SILK_WIDTH_ALLOWED))
+            self.error("Some silkscreen lines have incorrect width: Allowed = {allowed}(mm))".format(allowed=KLC_SILK_WIDTH_ALLOWED))
             for g in self.bad_width:
             
                 # Lines
@@ -220,7 +220,7 @@ class Rule(KLCRule):
                         shape = 'Arc'
                     else:
                         shape = 'Line'
-                    self.addMessage("- {shape} ({x1},{y1}) -> ({x2},{y2}) on layer {layer} has width {width}".format(
+                    self.errorExtra("{shape} ({x1},{y1}) -> ({x2},{y2}) on layer {layer} has width {width}".format(
                         shape = shape,
                         x1 = g['start']['x'],
                         y1 = g['start']['y'],
@@ -231,25 +231,25 @@ class Rule(KLCRule):
             
                 # Circles
                 elif 'center' in g and 'end' in g:
-                    self.addMessage("- Circle @ ({x},{y}) on layer {layer} has width {width}".format(
+                    self.errorExtra("Circle @ ({x},{y}) on layer {layer} has width {width}".format(
                         x = g['center']['x'],
                         y = g['center']['y'],
                         layer = g['layer'],
                         width = g['width']))
                         
                 else:
-                    self.addMessage("- Graphical item on layer {layer} has width {width}".format(
+                    self.errorExtra("Graphical item on layer {layer} has width {width}".format(
                         layer = g['layer'],
                         width = g['width']))
                         
         
         # Display message if silkscreen was found intersecting with pad
         if self.intersections:
-            self.addMessage("Some Silkscreen lines intersects with pads:")
+            self.error("Some Silkscreen lines intersects with pads")
             pad_nums = []
             for ints in self.intersections:
                 if not ints['pad']['number'] in pad_nums:
-                    self.addMessage(" - Pad {n} @ ({x},{y})".format(
+                    self.errorExtra(" - Pad {n} @ ({x},{y})".format(
                         n = ints['pad']['number'],
                         x = ints['pad']['pos']['x'],
                         y = ints['pad']['pos']['y']))

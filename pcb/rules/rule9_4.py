@@ -33,7 +33,7 @@ class Rule(KLCRule):
             # check required layers
             for layer in self.required_layers:
                 if layer not in layers:
-                    errors.append("- Pad '{n}' missing layer '{lyr}'".format(
+                    errors.append("Pad '{n}' missing layer '{lyr}'".format(
                         n=pad['number'],
                         lyr=layer))
                     err = True
@@ -41,7 +41,7 @@ class Rule(KLCRule):
             # check for extra layers
             for layer in layers:
                 if layer not in self.required_layers:
-                    errors.append("- Pad '{n}' has extra layer '{lyr}'".format(
+                    errors.append("Pad '{n}' has extra layer '{lyr}'".format(
                         n=pad['number'],
                         lyr=layer))
                     err = True
@@ -50,13 +50,11 @@ class Rule(KLCRule):
                 self.wrong_layers.append(pad)
                     
         if len(errors) > 0:
-            self.addMessage("Some THT pads have incorrect layer settings:")
+            self.error("Some THT pads have incorrect layer settings")
             for msg in errors:
-                self.addMessage(msg)
+                self.errorExtra(msg)
         
         return len(self.wrong_layers) > 0
-            
-        
         
     def check(self):
         """
@@ -78,6 +76,6 @@ class Rule(KLCRule):
         module = self.module
         
         for pad in module.filterPads('thru_hole'):
-            self.addFixMessage("Pad {n} - Setting required layers for THT pad".format(n=pad['number']))
+            self.info("Pad {n} - Setting required layers for THT pad".format(n=pad['number']))
             pad['layers'] = self.required_layers
         

@@ -30,26 +30,27 @@ class Rule(KLCRule):
             model_file = ".".join(fn[:-1])
             model_ext = fn[-1]
         except:
-            self.addMessage("Model '{mod}' is invalid path".format(mod=model))
+            self.error("Model '{mod}' is invalid path".format(mod=model))
             return True
             
         if not model_ext.lower() in extensions:
-            self.addMessage("Model '{mod}' is incompatible format (must be STEP or WRL file)".format(mod=model))
+            self.error("Model '{mod}' is incompatible format (must be STEP or WRL file)".format(mod=model))
             return True
         
         fp_dir = self.module_dir[0] + ".3dshapes"
         fp_name = self.module.name
         
         if not model_dir == fp_dir:
-            self.addMessage("3D model directory is different from footprint directory (found '{n1}', should be '{n2}')".format(n1=model_dir, n2=fp_dir))
+            self.error("3D model directory is different from footprint directory (found '{n1}', should be '{n2}')".format(n1=model_dir, n2=fp_dir))
             error = True
             
         if not model_file == fp_name:
-            self.addMessage("3D model name is different from footprint name (found '{n1}', should be '{n2}')".format(n1=model_file, n2=fp_name))
+            self.error("3D model name is different from footprint name (found '{n1}', should be '{n2}')".format(n1=model_file, n2=fp_name))
             error = True
             
-        if not self.isValidName(model):
-            self.addMessage("3D model path '{p}' contains invalid characters as per KLC 1.7".format(
+        if not isValidName(model):
+            error = True
+            self.error("3D model path '{p}' contains invalid characters as per KLC 1.7".format(
                 p = model))
             
         return error
@@ -70,11 +71,11 @@ class Rule(KLCRule):
         
         if len(models) == 0:
             # Warning msg
-            self.addMessage("Warning: No 3D model provided")
+            self.warning("No 3D model provided")
             return False
         
         if len(models) > 1:
-            self.addMessage("Warning: More than one 3D model provided")
+            self.warning("More than one 3D model provided")
             
         model_error = False
             
@@ -85,4 +86,4 @@ class Rule(KLCRule):
         return model_error
 
     def fix(self):
-        self.addFixMessage("Fix not supported")
+        self.info("Fix not supported")

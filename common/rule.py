@@ -54,8 +54,11 @@ class KLCRuleBase(object):
     def warning(self, msg, verbosity=Verbosity.HIGH):
         self.verboseOut(verbosity, Severity.WARNING, msg)
 
-    def error(self, msg, verbosity=Verbosity.HIGH):
+    def error(self, msg, verbosity=Verbosity.NORMAL):
         self.verboseOut(verbosity, Severity.ERROR, msg)
+        
+    def errorExtra(self, msg, verbosity=Verbosity.HIGH):
+        self.verboseOut(verbosity, Severity.ERROR, " - " + msg)
         
     def info(self, msg, verbosity=Verbosity.NORMAL):
         self.verboseOut(verbosity, Severity.INFO, msg)
@@ -82,6 +85,8 @@ class KLCRuleBase(object):
     
         if not verbosity:
             verbosity = 0
+        else:
+            verbosity = int(verbosity)
 
         # No violations
         if len(self.messageBuffer) == 0:
@@ -94,17 +99,18 @@ class KLCRuleBase(object):
             printer.light_blue(self.description, indentation=4, max_width=100)
     
         for message in self.messageBuffer:
-            v = message[1] # Verbosity of particular message
+            v = message[1] # Verbosity
+            s = message[2] # Severity
             msg = message[0]
             
             if v <= verbosity:
-                if v == 0:
+                if s == 0:
                     printer.gray(msg, indentation = 4)
-                elif v == 1:
+                elif s == 1:
                     printer.brown(msg, indentation = 4)
-                elif v == 2:
+                elif s == 2:
                     printer.red(msg, indentation = 4)
-                elif v == 3:
+                elif s == 3:
                     printer.green(msg, indentation = 4)
                 else:
                     printer.red("unknown severity: " + msg, indentation=4)

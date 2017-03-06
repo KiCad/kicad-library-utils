@@ -55,17 +55,6 @@ def positionFormater(element):
     return "@ ({0}, {1})".format(element['posx'],element['posy'])
     # return "pos [{0},{1}]".format(element['posx'],element['posy'])
 
-class Verbosity:
-    NONE=0
-    NORMAL=1
-    HIGH=2
-
-class Severity:
-    INFO=0
-    WARNING=1
-    ERROR=2
-    SUCCESS=3
-
 class KLCRule(KLCRuleBase):
     """
     A base class to represent a KLC rule
@@ -78,21 +67,3 @@ class KLCRule(KLCRuleBase):
         KLCRuleBase.__init__(self, name, description)
         
         self.component = component
-        
-    def isValidName(self, name):
-        name = str(name).lower()
-        for c in name:
-            # Numeric characters
-            if c.isnumeric():
-                continue
-                
-            # Alpha characters (simple set only)
-            if c >= 'a' and c <= 'z':
-                continue
-                
-            if c in ['_', '-', '.']:
-                continue
-            
-            return False
-                
-        return True
