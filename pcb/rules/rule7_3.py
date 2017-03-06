@@ -20,33 +20,38 @@ class Rule(KLCRule):
         """
         
         module = self.module
-        err = False
+
+        ref = module.reference
         
-        font = module.reference['font']
+        font = ref['font']
         
-        if module.reference['layer'] not in ['F.SilkS', 'B.SilkS']:
-            self.addMessage("Reference label is on layer '{0}', but should be on layer F.SilkS or B.SilkS!".format(module.reference['layer']))
-            err = True
+        errors = []
+        
+        if not ref['reference'] == 'REF**':
+            errors.append("- Reference value is '{v}', expected: 'REF**'".format(
+                v = ref['reference']))
+        
+        if ref['layer'] not in ['F.SilkS', 'B.SilkS']:
+            errors.append("- Reference label is on layer '{0}', but should be on layer F.SilkS or B.SilkS!".format(ref['layer']))
             
-        if module.reference['hide']:
-            self.addMessage("Reference label is hidden (must be set to visible")
-            err = True
+        if ref['hide']:
+            errors.append("- Reference label is hidden (must be set to visible)")
             
         if not font['width'] == font['height']:
-            self.addMessage("Reference label font aspect ratio should be 1:1")
-            err = True
-                
+            errors.append("- Reference label font aspect ratio should be 1:1")
         if font['height'] !=  KLC_TEXT_SIZE:
-            self.addMessage("Reference label has a height of {1}mm (expected: <={0}mm).\n".format(KLC_TEXT_SIZE,font['height']))
-            err = True
+            errors.append("- Reference label has a height of {1}mm (expected: {0}mm).\n".format(KLC_TEXT_SIZE,font['height']))
         if font['width'] != KLC_TEXT_SIZE:
-            self.addMessage("Reference label has a width of {1}mm (expected: <={0}mm).\n".format(KLC_TEXT_SIZE,font['width']))
-            err = True
+            errors.append("- Reference label has a width of {1}mm (expected: {0}mm).\n".format(KLC_TEXT_SIZE,font['width']))
         if font['thickness'] != KLC_TEXT_THICKNESS:
-            self.addMessage("Reference label has a thickness of {1}mm (expected: {0}mm).\n".format(KLC_TEXT_THICKNESS,font['thickness']))
-            err = True
+            errors.append("- Reference label has a thickness of {1}mm (expected: {0}mm).\n".format(KLC_TEXT_THICKNESS,font['thickness']))
             
-        self.refDesError = err
+        self.refDesError = len(errors) > 0
+        
+        if len(errors) > 0:
+            self.addMessage("Reference label errors:")
+            for err in errors:
+                self.addMessage(err)
         
     """
     Check that all silkscreen lines are of the correct width
@@ -208,14 +213,48 @@ class Rule(KLCRule):
         if self.bad_width:
             self.addMessage("Some silkscreen lines have incorrect width: Allowed = {allowed}(mm))".format(allowed=KLC_SILK_WIDTH_ALLOWED))
             for g in self.bad_width:
-                self.addMessage("\t- {g}".format(g=g))
+            
+                # Lines
+                if 'start' in g and 'end' in g:
+                    if 'angle' in g:
+                        shape = 'Arc'
+                    else:
+                        shape = 'Line'
+                    self.addMessage("- {shape} ({x1},{y1}) -> ({x2},{y2}) on layer {layer} has width {width}".format(
+                        shape = shape,
+                        x1 = g['start']['x'],
+                        y1 = g['start']['y'],
+                        x2 = g['end']['x'],
+                        y2 = g['end']['y'],
+                        layer = g['layer'],
+                        width = g['width']))
+            
+                # Circles
+                elif 'center' in g and 'end' in g:
+                    self.addMessage("- Circle @ ({x},{y}) on layer {layer} has width {width}".format(
+                        x = g['center']['x'],
+                        y = g['center']['y'],
+                        layer = g['layer'],
+                        width = g['width']))
+                        
+                else:
+                    self.addMessage("- Graphical item on layer {layer} has width {width}".format(
+                        layer = g['layer'],
+                        width = g['width']))
+                        
         
         # Display message if silkscreen was found intersecting with pad
         if self.intersections:
-            self.addMessage("Some courtyard lines intersects with pads:")
+            self.addMessage("Some Silkscreen lines intersects with pads:")
+            pad_nums = []
             for ints in self.intersections:
-                self.addMessage(" - @( {0}, {1} )mm (line: {2}).".format(ints['pad']['pos']['x'], ints['pad']['pos']['y'], ints['graph']))
-        
+                if not ints['pad']['number'] in pad_nums:
+                    self.addMessage(" - Pad {n} @ ({x},{y})".format(
+                        n = ints['pad']['number'],
+                        x = ints['pad']['pos']['x'],
+                        y = ints['pad']['pos']['y']))
+                    pad_nums.append(ints['pad']['number'])
+                        
         # Return True if any of the checks returned an error
         return any([len(self.bad_width) > 0,
                     len(self.intersections) > 0,
@@ -228,16 +267,16 @@ class Rule(KLCRule):
         """
         from copy import deepcopy
         module = self.module
-
+        
         if self.check():
             if self.refDesError:
-                module = self.module
+                ref = self.module.ref
                 if self.checkReference():
-                    module.reference['value'] = 'REF**'
-                    module.reference['layer'] = 'F.SilkS'
-                    module.reference['font']['width'] = KLC_TEXT_WIDTH
-                    module.reference['font']['height'] = KLC_TEXT_HEIGHT
-                    module.reference['font']['thickness'] = KLC_TEXT_THICKNESS
+                    ref['value'] = 'REF**'
+                    ref['layer'] = 'F.SilkS'
+                    ref['font']['width'] = KLC_TEXT_WIDTH
+                    ref['font']['height'] = KLC_TEXT_HEIGHT
+                    ref['font']['thickness'] = KLC_TEXT_THICKNESS
             for graph in self.bad_width:
                 graph['width'] = KLC_SILK_WIDTH
             for inter in self.intersections:
