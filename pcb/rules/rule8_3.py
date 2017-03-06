@@ -11,37 +11,50 @@ class Rule(KLCRule):
         
         self.required_layers = ["F.Cu","F.Mask","F.Paste"]
         
-    def checkPad(self, pad):
-        layers = pad['layers']
+    def checkPads(self, pads):
         
-        # For THT parts, following layers required:
-        # *.Cu
-        # F.mask
-        # B.mask
+        self.wrong_layers = []
         
-        if not pad['type'] == 'smd':
-            return False
+        errors = []
         
-        err = False
+        for pad in pads:
+            layers = pad['layers']
         
-        # check required layers
-        for layer in self.required_layers:
-            if layer not in layers:
-                self.addMessage("Pad '{n}' missing layer '{lyr}'".format(
-                    n=pad['number'],
-                    lyr=layer))
-                err = True
+            # For SMD parts, following layers required:
+            # F.Cu
+            # F.Mask
+            # F.Paste
+            
+            if not pad['type'] == 'smd':
+                continue
+            
+            err = False
+            
+            # check required layers
+            for layer in self.required_layers:
+                if layer not in layers:
+                    errors.append("- Pad '{n}' missing layer '{lyr}'".format(
+                        n=pad['number'],
+                        lyr=layer))
+                    err = True
+                        
+            # check for extra layers
+            for layer in layers:
+                if layer not in self.required_layers:
+                    errors.append("- Pad '{n}' has extra layer '{lyr}'".format(
+                        n=pad['number'],
+                        lyr=layer))
+                    err = True
                     
-        # check for extra layers
-        for layer in layers:
-            if layer not in self.required_layers:
-                self.addMessage("Pad '{n}' has extra layer '{lyr}'".format(
-                    n=pad['number'],
-                    lyr=layer))
-                err = True
+            if err:
+                self.wrong_layers.append(pad)
                 
-        return err
-        
+        if len(errors) > 0:
+            self.addMessage("Some SMD pads have incorrect layer settings:")
+            for msg in errors:
+                self.addMessage(msg)
+                
+        return len(self.wrong_layers) > 0
         
     def check(self):
         """
@@ -52,7 +65,9 @@ class Rule(KLCRule):
         """
         module = self.module
         
-        return any([self.checkPad(pad) for pad in module.filterPads('smd')])
+        return any([
+            self.checkPads(module.filterPads("smd"))
+            ])
         
     def fix(self):
         """
