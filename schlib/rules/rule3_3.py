@@ -7,7 +7,11 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad lib files.
     """
     def __init__(self, component):
-        super(Rule, self).__init__(component, '3.3 - Pin stacking', 'Pin stacking must follow strict rules')
+        super(Rule, self).__init__(component, '3.3 - Pin stacking', 'Invalid pin stacking')
+        self.different_names=False
+        self.NC_stacked=False
+        self.different_types=False
+        self.only_one_visible=False
 
     def stackStr(self, stack):
         multi_unit = int(self.component.definition['unit_count']) > 1
@@ -79,7 +83,7 @@ class Rule(KLCRule):
                     pin_etypes.add(pin['electrical_type'])
                     
                     # Add visibile pins
-                    if not pin['pin_type'] == 'I':
+                    if not pin['pin_type'].startswith('I'):
                         vis_pin_count += 1
                     
                     # NC pins should never be stacked
@@ -89,6 +93,7 @@ class Rule(KLCRule):
                             x = pin['posx'],
                             y = -1*int(pin['posy'])))
                         err = True
+                        self.NC_stacked=True
                             
                 # Fewer pin numbers than pins
                 if len(pin_nums) < len(loc['pins']):
@@ -110,6 +115,7 @@ class Rule(KLCRule):
                     err = True
                     for pin in loc['pins']:
                         self.error("- " + self.pinStr(pin))
+                        self.different_names=True
                             
                 # Different types!
                 if len(pin_etypes) > 1:
@@ -119,6 +125,7 @@ class Rule(KLCRule):
                         self.error("- {pin} : {etype}".format(
                             pin = self.pinStr(pin),
                             etype = pinElectricalTypeToStr(pin['electrical_type'])))
+                        self.different_types=True
             
                 # Only one pin should be visible
                 if not vis_pin_count == 1:
@@ -127,7 +134,10 @@ class Rule(KLCRule):
                     for pin in loc['pins']:
                         self.error("- {pin} is {vis}".format(
                             pin = self.pinStr(pin),
-                            vis = 'INVISIBLE' if pin['pin_type'] == 'I' else 'VISIBLE'))
+                            vis = 'INVISIBLE' if pin['pin_type'].startswith('I') else 'VISIBLE'))
+                        self.only_one_visible=True
+
+
 
         return err
                     
@@ -168,3 +178,12 @@ class Rule(KLCRule):
                                 y = pin['posy']))
                             continue
                     i += 1
+                    
+        if self.different_names:
+            self.info("FIX for 'different pin names' not supported (yet)! Please fix manually.")
+        if self.NC_stacked:
+            self.info("FIX for 'NC pins stacked' not supported! Please fix manually.")
+        if self.different_types:
+            self.info("FIX for 'different pin types' not supported (yet)! Please fix manually.")
+        if self.only_one_visible:
+            self.info("FIX for 'only one pin in a pin stack is visible' not supported (yet)! Please fix manually.")
