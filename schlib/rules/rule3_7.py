@@ -24,34 +24,47 @@ class Rule(KLCRule):
     def __init__(self, component):
         super(Rule, self).__init__(component, '3.7 - Unused pins', 'NC pin checking')
             
-    def checkNCPin(self, pin):
+    def checkNCPins(self, pins):
         
-        err = False
+        self.invisible_errors = []
+        self.type_errors = []
+        
+        for pin in pins:
     
-        name = pin['name'].lower()
-        etype = pin['electrical_type']
+            name = pin['name'].lower()
+            etype = pin['electrical_type']
+
+            visible = not (pin['pin_type'].startswith('N'))
         
-        # Check NC pins
-        if self.test(name.lower(), self.NC_PINS) or etype == 'N':
-        
-            # NC pins should be of type N
-            if not etype == 'N': # Not set to NC
-                err = True
-                self.error("Pin {n} ({name}) should be of type NOT CONNECTED".format(
-                            n = pin['num'],
-                            name = name))
-                                
-            # NC pins should be invisible
-            if not pin['pin_type'] == 'I':
-                err = True
-                self.error("Pin {n} ({name}) is NC and should be INVISIBLE".format(
-                            n = pin['num'],
-                            name = name))
-                            
-        if err:
-            self.nc_errors.append(pin)
+            # Check NC pins
+            if self.test(name.lower(), self.NC_PINS) or etype == 'N':
             
-        return err
+                # NC pins should be of type N
+                if not etype == 'N': # Not set to NC
+                    self.type_errors.append(pin)
+                                    
+                # NC pins should be invisible
+                if visible:
+                    self.invisible_errors.append(pin)
+                            
+        if len(self.type_errors) > 0:
+            self.error("NC pins are not correct pin-type:")
+            
+            for pin in self.type_errors:
+                self.error("- Pin {name} ({num}) should be of type NOT CONNECTED, but is of type {pintype}".format(
+                    name = pin['name'],
+                    num = pin['num'],
+                    pintype = pinElectricalTypeToStr(pin['electrical_type'])))
+                            
+        if len(self.invisible_errors) > 0:
+            self.error("NC pins are VISIBLE (should be INVISIBLE):")
+            
+            for pin in self.invisible_errors:
+                self.error("- Pin {name} ({num}) should be INVISIBLE".format(
+                    name = pin['name'],
+                    num = pin['num']))
+                            
+        return len(self.invisible_errors) > 0 or len(self.type_errors) > 0
         
     def check(self):
         """
@@ -61,14 +74,10 @@ class Rule(KLCRule):
             * double_inverted_pins
         """
         
-        self.nc_errors = []
-        
         fail = False
-        
-        for pin in self.component.pins:
                 
-            if self.checkNCPin(pin):
-                fail = True
+        if self.checkNCPins(self.component.pins):
+            fail = True
         
         return fail
         
@@ -78,13 +87,14 @@ class Rule(KLCRule):
         """
         self.info("Fixing...")
         
-        for pin in self.nc_errors:
+        for pin in self.invisible_errors:
+            if not pin['pin_type'].startswith("N"):
+                pin['pin_type'] = 'N' + pin['pin_type']
+                self.info("Setting pin {n} to INVISIBLE".format(n=pin['num']))
+
+        for pin in self.type_errors:
             if not pin['electrical_type'] == 'N':
                 pin['electrical_type'] = 'N'
                 self.info("Changing pin {n} type to NO_CONNECT".format(n=pin['num']))
-            
-            if not pin['pin_type'] == 'I':
-                pin['pin_type'] = 'I'
-                self.info("Setting pin {n} to INVISIBLE".format(n=pin['num']))
 
         self.recheck()
