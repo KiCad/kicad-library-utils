@@ -15,7 +15,7 @@ class Rule(KLCRule):
     def __init__(self, module, args):
         self.expected_width=0.05
         self.expected_grid=0.01
-        super(Rule, self).__init__(module, args, 'Rule 6.6', "Courtyard line has a width {0}mm. This line is placed so that its clearance is measured from its center to the edges of pads and body, and its position is rounded on a grid of {1}mm.".format(self.expected_width,self.expected_grid))
+        super(Rule, self).__init__(module, args, 'Rule 7.5', "Courtyard line has a width {0}mm. This line is placed so that its clearance is measured from its center to the edges of pads and body, and its position is rounded on a grid of {1}mm.".format(self.expected_width,self.expected_grid))
         
     def _getComponentAndPadBounds(self):
         module = self.module
@@ -182,7 +182,7 @@ class Rule(KLCRule):
                                  self.expected_crt_rectangle['width']+self.expected_crt_rectangle['x']-self.actual_crt_rectangle['width']-self.actual_crt_rectangle['x'],\
                                  self.expected_crt_rectangle['height']+self.expected_crt_rectangle['y']-self.actual_crt_rectangle['height']-self.actual_crt_rectangle['y'])
                 #self.verbose_message=self.verbose_message+"For this footprint a rectangular courtyard {0} was expected, but a courtyard rectangle {1} was found\n".format(self.expected_crt_rectangle,self.actual_crt_rectangle)
-                self.addMessage("A courtyard clearance in the range {1}...{2}mm was found, but {0}mm was expected.\nThe recommendet courtyard rectangle would be:\n    {3}mm.".format(self.crt_offset, round(min(clearancemin, clearancemax)*100)/100, round(max(clearancemin, clearancemax)*100)/100, self.expected_crt_rectangle))
+                self.addMessage("A courtyard clearance in the range {1}...{2}mm was found, but {0}mm was expected.\nThe recommended courtyard rectangle would be:\n    {3}mm.".format(self.crt_offset, round(min(clearancemin, clearancemax)*100)/100, round(max(clearancemin, clearancemax)*100)/100, self.expected_crt_rectangle))
                 error = True
                 
         # check if there is proper rounding 0.01 of courtyard lines
