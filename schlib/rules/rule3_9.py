@@ -78,16 +78,16 @@ class Rule(KLCRule):
             self.error("Component does not have minimum required fields!")
                             
             if n < 1:
-                self.error("Missing REFERENCE field")
+                self.error(" - Missing REFERENCE field")
                             
             if n < 2:
-                self.error("Missing VALUE field")
+                self.error(" - Missing VALUE field")
                             
             if n < 3:
-                self.error("Missing FOOTPRINT field")
+                self.error(" - Missing FOOTPRINT field")
                             
             if n < 4:
-                self.error("Missing DATASHEET field")
+                self.error(" - Missing DATASHEET field")
                             
             return True
     

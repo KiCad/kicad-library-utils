@@ -57,7 +57,7 @@ class Rule(KLCRule):
         if self.test(name.lower(), self.POWER_INPUTS) and not etype.lower() == 'w':
             err = True
             self.power_errors.append(pin)
-            self.error("Pin {n} ({name}) should be of type POWER INPUT or POWER OUTPUT".format(
+            self.error(" - Pin {n} ({name}) should be of type POWER INPUT or POWER OUTPUT".format(
                         n = pin['num'],
                         name = name))
     
@@ -70,7 +70,7 @@ class Rule(KLCRule):
             pins = self.warning_tests[pin_type]
             
             if self.test(name, pins) and not etype == pin_type:
-                self.warning("Pin {n} ({name}) is type {t1} : suggested {t2}".format(
+                self.warning(" - Pin {n} ({name}) is type {t1} : suggested {t2}".format(
                             n = pin['num'],
                             name = pin['name'],
                             t1 = pinElectricalTypeToStr(etype),
@@ -88,7 +88,7 @@ class Rule(KLCRule):
         if m and pin['pin_type'] == 'I':
             fail = True
             self.inversion_errors.append(pin)
-            self.error('pin {0} ({1}): double inversion (overline + pin type:Inverting)'.format(pin['name'], pin['num']))
+            self.error(' - Pin {0} ({1}): double inversion (overline + pin type:Inverting)'.format(pin['name'], pin['num']))
 
         return fail
         

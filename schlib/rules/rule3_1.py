@@ -7,7 +7,7 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad lib files.
     """
     def __init__(self, component):
-        super(Rule, self).__init__(component, 'Rule 3.1 - Pin placement', 'Pin placement')
+        super(Rule, self).__init__(component, 'Rule 3.1 - Pin placement', 'Pins must be placed on regular grid, and be of correct length')
 
     def checkPinOrigin(self):
         self.violating_pins = []
@@ -19,7 +19,7 @@ class Rule(KLCRule):
                 self.violating_pins.append(pin)
                 if not err:
                     self.error("Pins not located on 100mil grid:")
-                self.error(' - pin: {0} ({1}), {2}'.format(pin['name'], pin['num'], positionFormater(pin)))
+                self.error(' - Pin {0} ({1}), {2}'.format(pin['name'], pin['num'], positionFormater(pin)))
                 err = True
     
         return len(self.violating_pins) > 0
@@ -38,18 +38,18 @@ class Rule(KLCRule):
                 if not err:
                     self.error("Incorrect pin length:")
                 err = True
-                self.error(' - pin: {0} ({1}), {2}, length={3}'.format(pin['name'], pin['num'], positionFormater(pin), length))
+                self.error(' - Pin {0} ({1}), {2}, length={3}'.format(pin['name'], pin['num'], positionFormater(pin), length))
                 
             # length not multiple of 50 mils flags a warning
             if length % 50 != 0:
-                self.warning(" - pin: {name} ({num}) - length ({length}mils) is not a multiple of 50mils".format(
+                self.warning(" - Pin {name} ({num}) - length ({length}mils) is not a multiple of 50mils".format(
                     name = pin['name'],
                     num = pin['num'],
                     length = length))
                     
             # length too long flags a warning
             if length > 200:
-                self.warning(" - pin: {name} ({num}) - length ({length}mils) is too long (maximum 200mils)".format(
+                self.warning(" - Pin {name} ({num}) - length ({length}mils) is too long (maximum 200mils)".format(
                     name = pin['name'],
                     num = pin['num'],
                     length = length))

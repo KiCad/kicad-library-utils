@@ -7,7 +7,7 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad lib files.
     """
     def __init__(self, component):
-        super(Rule, self).__init__(component, 'Rule 3.12 - Footprint filtering', 'Footprint filters should match all appropriate footprints')
+        super(Rule, self).__init__(component, 'Rule 3.12 - Footprint filters', 'Footprint filters should match all appropriate footprints')
 
     def check(self):
         """
