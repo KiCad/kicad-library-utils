@@ -40,9 +40,6 @@ parser.add_argument('-s', '--silent', help='skip output for symbols passing all 
 args = parser.parse_args()
 
 printer = PrintColor(use_color = not args.nocolor)
-    
-# force to be verbose if is looking for a specific component
-if not args.verbose and args.component: args.verbose = 1
 
 # set verbosity globally
 KLCRule.verbosity = args.verbose
@@ -126,6 +123,8 @@ for libfile in libfiles:
                 printer.yellow('Violating ' +  rule.name, indentation=2)
                 if args.verbose:
                     printer.light_blue(rule.description, indentation=4, max_width=100)
+                    
+                processVerboseOutput(rule.messageBuffer)
                 
             # Specifically check for errors
             if error:
@@ -137,11 +136,9 @@ for libfile in libfiles:
             output += rule.messageBuffer
             
         # No messages?
-        if len(output) == 0:
+        if first:
             if not args.silent:
                 printer.green('%s - No errors' % component.name)
-        else:
-            processVerboseOutput(output)                    
             
         # check the number of violations
         if n_violations > 0:
