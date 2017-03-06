@@ -11,6 +11,11 @@ class Rule(KLCRule):
         
     def checkPad(self, pad):
         
+        if not 'size' in pad['drill']:
+            self.addMessage("Pad {n} drill data has no 'size' attribute".format(
+                n = pad['number']))
+            return True
+        
         drill_size = pad['drill']['size']
         drill_x = drill_size['x']
         drill_y = drill_size['y']
