@@ -230,11 +230,17 @@ class KicadMod(object):
                 a = self._getArray(line, 'end')[0]
                 line_dict['end'] = {'x':a[1], 'y':a[2]}
 
-                a = self._getArray(line, 'layer')[0]
-                line_dict['layer'] = a[1]
-
-                a = self._getArray(line, 'width')[0]
-                line_dict['width'] = a[1]
+                try:
+                    a = self._getArray(line, 'layer')[0]
+                    line_dict['layer'] = a[1]
+                except:
+                    line_dict['layer'] = ''
+                
+                try:
+                    a = self._getArray(line, 'width')[0]
+                    line_dict['width'] = a[1]
+                except:
+                    line_dict['width'] = 0
 
                 lines.append(line_dict)
 
@@ -298,11 +304,17 @@ class KicadMod(object):
                 a = self._getArray(arc, 'angle')[0]
                 arc_dict['angle'] = a[1]
 
-                a = self._getArray(arc, 'layer')[0]
-                arc_dict['layer'] = a[1]
-
-                a = self._getArray(arc, 'width')[0]
-                arc_dict['width'] = a[1]
+                try:
+                    a = self._getArray(arc, 'layer')[0]
+                    arc_dict['layer'] = a[1]
+                except:
+                    arc_dict['layer'] = ''
+                    
+                try:
+                    a = self._getArray(arc, 'width')[0]
+                    arc_dict['width'] = a[1]
+                except:
+                    arc_dict['width'] = 0
 
                 arcs.append(arc_dict)
 
