@@ -83,7 +83,7 @@ class Rule(KLCRule):
                     pin_etypes.add(pin['electrical_type'])
                     
                     # Add visibile pins
-                    if not pin['pin_type'].startswith('I'):
+                    if not pin['pin_type'].startswith('N'):
                         vis_pin_count += 1
                     
                     # NC pins should never be stacked
@@ -134,7 +134,7 @@ class Rule(KLCRule):
                     for pin in loc['pins']:
                         self.error("- {pin} is {vis}".format(
                             pin = self.pinStr(pin),
-                            vis = 'INVISIBLE' if pin['pin_type'].startswith('I') else 'VISIBLE'))
+                            vis = 'INVISIBLE' if pin['pin_type'].startswith('N') else 'VISIBLE'))
                         self.only_one_visible=True
 
 
