@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import string
+
 class KLCRule(object):
     """
     A base class to represent a KLC rule
@@ -21,10 +23,21 @@ class KLCRule(object):
     def fix(self, module):
         raise NotImplementedError('The fix method must be implemented')
 
+    def filterMsg(self, msg):
+        msg = msg.strip()
+        
+        output = ''
+        
+        for letter in msg:
+            if letter in string.printable:
+                output += letter
+        
+        return output
+        
     def addMessage(self, msg):
         if msg:
-            self.verbose_message.append(msg.strip())
+            self.verbose_message.append(self.filterMsg(msg))
 
     def addFixMessage(self, msg):
         if msg:
-            self.fix_message.append(msg.strip())
+            self.fix_message.append(self.filterMsg(msg))
