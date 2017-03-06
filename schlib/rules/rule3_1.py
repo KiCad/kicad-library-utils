@@ -49,7 +49,7 @@ class Rule(KLCRule):
                     
             # length too long flags a warning
             if length > 200:
-                self.warning(" - Pin {name} ({num}) - length ({length}mils) is too long (maximum 200mils)".format(
+                self.warning(" - Pin {name} ({num}) - length ({length}mils) is longer than maximum (200mils)".format(
                     name = pin['name'],
                     num = pin['num'],
                     length = length))
