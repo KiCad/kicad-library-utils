@@ -32,7 +32,7 @@ class Rule(KLCRule):
         self.right_anchor = {'x':x, 'y':y}
 
         if not (x == 0.0 and y == 0.0):
-            self.error("Footprint anchor is located at center of footprint")
+            self.addMessage("Footprint anchor is located at center of footprint")
             return True
 
         return False
@@ -43,5 +43,5 @@ class Rule(KLCRule):
         """
         module = self.module
         if self.check():
-            self.info("Footprint anchor fixed")
+            self.addFixMessage("Footprint anchor fixed")
             module.setAnchor((self.right_anchor['x'], self.right_anchor['y']))
