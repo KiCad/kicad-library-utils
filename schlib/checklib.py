@@ -112,8 +112,6 @@ for libfile in libfiles:
                 if args.fix:
                     rule.fix()
                     rule.processOutput()
-
-            output += rule.messageBuffer
             
         # No messages?
         if first:
