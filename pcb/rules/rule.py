@@ -16,13 +16,16 @@ class KLCRule(object):
 
         self.fix_message = []
         self.addFixMessage(fix_message)
+        
+        # Illegal chars
+        self.illegal_chars = ['*', '?', ':', '/', '\\', '[', ']', ';', '|', '=', ',']
 
     def check(self, module):
         raise NotImplementedError('The check method must be implemented')
 
     def fix(self, module):
         raise NotImplementedError('The fix method must be implemented')
-
+        
     def filterMsg(self, msg):
         msg = msg.strip()
         
