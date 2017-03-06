@@ -42,14 +42,14 @@ class Rule(KLCRule):
                 
             # length not multiple of 50 mils flags a warning
             if length % 50 != 0:
-                self.warning("- pin: {name} ({num}) - length ({length}mils) is not a multiple of 50mils".format(
+                self.warning(" - pin: {name} ({num}) - length ({length}mils) is not a multiple of 50mils".format(
                     name = pin['name'],
                     num = pin['num'],
                     length = length))
                     
             # length too long flags a warning
             if length > 200:
-                self.warning("- pin: {name} ({num}) - length ({length}mils) is too long".format(
+                self.warning(" - pin: {name} ({num}) - length ({length}mils) is too long".format(
                     name = pin['name'],
                     num = pin['num'],
                     length = length))

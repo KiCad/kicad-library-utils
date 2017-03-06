@@ -51,7 +51,7 @@ class Rule(KLCRule):
             self.error("NC pins are not correct pin-type:")
             
             for pin in self.type_errors:
-                self.error("- Pin {name} ({num}) should be of type NOT CONNECTED, but is of type {pintype}".format(
+                self.error(" - Pin {name} ({num}) should be of type NOT CONNECTED, but is of type {pintype}".format(
                     name = pin['name'],
                     num = pin['num'],
                     pintype = pinElectricalTypeToStr(pin['electrical_type'])))
@@ -60,7 +60,7 @@ class Rule(KLCRule):
             self.error("NC pins are VISIBLE (should be INVISIBLE):")
             
             for pin in self.invisible_errors:
-                self.error("- Pin {name} ({num}) should be INVISIBLE".format(
+                self.error(" - Pin {name} ({num}) should be INVISIBLE".format(
                     name = pin['name'],
                     num = pin['num']))
                             

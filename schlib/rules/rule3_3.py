@@ -102,7 +102,7 @@ class Rule(KLCRule):
                         y = -1 * int(loc['y'])))
                     err = True
                     for pin in loc['pins']: 
-                        self.error("- " + self.pinStr(pin))
+                        self.error(" - " + self.pinStr(pin))
                             
                     # If ALL pins are identical, go to next group (no further checks needed)
                     if len(pin_nums) == len(pin_names) == len(pin_units) == 1:
@@ -114,7 +114,7 @@ class Rule(KLCRule):
                     self.error(self.stackStr(loc) + " have different names:")
                     err = True
                     for pin in loc['pins']:
-                        self.error("- " + self.pinStr(pin))
+                        self.error(" - " + self.pinStr(pin))
                         self.different_names=True
                             
                 # Different types!
@@ -122,7 +122,7 @@ class Rule(KLCRule):
                     self.error(self.stackStr(loc) + " have different types:")
                     err = True
                     for pin in loc['pins']:
-                        self.error("- {pin} : {etype}".format(
+                        self.error(" - {pin} : {etype}".format(
                             pin = self.pinStr(pin),
                             etype = pinElectricalTypeToStr(pin['electrical_type'])))
                         self.different_types=True
@@ -132,7 +132,7 @@ class Rule(KLCRule):
                     self.error(self.stackStr(loc) + " must have exactly one (1) invisible pin:")
                     err = True
                     for pin in loc['pins']:
-                        self.error("- {pin} is {vis}".format(
+                        self.error(" - {pin} is {vis}".format(
                             pin = self.pinStr(pin),
                             vis = 'INVISIBLE' if pin['pin_type'].startswith('N') else 'VISIBLE'))
                         self.only_one_visible=True
