@@ -24,13 +24,17 @@ class Rule(KLCRule):
             err = True
             
         if module.value['value'] != module.name:
-            self.addMessage("Contents of values label ({lbl}) do not match filename".format(lbl=module.value))
+            self.addMessage("Value label '{lbl}' does not match filename '{fn}'".format(
+                lbl=module.value['value'],
+                fn = module.name))
             err = True
             
+        self.has_illegal_chars = False
         for c in self.illegal_chars:
             if c in module.name:
                 self.addMessage("Illegal character in filename: {c}".format(c=c))
                 err = True
+                self.has_illegal_chars = True
             
         return err
 
