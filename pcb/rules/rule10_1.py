@@ -31,7 +31,7 @@ class Rule(KLCRule):
         self.has_illegal_chars = False
         for c in self.illegal_chars:
             if c in module.name:
-                self.addMessage("Illegal character in filename: {c}".format(c=c))
+                self.addMessage("Illegal character in filename: '{c}'".format(c=c))
                 err = True
                 self.has_illegal_chars = True
             

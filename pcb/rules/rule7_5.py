@@ -8,14 +8,16 @@ from __future__ import division
 from rules.rule import *
 import re, os, math
 
+from rules.klc_constants import *
+
 class Rule(KLCRule):
     """
     Create the methods check and fix to use with the kicad_mod files.
     """
     def __init__(self, module, args):
-        self.expected_width=0.05
-        self.expected_grid=0.01
-        super(Rule, self).__init__(module, args, 'Rule 7.5', "Courtyard line has a width {0}mm. This line is placed so that its clearance is measured from its center to the edges of pads and body, and its position is rounded on a grid of {1}mm.".format(self.expected_width,self.expected_grid))
+        super(Rule, self).__init__(module, args, 'Rule 7.5', "Courtyard line has a width {0}mm. This line is placed so that its clearance is measured from its center to the edges of pads and body, and its position is rounded on a grid of {1}mm.".format(
+            KLC_CRTYD_WIDTH,
+            KLC_CRTYD_GRID))
         
     def _getComponentAndPadBounds(self):
         module = self.module
@@ -123,7 +125,7 @@ class Rule(KLCRule):
         b=self._getComponentAndPadBounds()
         if b['higher']['x']!=b['lower']['x'] and b['higher']['y']!=b['lower']['y'] and b['higher']['x']>-1.0E99 and b['higher']['y']>-1.0E99 and b['lower']['x']<1.0E99 and b['lower']['x']<1.0E99:
             crt_offset=self._calcCourtyardOffset()
-            factor=1/self.expected_grid
+            factor=1/KLC_CRTYD_GRID
             return { 'x': math.floor((b['lower']['x']-crt_offset)*factor)/factor, 
                     'y':math.floor((b['lower']['y']-crt_offset)*factor)/factor, 
                     'width':math.ceil((math.fabs(b['higher']['x']-b['lower']['x'])+2*crt_offset)*factor)/factor, 
@@ -158,7 +160,7 @@ class Rule(KLCRule):
         # check the width
         self.bad_width = []
         for graph in (self.f_courtyard_all + self.b_courtyard_all):
-            if graph['width'] != self.expected_width:
+            if graph['width'] != KLC_CRTYD_WIDTH:
                 self.bad_width.append(graph)
 
         self.f_courtyard_lines = module.filterLines('F.CrtYd')
@@ -195,13 +197,13 @@ class Rule(KLCRule):
             x, y = line['start']['x'], line['start']['y']
             x = int( (x + (0.0000001 if x >= 0 else -0.0000001))*1E6 )
             y = int( (y + (0.0000001 if y >= 0 else -0.0000001))*1E6 )
-            start_is_wrong = (x % int(self.expected_grid*1E6)) or (y % int(self.expected_grid*1E6))
+            start_is_wrong = (x % int(KLC_CRTYD_GRID*1E6)) or (y % int(KLC_CRTYD_GRID*1E6))
             nanometers['start'] = {'x':x, 'y':y}
 
             x, y = line['end']['x'], line['end']['y']
             x = int( (x + (0.0000001 if x >= 0 else -0.0000001))*1E6 )
             y = int( (y + (0.0000001 if y >= 0 else -0.0000001))*1E6 )
-            end_is_wrong = (x % int(self.expected_grid*1E6)) or (y % int(self.expected_grid*1E6))
+            end_is_wrong = (x % int(KLC_CRTYD_GRID*1E6)) or (y % int(KLC_CRTYD_GRID*1E6))
             nanometers['end'] = {'x':x, 'y':y}
 
             if start_is_wrong or end_is_wrong:
@@ -209,10 +211,10 @@ class Rule(KLCRule):
 
                 
         for  g in self.bad_width:
-            self.addMessage("Some courtyard line has a width of {1}mm, different from {0}mm.\n".format(self.expected_width,g['width']))
+            self.addMessage("Some courtyard line has a width of {1}mm, different from {0}mm.\n".format(KLC_CRTYD_WIDTH,g['width']))
             error = True
         for  g in self.bad_grid:
-            self.addMessage("Some courtyard line is not on the expected grid of {0}mm (line: {1}).\n".format(self.expected_grid,g['line']))
+            self.addMessage("Some courtyard line is not on the expected grid of {0}mm (line: {1}).\n".format(KLC_CRTYD_GRID,g['line']))
             error = True
         if len(self.f_courtyard_all)+len(self.b_courtyard_all) == 0:
             self.addMessage("No courtyard line was found at all.\n")
@@ -227,15 +229,15 @@ class Rule(KLCRule):
         module = self.module
         if self.check():
             for graph in self.bad_width:
-                graph['width'] = self.expected_width
+                graph['width'] = KLC_CRTYD_WIDTH
 
             for item in self.bad_grid:
                 x, y = item['nanometers']['start']['x'], item['nanometers']['start']['y']
-                x, y = round(x / self.expected_grid*1E6) * self.expected_grid, round(y / self.expected_grid*1E6) * self.expected_grid
+                x, y = round(x / KLC_CRTYD_GRID*1E6) * KLC_CRTYD_GRID, round(y / KLC_CRTYD_GRID*1E6) * KLC_CRTYD_GRID
                 item['nanometers']['start']['x'], item['nanometers']['start']['y'] = x, y
 
                 x, y = item['nanometers']['end']['x'], item['nanometers']['end']['y']
-                x, y = round(x / self.expected_grid*1E6) * self.expected_grid, round(y / self.expected_grid*1E6) * self.expected_grid
+                x, y = round(x / KLC_CRTYD_GRID*1E6) * KLC_CRTYD_GRID, round(y / KLC_CRTYD_GRID*1E6) * KLC_CRTYD_GRID
                 item['nanometers']['end']['x'], item['nanometers']['end']['y'] = x, y
 
             # create courtyard if does not exists
