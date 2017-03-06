@@ -10,6 +10,7 @@ class KLCRule(object):
         self.module = module
         self.name = name
         self.description = description
+        self.args = args
         
         self.verbose_message=[]
         self.addMessage(verbose_message)
