@@ -73,6 +73,18 @@ class KLCRule(object):
         self.name = name
         self.description = description
         self.messageBuffer=[]
+        
+    def isValidName(self, name):
+        name = str(name)
+        for c in name:
+            if c.isalpha() or c.isnumeric():
+                continue
+            elif c in ['_', '-', '.']:
+                continue
+            else:
+                return False
+                
+        return True
 
     #adds message into buffer only if such level of verbosity is wanted
     def verboseOut(self, msgVerbosity, severity, message):

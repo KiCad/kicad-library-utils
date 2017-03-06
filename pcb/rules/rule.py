@@ -20,6 +20,18 @@ class KLCRule(object):
         
         # Illegal chars
         self.illegal_chars = ['*', '?', ':', '/', '\\', '[', ']', ';', '|', '=', ',']
+        
+    def isValidName(self, name):
+        name = str(name)
+        for c in name:
+            if c.isalpha() or c.isnumeric():
+                continue
+            elif c in ['_', '-', '.']:
+                continue
+            else:
+                return False
+                
+        return True
 
     def check(self, module):
         raise NotImplementedError('The check method must be implemented')
