@@ -49,8 +49,7 @@ class Rule(KLCRule):
             
         return False
         
-    # Check that there is a second ref '%R' on the fab layer
-    def checkSecondRef(self):
+    def getSecondRef(self):
         texts = self.module.userText
         
         ref = None
@@ -59,17 +58,30 @@ class Rule(KLCRule):
             if text['user'] == '%R':
                 ref = text
                 break
+                
+        return ref
+        
+    # Check that there is a second ref '%R' on the fab layer
+    def checkSecondRef(self):
+        
+        ref = self.getSecondRef()
+        
+        if not ref:
+            self.addMessage("Second Reference Designator missing")
+            self.addMessage(" - Add RefDes to F.Fab layer with '%R'")
+            return True
             
         # Check that ref exists
-        if not ref or ref['layer'] not in ['F.Fab', 'B.Fab']:
-            self.addMessage("Reference designator not found on Fab layer")
-            self.addMessage("Add RefDes to F.Fab layer with text value '%R'")
+        if ref['layer'] not in ['F.Fab', 'B.Fab']:
+            self.addMessage("Reference designator found on layer '{lyr}', expected '{exp}'".format(
+                lyr = ref['layer'],
+                exp = 'F.Fab'))
             return True
             
         # Check ref size
         font = ref['font']
         
-        err = False
+        errors = []
         
         fh = font['height']
         fw = font['width']
@@ -77,25 +89,33 @@ class Rule(KLCRule):
         
         # Font height 
         if not fh == fw:
-            self.addMessage("Refdes aspect ratio should be 1:1")
-            err = True
+            errors.append("- RefDes aspect ratio should be 1:1")
             
         if fh < KLC_TEXT_SIZE_MIN or fh > KLC_TEXT_SIZE_MAX:
-            self.addMessage("Refdes text size ({x}mm) is outside allowed range [{y}mm - {z}mm]".format(
+            errors.append("- RefDes text size ({x}mm) is outside allowed range [{y}mm - {z}mm]".format(
                 x = fh,
                 y = KLC_TEXT_SIZE_MIN,
                 z = KLC_TEXT_SIZE_MAX))
-            err = True
                 
         # Font thickness
         if ft < KLC_TEXT_THICKNESS_MIN or ft > KLC_TEXT_THICKNESS_MAX:
-            self.addMessage("Refdes text thickness ({x}mm) is outside allowed range [{y}mm - {z}mm]".format(
+            errors.append("- RefDes text thickness ({x}mm) is outside allowed range [{y}mm - {z}mm]".format(
                 x = ft,
                 y = KLC_TEXT_SIZE_MIN,
                 z = KLC_TEXT_SIZE_MAX))
-            err = True
             
-        return err
+        # Check position / orientation
+        pos = ref['pos']
+        
+        if not pos['orientation'] == 0:
+            errors.append("- RefDes on F.Fab layer should be horizontal (no rotation)")
+            
+        if len(errors) > 0:
+            self.addMessage("RefDes errors:")
+            for err in errors:
+                self.addMessage(err)
+            
+        return len(errors) > 0
     
     # Check fab line widths
     def checkIncorrectWidth(self):
@@ -150,9 +170,9 @@ class Rule(KLCRule):
                 
         if self.checkMissingValue():
             module.value['layer'] = 'F.Fab'
-            module.value['font']['height'] = self.expected_val_width
-            module.value['font']['width'] = self.expected_val_width
-            module.value['font']['thickness'] = self.expected_val_thickness
+            module.value['font']['height'] = KLC_TEXT_SIZE
+            module.value['font']['width'] = KLC_TEXT_SIZE
+            module.value['font']['thickness'] = KLC_TEXT_THICKNESS
             
         if self.checkSecondRef():
             pass
