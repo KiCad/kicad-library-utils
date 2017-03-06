@@ -269,12 +269,18 @@ class KicadMod(object):
                 a = self._getArray(circle, 'end')[0]
                 circle_dict['end'] = {'x':a[1], 'y':a[2]}
 
-                a = self._getArray(circle, 'layer')[0]
-                circle_dict['layer'] = a[1]
-
-                a = self._getArray(circle, 'width')[0]
-                circle_dict['width'] = a[1]
-
+                try:
+                    a = self._getArray(circle, 'layer')[0]
+                    circle_dict['layer'] = a[1]
+                except:
+                    circle_dict['layer'] = ''
+                    
+                try:
+                    a = self._getArray(circle, 'width')[0]
+                    circle_dict['width'] = a[1]
+                except:
+                    circle_dict['width'] = 0
+                    
                 circles.append(circle_dict)
 
         return circles
