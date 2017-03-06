@@ -168,8 +168,22 @@ class KicadMod(object):
                 text_dict['layer'] = a[1]
 
                 # text font
-                a = self._getArray(text, 'font')[0]
-                text_dict['font'] = {'height':a[1][1], 'width':a[1][2], 'thickness':a[2][1]}
+                font = self._getArray(text, 'font')[0]
+                
+                # Some footprints miss out some parameters
+                text_dict['font'] = {'thickness': 0, 'height': 0, 'width': 0}
+                
+                for pair in font[1:]:
+                    key = pair[0]
+                    data = pair[1:]
+                    
+                    if key == 'thickness':
+                        text_dict['font']['thickness'] = data[0]
+                        
+                    elif key == 'size':
+                        text_dict['font']['height'] = data[0]
+                        text_dict['font']['width'] = data[1]
+                        
                 text_dict['font']['italic'] = self._hasValue(a, 'italic')
 
                 # text hide
