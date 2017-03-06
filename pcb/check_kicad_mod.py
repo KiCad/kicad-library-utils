@@ -22,7 +22,7 @@ parser.add_argument('--addsilkscreenrect', help='adds a rectangle around the com
 parser.add_argument('--rotate', help='rotate the whole symbol by the given number of degrees', action='store', default=0)
 parser.add_argument('-r', '--rule', help='specify single rule to check (default = check all rules)', action='store')
 parser.add_argument('--nocolor', help='does not use colors to show the output', action='store_true')
-parser.add_argument('-v', '--verbose', help='show status of all modules and extra information about the violation', action='store_true')
+parser.add_argument('-v', '--verbose', help='Enable verbose output. -v shows brief information, -vv shows complete information', action='store_true')
 parser.add_argument('-s', '--silent', help='skip output for symbols passing all checks', action='store_true')
 parser.add_argument('-e', '--errors', help='Do not suppress fatal parsing errors', action='store_true')
 
@@ -118,8 +118,8 @@ for filename in files:
         if args.fix:
             rule.fix()
             if args.verbose:
-                if len(rule.fix_verbose_message)>0:
-                    vm=rule.fix_verbose_message.split('\n');
+                if len(rule.fix_message)>0:
+                    vm=rule.fix_message.split('\n');
                     for v in vm:
                         printer.red(v, indentation=8, max_width=100)
             
