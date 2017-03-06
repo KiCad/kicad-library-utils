@@ -25,44 +25,53 @@ class Rule(KLCRule):
 
         #check all its aliases too
         if self.component.aliases:
+            invalid = []
             for alias in self.component.aliases.keys():
-                self.info("checking alias: {0}".format(alias))
-                if self.checkDocumentation(alias, self.component.aliases[alias], indentation=2):
+                if self.checkDocumentation(alias, self.component.aliases[alias], True):
                     invalid_documentation+=1
 
-        return True if invalid_documentation>0 else False
+        return invalid_documentation > 0
 
-
-    def checkDocumentation(self, name, documentation, indentation=0):
+    def checkDocumentation(self, name, documentation, alias=False):
+    
+        errors = []
+        warnings = []
+    
         if not documentation:
-            self.error(" "*indentation+"missing whole documentation (description, keywords, datasheet)")
-            return True
-
+            errors.append("- Missing all documentation fields (description, keywords, datasheet)")
         elif (not documentation['description'] or
             not documentation['keywords'] or
             not documentation['datasheet']):
 
             if (not documentation['description']):
-                self.error(" "*indentation+"missing description")
+                errors.append("- Missing DESCRIPTION field")
             if (not documentation['keywords']):
-                self.error(" "*indentation+"missing keywords")
+                errors.append("- Missing KEYWORDS field")
             if (not documentation['datasheet']):
-                self.warning(" "*indentation+"missing datasheet, please provide a datasheet link if it isn't a generic component")
+                errors.append("- Missing DATASHEET field")
+                
                 if (documentation['description'] and
                     documentation['keywords']):
                     self.only_datasheet_missing = True
 
-            # counts as violation if only datasheet is missing and verbosity is high
-            if self.verbosity and self.verbosity > Verbosity.NORMAL:
-                return True
-
-            return not self.only_datasheet_missing
-
         elif name.lower() in documentation['description'].lower():
-            self.warning( " "*indentation + "symbol name should not be included in description")
-            return True
-
-        return False
+            warnings.append("- Symbol name should not be included in description")
+            
+        if len(errors) > 0 or len(warnings) > 0:
+            msg = "{cmp} {name} has metadata errors:".format(
+                cmp = "ALIAS" if alias else "Component",
+                name = name)
+            if len(errors) == 0:
+                self.warning(msg)
+            else:
+                self.error(msg)
+                
+            for err in errors:
+                self.error(err)
+            for warn in warnings:
+                self.warning(warn)
+                
+        return len(errors) > 0
 
 
     def fix(self):
