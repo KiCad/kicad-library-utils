@@ -4,7 +4,9 @@ from __future__ import print_function
 
 import argparse
 from kicad_mod import *
-import sys, os
+import sys
+import os
+
 # point to the correct location for the print_color script
 sys.path.append(os.path.join(sys.path[0], '..', 'schlib'))
 

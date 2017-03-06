@@ -40,10 +40,10 @@ class Rule(KLCRule):
                     self.error(fp_desc + "should be of the format Library:Footprint")
                     
                 # Footprint name cannot contain any illegal pathname characters
-                invalid = '\/*?"<>|:[]\''
+                invalid = '\/*?"<>|[]\'@#~`'
                 for ii in invalid:
                     if ii in fp_name:
-                        self.error(fp_desc + " contains illegal character {c}".format(c=ii))
+                        self.error(fp_desc + " contains illegal character '{c}'".format(c=ii))
             
         return fail
 
