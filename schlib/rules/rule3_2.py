@@ -7,7 +7,7 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad lib files.
     """
     def __init__(self, component):
-        super(Rule, self).__init__(component, '3.2 - Symbol visual style', 'Symbol visual style should follow standard aesthetic style')
+        super(Rule, self).__init__(component, 'Rule 3.2 - Symbol visual style', 'Symbol visual style should follow standard aesthetic style')
 
     def check(self):
         """

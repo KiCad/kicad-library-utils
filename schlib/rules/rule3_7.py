@@ -22,7 +22,7 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad lib files.
     """
     def __init__(self, component):
-        super(Rule, self).__init__(component, '3.7 - Unused pins', 'Unused pins should be set as NOT CONNECTED and should be INVISIBLE')
+        super(Rule, self).__init__(component, 'Rule 3.7 - Unused pins', 'Unused pins should be set as NOT CONNECTED and should be INVISIBLE')
             
     def checkNCPins(self, pins):
         
