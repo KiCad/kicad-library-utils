@@ -51,20 +51,23 @@ class KLCRuleBase(object):
     def verboseOut(self, msgVerbosity, severity, message):
         self.messageBuffer.append([message,msgVerbosity,severity])
         
-    def warning(self, msg, verbosity=Verbosity.HIGH):
-        self.verboseOut(verbosity, Severity.WARNING, msg)
+    def warning(self, msg):
+        self.verboseOut(Verbosity.NORMAL, Severity.WARNING, msg)
 
-    def error(self, msg, verbosity=Verbosity.NORMAL):
-        self.verboseOut(verbosity, Severity.ERROR, msg)
+    def warningExtra(self, msg):
+        self.verboseOut(Verbosity.HIGH, Severity.WARNING, " - " + msg)
         
-    def errorExtra(self, msg, verbosity=Verbosity.HIGH):
-        self.verboseOut(verbosity, Severity.ERROR, " - " + msg)
+    def error(self, msg):
+        self.verboseOut(Verbosity.NORMAL, Severity.ERROR, msg)
         
-    def info(self, msg, verbosity=Verbosity.NORMAL):
-        self.verboseOut(verbosity, Severity.INFO, msg)
+    def errorExtra(self, msg):
+        self.verboseOut(Verbosity.HIGH, Severity.ERROR, " - " + msg)
         
-    def success(self, msg, verbosity=Verbosity.HIGH):
-        self.verboseOut(verbosity, Severity.SUCCESS, msg)
+    def info(self, msg):
+        self.verboseOut(Verbosity.NORMAL, Severity.INFO, msg)
+        
+    def success(self, msg):
+        self.verboseOut(Verbosity.NORMAL, Severity.SUCCESS, msg)
         
     def check(self, component):
         raise NotImplementedError('The check method must be implemented')
