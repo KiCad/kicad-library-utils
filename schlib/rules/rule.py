@@ -46,6 +46,13 @@ def backgroundFillToStr(bgFill):
         return bgMap[bgFill]
     else:
         return "INVALID"
+        
+def pinString(pin, loc=True, unit=None, convert=None):
+    return "Pin {name} ({num}){loc}{unit}".format(
+        name = pin['name'],
+        num  = pin['num'],
+        loc  = ' @ ({x},{y})'.format(x=pin['posx'],y=pin['posy']) if loc else '',
+        unit = ' in unit {n}'.format(n=unit) if unit else '')
 
 def positionFormater(element):
     if type(element) != type({}):
@@ -67,3 +74,5 @@ class KLCRule(KLCRuleBase):
         KLCRuleBase.__init__(self, name, description)
         
         self.component = component
+        
+    
