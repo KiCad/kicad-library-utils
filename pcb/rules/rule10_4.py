@@ -48,10 +48,10 @@ class Rule(KLCRule):
             self.error("3D model name is different from footprint name (found '{n1}', should be '{n2}')".format(n1=model_file, n2=fp_name))
             error = True
             
-        if not isValidName(model):
+        if not isValidName(model_file):
             error = True
             self.error("3D model path '{p}' contains invalid characters as per KLC 1.7".format(
-                p = model))
+                p = model_file))
             
         return error
         
