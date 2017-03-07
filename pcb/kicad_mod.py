@@ -2,6 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import sexpr, re, math
+import sys
+sys.path.append("..\common")
+
+from boundingbox import BoundingBox
 
 def _rotatePoint(x, degrees):
     xx=x        
@@ -659,33 +663,47 @@ class KicadMod(object):
                 arcs.append(arc)
 
         return arcs
+       
+    # Return the geometric bounds for a given layer
+    # Includes lines, arcs, circles
+    def geometricBoundingBox(self, layer):
+    
+        bb = BoundingBox()
         
-    def geometricBounds(self, layer):
-        lower_x = lower_y = 1.0E99
-        higher_x = higher_y = -1.0E99
-        
-        lines=self.filterLines( layer)
+        # Add all lines
+        lines = self.filterLines(layer)
         for l in lines:
-            if l['start']['x'] < lower_x: lower_x = l['start']['x']
-            if l['start']['x'] > higher_x: higher_x = l['start']['x']
-            if l['start']['y'] < lower_y: lower_y = l['start']['y']
-            if l['start']['y'] > higher_y: higher_y = l['start']['y']
-            if l['end']['x'] < lower_x: lower_x = l['end']['x']
-            if l['end']['x'] > higher_x: higher_x = l['end']['x']
-            if l['end']['y'] < lower_y: lower_y = l['end']['y']
-            if l['end']['y'] > higher_y: higher_y = l['end']['y']
-
+            bb.addPoint(l['start']['x'], l['start']['y'])
+            bb.addPoint(l['end']['y'], l['end']['y'])
+        
+        # Add all circles
         circles=self.filterCircles( layer)
         for c in circles:
-            r=math.sqrt((c['center']['x']-c['end']['x'])*(c['center']['x']-c['end']['x'])+(c['center']['y']-c['end']['y'])*(c['center']['y']-c['end']['y']))
-            if c['center']['x']-r < lower_x: lower_x = c['center']['x']-r
-            if c['center']['x']+r > higher_x: higher_x = c['center']['x']+r
-            if c['center']['y']-r < lower_y: lower_y = c['center']['y']-r
-            if c['center']['y']+r > higher_y: higher_y = c['center']['y']+r
-
-        arcs=self.filterArcs( layer)
+            cx = c['center']['x']
+            cy = c['center']['y']
+            ex = c['end']['x']
+            ey = c['end']['y']
+            
+            dx = ex - cx
+            dy = ey - cy
+            
+            r = math.sqrt(dx*dx + dy*dy)
+            
+            bb.addPoint(cx, cy, radius=r)
+            
+        # Add all arcs
+        arcs=self.filterArcs(layer)
         for c in arcs:
-            r=math.sqrt((c['start']['x']-c['end']['x'])*(c['start']['x']-c['end']['x'])+(c['start']['y']-c['end']['y'])*(c['start']['y']-c['end']['y']))
+            cx = c['center']['x']
+            cy = c['center']['y']
+            ex = c['end']['x']
+            ey = c['end']['y']
+            
+            dx = ex - cx
+            dy = ey - cy
+            
+            r = math.sqrt(dx*dx + dy*dy)
+            
             dalpha=1
             alphaend=c['angle']
             if math.fabs(alphaend)<1:
@@ -694,25 +712,19 @@ class KicadMod(object):
                 dalpha=-dalpha
             if math.fabs(alphaend)>0:
                 a=0
-                c0=[ c['end']['x']-c['start']['x'] , c['end']['y']-c['start']['y'] ]
+                c0=[ ex - cx, ey - cy ]
                 #print("c0 = ",c0)
                 while (alphaend>0 and a<=alphaend) or (alphaend<0 and a>=alphaend):
                     c1=[0,0]
                     c1[0]=math.cos(a/180*3.1415)*c0[0]-math.sin(a/180*3.1415)*c0[1]
                     c1[1]=math.sin(a/180*3.1415)*c0[0]+math.cos(a/180*3.1415)*c0[1]
-                    if c['start']['x']+c1[0] < lower_x: lower_x = c['start']['x']+c1[0]
-                    if c['start']['x']+c1[0] > higher_x: higher_x = c['start']['x']+c1[0]
-                    if c['start']['y']+c1[1] < lower_y: lower_y = c['start']['y']+c1[1]
-                    if c['start']['y']+c1[1] > higher_y: higher_y = c['start']['y']+c1[1]
-                    #print("arc-point a=",a,",  c1=", c1,",  start+c1=", [ c['start']['x']+c1[0], c['start']['y']+c1[1]], ",   center=", [c['start']['x'],c['start']['y']], ',      lower_x=',lower_x,',  higher_x=',higher_x)
+                    
+                    bb.addPoint(cx + c1[0], cy + c1[1])
                     a=a+dalpha
                 
-            if c['end']['x'] < lower_x: lower_x = c['end']['x']
-            if c['end']['x'] > higher_x: higher_x = c['end']['x']
-            
+            bb.addPoint(ex, None)
 
-        return {'lower':{'x':lower_x, 'y':lower_y},
-                'higher':{'x':higher_x, 'y':higher_y}}
+        return bb
         
 
     def filterGraphs(self, layer):
@@ -735,44 +747,63 @@ class KicadMod(object):
                 pads.append(pad)
 
         return pads
+        
+    # Get the middle position between pads
+    def padMiddlePosition(self, pads=None):
+        
+        x = y = 0
+    
+        # Default to all pads
+        if not pads:
+            pads = self.pads
+    
+        for pad in pads:
+            x += pad['pos']['x']
+            y += pad['pos']['y']
+            
+        x /= len(self.pads)
+        y /= len(self.pads)
+        
+        return {'x': x, 'y': y}
 
-    def padsBounds(self):
-        lower_x = lower_y = 1.0E99
-        higher_x = higher_y = -1.0E99
-
-        for pad in self.pads:
-            if pad['pos']['x'] < lower_x: lower_x = pad['pos']['x']
-            if pad['pos']['x'] > higher_x: higher_x = pad['pos']['x']
-
-            if pad['pos']['y'] < lower_y: lower_y = pad['pos']['y']
-            if pad['pos']['y'] > higher_y: higher_y = pad['pos']['y']
-
-        return {'lower':{'x':lower_x, 'y':lower_y},
-                'higher':{'x':higher_x, 'y':higher_y}}
-
-    def overpadsBounds(self):
-        lower_x = lower_y = 1.0E99
-        higher_x = higher_y = -1.0E99
-        x=[]
-        for pad in self.pads:
-            x.append(_rotatePoint({'x': -pad['size']['x']/2, 'y': -pad['size']['y']/2}, pad['pos']['orientation']))
-            x.append(_rotatePoint({'x': +pad['size']['x']/2, 'y': -pad['size']['y']/2}, pad['pos']['orientation']))
-            x.append(_rotatePoint({'x': +pad['size']['x']/2, 'y': +pad['size']['y']/2}, pad['pos']['orientation']))
-            x.append(_rotatePoint({'x': -pad['size']['x']/2, 'y': +pad['size']['y']/2}, pad['pos']['orientation']))
-            if len(pad['drill'])>0 and len(pad['drill']['size'])>0:
-                x.append(_rotatePoint({'x': -pad['drill']['size']['x']/2, 'y': -pad['drill']['size']['y']/2}, pad['pos']['orientation']))
-                x.append(_rotatePoint({'x': +pad['drill']['size']['x']/2, 'y': -pad['drill']['size']['y']/2}, pad['pos']['orientation']))
-                x.append(_rotatePoint({'x': +pad['drill']['size']['x']/2, 'y': +pad['drill']['size']['y']/2}, pad['pos']['orientation']))
-                x.append(_rotatePoint({'x': -pad['drill']['size']['x']/2, 'y': +pad['drill']['size']['y']/2}, pad['pos']['orientation']))
-            for ix in x:
-                lower_x=min(lower_x, ix['x']+pad['pos']['x'])
-                higher_x=max(higher_x, ix['x']+pad['pos']['x'])
-                lower_y=min(lower_y, ix['y']+pad['pos']['y'])
-                higher_y=max(higher_y, ix['y']+pad['pos']['y'])
-
-
-        return {'lower':{'x':lower_x, 'y':lower_y},
-                'higher':{'x':higher_x, 'y':higher_y}}
+    def padsBounds(self, pads=None):
+        
+        bb = BoundingBox()
+    
+        if pads == None:
+            pads = self.pads
+            
+        for pad in pads:
+            pos = pad.pos
+            bb.addPoint(pos['x'], pos['y'])
+            
+        return bb
+        
+    def overpadsBounds(self, pads=None):
+    
+        bb = BoundingBox()
+        
+        if pads == None:
+            pads = self.pads
+            
+        for pad in pads:
+            pos = pad['pos']
+            px = pos['x']
+            py = pos['y']
+            
+            # Pad outer dimensions
+            sx = pad['size']['x']
+            sy = pad['size']['y']
+            
+            angle = pad['pos']['orientation']
+            
+            p1 = _rotatePoint({'x': -sx/2, 'y': -sy/2}, angle)
+            p2 = _rotatePoint({'x': +sx/2, 'y': +sy/2}, angle)
+            
+            bb.addPoint(p1['x'], p1['y'])
+            bb.addPoint(p2['x'], p1['y'])
+                        
+        return bb
                 
     def save(self, filename=None):
         if not filename: filename = self.filename
