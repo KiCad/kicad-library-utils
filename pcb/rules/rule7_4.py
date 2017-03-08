@@ -133,7 +133,7 @@ class Rule(KLCRule):
                 y = KLC_FAB_WIDTH_MAX))
                 
             for g in self.bad_fabrication_width:
-                self.errorExtra("{line}".format(line=g))
+                self.errorExtra(graphItemString(g, layer=True, width=True))
         
         return len(self.bad_fabrication_width) > 0
         

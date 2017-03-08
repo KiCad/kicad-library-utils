@@ -6,6 +6,9 @@ sys.path.append("..\..\common")
 
 from rule import *
 
+def mapToGrid(dimension, grid):
+    return round(dimension / grid) * grid
+
 # Convert mm to microns
 def mmToMicrons(mm):
     if mm < 0:
