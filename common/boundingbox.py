@@ -39,11 +39,13 @@ class BoundingBox(object):
         return current
         
     def addPoint(self, x, y, radius=0):
+        # x might be 'None' so prevent subtraction 
         self.xmin = self.checkMin(self.xmin, x - radius if x else x)
         self.xmax = self.checkMax(self.xmax, x + radius if x else x)
         
-        self.ymin = self.checkMin(self.ymin, y - radius if x else x)
-        self.ymax = self.checkMax(self.ymax, y + radius if x else x)
+        # y might be 'None' so prevent subtraction
+        self.ymin = self.checkMin(self.ymin, y - radius if y else y)
+        self.ymax = self.checkMax(self.ymax, y + radius if y else y)
         
     def addBoundingBox(self, other):
         self.addPoint(other.xmin, other.ymin)
