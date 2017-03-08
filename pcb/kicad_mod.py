@@ -809,11 +809,19 @@ class KicadMod(object):
             
             angle = pad['pos']['orientation']
             
-            p1 = _rotatePoint({'x': -sx/2, 'y': -sy/2}, angle)
-            p2 = _rotatePoint({'x': +sx/2, 'y': +sy/2}, angle)
+            # Add each "corner" of the pad (even for oval shapes)
             
-            bb.addPoint(p1['x'], p1['y'])
-            bb.addPoint(p2['x'], p1['y'])
+            p1 = _rotatePoint({'x': -sx/2, 'y': -sy/2}, angle)
+            p2 = _rotatePoint({'x': -sx/2, 'y': +sy/2}, angle)
+            p3 = _rotatePoint({'x': +sx/2, 'y': +sy/2}, angle)
+            p4 = _rotatePoint({'x': +sx/2, 'y': -sy/2}, angle)
+            
+            points = [p1, p2, p3, p4]
+            
+            for p in points:
+                x = px + p['x']
+                y = py + p['y']
+                bb.addPoint(x,y)
                         
         return bb
                 
