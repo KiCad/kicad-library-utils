@@ -7,7 +7,6 @@ sys.path.append("..\common")
 
 from boundingbox import BoundingBox
 
-
 # Rotate a point by given angle (in degrees)
 def _rotatePoint(point, degrees):
 
@@ -23,10 +22,6 @@ def _rotatePoint(point, degrees):
     
     p['x'] = x * math.cos(radians) - y * math.sin(radians)
     p['y'] = y * math.cos(radians) + x * math.sin(radians)
-    
-    # Ignore 'z' if present
-    if 'z' in point:
-        p['z'] = point['z']
         
     if 'orientation' in point:
         p['orientation'] -= degrees
@@ -707,10 +702,10 @@ class KicadMod(object):
         lines = self.filterLines(layer)
         for l in lines:
             bb.addPoint(l['start']['x'], l['start']['y'])
-            bb.addPoint(l['end']['y'], l['end']['y'])
+            bb.addPoint(l['end']['x'], l['end']['y'])
         
         # Add all circles
-        circles=self.filterCircles( layer)
+        circles=self.filterCircles(layer)
         for c in circles:
             cx = c['center']['x']
             cy = c['center']['y']
