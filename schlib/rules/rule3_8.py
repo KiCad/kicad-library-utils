@@ -49,10 +49,13 @@ class Rule(KLCRule):
         """
         Proceeds the fixing of the rule, if possible.
         """
-        self.info("Fixing...")
+        if len(self.violating_fields) > 0:
+            self.info("Fixing field text size")
         for field in self.violating_fields:
             field['text_size'] = '50'
 
+        if len(self.violating_pins) > 0:
+            self.info("Fixing pin text size")
         for pin in self.violating_pins:
             pin['name_text_size'] = '50'
             pin['num_text_size'] = '50'
