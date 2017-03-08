@@ -7,17 +7,29 @@ sys.path.append("..\common")
 
 from boundingbox import BoundingBox
 
-def _rotatePoint(x, degrees):
-    xx=x        
-    y={'x':x['x'], 'y':x['y']}
-    y['x']=math.cos(degrees/180.0*math.pi)*xx['x']+math.sin(degrees/180.0*math.pi)*xx['y'];
-    y['y']=-math.sin(degrees/180.0*math.pi)*xx['x']+math.cos(degrees/180.0*math.pi)*xx['y'];
-    if 'orientation' in x:
-        y['orientation']=xx['orientation']-degrees               
-    if 'z' in x:
-        y['z']=xx['z']
-    #print('before rotation (degrees=', degrees, ') x=', xx, '    after rotation y=', y)
-    return y
+
+# Rotate a point by given angle (in degrees)
+def _rotatePoint(point, degrees):
+
+    # Create a new point (copy)
+    p = point
+    
+    radians = degrees * math.pi / 180
+    
+    x = point['x']
+    y = point['y']
+    
+    p['x'] = x * math.cos(radians) - y * math.sin(radians)
+    p['y'] = y * math.cos(radians) + x * math.sin(radians)
+    
+    # Ignore 'z' if present
+    if 'z' in point:
+        p['z'] = point['z']
+        
+    if 'orientation' in point:
+        p['orientation'] -= degrees
+    
+    return p
 
 def _movePoint(x, dx):
     y={'x':x['x']+dx['x'], 'y':x['y']+dx['y']}
