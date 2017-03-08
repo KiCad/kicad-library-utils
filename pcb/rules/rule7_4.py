@@ -55,10 +55,14 @@ class Rule(KLCRule):
         
         ref = None
         
+        count = 0
+        
         for text in texts:
             if text['user'] == '%R':
                 ref = text
-                break
+                count += 1
+                
+        self.multiple_second_ref = count > 1
                 
         return ref
         
@@ -151,6 +155,7 @@ class Rule(KLCRule):
         self.missing_value = False
         self.missing_lines = False
         self.incorrect_width = False
+        self.multiple_second_ref = False
         self.missing_second_ref = False
         
         module = self.module
@@ -164,6 +169,9 @@ class Rule(KLCRule):
         self.missing_lines = self.checkMissingLines()
         self.incorrect_width = self.checkIncorrectWidth()
         self.missing_second_ref = self.checkSecondRef()
+        
+        if self.multiple_second_ref:
+            self.error("Mutliple RefDes markers found with text '%R'")
                 
         return any([
                     self.missing_value,
