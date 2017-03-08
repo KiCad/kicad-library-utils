@@ -118,4 +118,6 @@ class KLCRuleBase(object):
                 else:
                     printer.red("unknown severity: " + msg, indentation=4)
                     
+        # Clear message buffer
+        self.messageBuffer = []
         return True
