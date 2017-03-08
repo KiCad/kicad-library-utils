@@ -20,7 +20,6 @@ parser = argparse.ArgumentParser(description='Checks KiCad footprint files (.kic
 parser.add_argument('kicad_mod_files', nargs='+')
 parser.add_argument('--fix', help='fix the violations if possible', action='store_true')
 parser.add_argument('--fixmore', help='fix additional violations, not covered by --fix (e.g. rectangular courtyards), implies --fix!', action='store_true')
-parser.add_argument('--addsilkscreenrect', help='adds a rectangle around the component on the silkscreen-layer', action='store_true')
 parser.add_argument('--rotate', help='rotate the whole symbol by the given number of degrees', action='store', default=0)
 parser.add_argument('-r', '--rule', help='specify single rule to check (default = check all rules)', action='store')
 parser.add_argument('--nocolor', help='does not use colors to show the output', action='store_true')
@@ -108,43 +107,14 @@ for filename in files:
             
             if args.fix:
                 rule.fix()
-                rule.processOutput()
+                rule.processOutput(printer, args.verbose, args.silent)
                 
     # No messages?
     if first:
         if not args.silent:
             printer.green("Checking footprint '{fp}' - No errors".format(fp=module.name))
-
-    if args.addsilkscreenrect:
-        # create courtyard if does not exists
-        overpadBounds=module.overpadsBounds()
-        geoBounds=module.geometricBounds('F.Fab')
-        b={'lower':{'x':1.0E99, 'y':1.0E99},'higher':{'x':-1.0E99, 'y':-1.0E99}}
-        if (geoBounds['lower']['x']>1.0E98 and geoBounds['lower']['x']==geoBounds['lower']['y']) or (geoBounds['higher']['x']<-1.0e98 and geoBounds['higher']['x']==geoBounds['higher']['y']):
-            geoBounds=module.geometricBounds('B.Fab')               
-        if (geoBounds['lower']['x']>1.0E98 and geoBounds['lower']['x']==geoBounds['lower']['y']) or (geoBounds['higher']['x']<-1.0e98 and geoBounds['higher']['x']==geoBounds['higher']['y']):
-            geoBounds=module.geometricBounds('F.SilkS')
-        if (geoBounds['lower']['x']>1.0E98 and geoBounds['lower']['x']==geoBounds['lower']['y']) or (geoBounds['higher']['x']<-1.0e98 and geoBounds['higher']['x']==geoBounds['higher']['y']):
-            geoBounds=module.geometricBounds('B.SilkS')
-        
-        b['lower']['x']=min(b['lower']['x'],overpadBounds['lower']['x'])
-        b['lower']['y']=min(b['lower']['y'],overpadBounds['lower']['y'])
-        b['higher']['x']=max(b['higher']['x'],overpadBounds['higher']['x'])
-        b['higher']['y']=max(b['higher']['y'],overpadBounds['higher']['y'])
-        b['lower']['x']=min(b['lower']['x'],geoBounds['lower']['x'])
-        b['lower']['y']=min(b['lower']['y'],geoBounds['lower']['y'])
-        b['higher']['x']=max(b['higher']['x'],geoBounds['higher']['x'])
-        b['higher']['y']=max(b['higher']['y'],geoBounds['higher']['y'])
-        
-        #print('b=',b)
-        if b['higher']['x']!=b['lower']['x'] and b['higher']['y']!=b['lower']['y'] and b['higher']['x']>-1.0E99 and b['higher']['y']>-1.0E99 and b['lower']['x']<1.0E99 and b['lower']['x']<1.0E99:
-            silk_offset=0.12
-            module.addRectangle([b['lower']['x']-silk_offset, b['lower']['y']-silk_offset], [b['higher']['x']+silk_offset, b['higher']['y']+silk_offset], 'F.SilkS', 0.12)
-            printer.green('added silkscreen rectangle around drawing')
-        else:
-            printer.red('unable to add silkscreen rectangle around drawing')
                    
-    if args.fix or args.rotate!=0 or args.addsilkscreenrect:
+    if args.fix or args.rotate!=0:
         module.save()
 
 if args.fix:
