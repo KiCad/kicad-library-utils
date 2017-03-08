@@ -20,22 +20,23 @@ class Rule(KLCRule):
             * right_anchor
         """
         module = self.module
-        if module.attribute != 'smd':return ()
+        if module.attribute != 'smd':
+            # Ignore non-smd parts
+            return False
 
-        self.pads_bounds = module.padsBounds()
-        x = (self.pads_bounds['higher']['x'] - self.pads_bounds['lower']['x'])
-        y = (self.pads_bounds['higher']['y'] - self.pads_bounds['lower']['y'])
-        self.pads_distance = {'x':x, 'y':y}
+        center = module.padMiddlePosition()
+        
+        err = False
+        
+        if not center['x'] == 0 or not center['y'] == 0:
+            self.error("Footprint anchor is not located at center of footprint")
+            self.errorExtra("Footprint center calculated as ({x},{y})mm".format(
+                x = center['x'],
+                y = center['y']))
+                
+            err = True
 
-        x = self.pads_bounds['lower']['x'] + (self.pads_distance['x'] / 2)
-        y = self.pads_bounds['lower']['y'] + (self.pads_distance['y'] / 2)
-        self.right_anchor = {'x':x, 'y':y}
-
-        if not (x == 0.0 and y == 0.0):
-            self.error("Footprint anchor is located at center of footprint")
-            return True
-
-        return False
+        return err
 
     def fix(self):
         """
@@ -44,4 +45,7 @@ class Rule(KLCRule):
         module = self.module
         if self.check():
             self.info("Footprint anchor fixed")
-            module.setAnchor((self.right_anchor['x'], self.right_anchor['y']))
+            
+            center = module.padMiddlePosition()
+            
+            module.setAnchor([center['x'], center['y']])
