@@ -86,6 +86,14 @@ class BoundingBox(object):
             ])
             
     @property
+    def x(self):
+        return self.xmin
+        
+    @property
+    def y(self):
+        return self.ymin
+            
+    @property
     def width(self):
         if not self.xmin or not self.xmax:
             return 0
@@ -100,6 +108,10 @@ class BoundingBox(object):
     @property
     def size(self):
         return {'x': self.width, 'y': self.height}
+        
+    @property
+    def center(self):
+        return {'x': self.xmin + self.width / 2, 'y': self.ymin + self.height/2 }
             
 if __name__ == '__main__':
     bb1 = BoundingBox(-20,50,10,-20)
