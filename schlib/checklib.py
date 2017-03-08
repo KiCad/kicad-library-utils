@@ -111,7 +111,7 @@ for libfile in libfiles:
 
                 if args.fix:
                     rule.fix()
-                    rule.processOutput()
+                    rule.processOutput(printer, args.verbose, args.silent)
             
         # No messages?
         if first:

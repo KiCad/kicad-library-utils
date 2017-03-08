@@ -19,6 +19,9 @@ class Rule(KLCRule):
             if not '*' in filter:
                 errors.append("Does not contain wildcard ('*') character")
                 
+            if len(filter.count(':')) > 1:
+                errors.append("Filter should not contain more than one (':') character")
+                
             if len(errors) > 0:
                 self.error("Footprint filter '{filter}' not correctly formatted".format(filter=filter))
                 
