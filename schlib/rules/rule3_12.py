@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from rules.rule import *
+import re
 
 class Rule(KLCRule):
     """
@@ -34,6 +35,12 @@ class Rule(KLCRule):
                 
                 self.bad_filters.append(filter)
         
+            # Extra warnings
+            if re.search('(SOIC|SOIJ|SIP|DIP|SO|SOT-\d+|SOT\d+|QFN|DFN|QFP|SOP|TO-\d+|VSO|PGA|BGA|LLC|LGA)-\d+[W-_\*\?$]+', filter, flags=re.IGNORECASE) is not None:
+                self.warning("Footprint filter '{filter}' seems to contain pin-number, but should not!".format(filter=filter))
+            if ('-' in filter) or ('_' in filter):
+                self.warning("Minuses and underscores in footprint filter '{filter}' should be escaped with '?' or '*'.".format(filter=filter))
+    
     def check(self):
         """
         Proceeds the checking of the rule.
