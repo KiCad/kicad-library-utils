@@ -96,7 +96,10 @@ class PrintColor(object):
                 # construct the final line
                 line = color + line + regular
 
-            print(line)
+            try:
+                print(line)
+            except:
+                print("ERROR printing output")
 
     def regular(self, text, max_width=None, indentation=None):
         self._do_print(sys._getframe().f_code.co_name, text, max_width, indentation)
