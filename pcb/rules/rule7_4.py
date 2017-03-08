@@ -147,6 +147,12 @@ class Rule(KLCRule):
             * b_fabrication_lines
             * bad_fabrication_width
         """
+        
+        self.missing_value = False
+        self.missing_lines = False
+        self.incorrect_width = False
+        self.missing_second_ref = False
+        
         module = self.module
         self.f_fabrication_all = module.filterGraphs('F.Fab')
         self.b_fabrication_all = module.filterGraphs('B.Fab')
@@ -154,11 +160,16 @@ class Rule(KLCRule):
         self.f_fabrication_lines = module.filterLines('F.Fab')
         self.b_fabrication_lines = module.filterLines('B.Fab')
                 
+        self.missing_value = self.checkMissingValue()
+        self.missing_lines = self.checkMissingLines()
+        self.incorrect_width = self.checkIncorrectWidth()
+        self.missing_second_ref = self.checkSecondRef()
+                
         return any([
-                    self.checkMissingValue(),
-                    self.checkMissingLines(),
-                    self.checkIncorrectWidth(),
-                    self.checkSecondRef(),
+                    self.missing_value,
+                    self.missing_lines,
+                    self.incorrect_width,
+                    self.missing_second_ref,
                     ])
 
     def fix(self):
@@ -166,16 +177,63 @@ class Rule(KLCRule):
         Proceeds the fixing of the rule, if possible.
         """
         module = self.module
-        if self.checkIncorrectWidth():
+        if self.incorrect_width:
+            self.info("Setting F.Fab lines to correct width")
             for graph in self.bad_fabrication_width:
                 graph['width'] = KLC_FAB_WIDTH
                 
-        if self.checkMissingValue():
+        if self.missing_value:
+            self.info("Adding 'Value' text to F.Fab layer")
             module.value['layer'] = 'F.Fab'
             module.value['font']['height'] = KLC_TEXT_SIZE
             module.value['font']['width'] = KLC_TEXT_SIZE
             module.value['font']['thickness'] = KLC_TEXT_THICKNESS
             
-        if self.checkSecondRef():
-            pass
-
+        if self.missing_second_ref:
+            # Best-guess for pos is midpoint the footprint bounds
+            bounds = module.geometricBoundingBox('F.Fab')
+            
+            # Can't get fab outline? Use pads
+            if not bounds.valid:
+                bounds = module.overpadsBounds()
+            
+            if bounds.valid:
+                pos = bounds.center
+                # these numbers were a litle bit "trial and error"
+                text_size = 4.0
+                
+                if bounds.width < text_size:
+                    text_size = 0.9 * bounds.width
+                    
+                text_size = round(text_size / 4, 1)
+                
+                # Minimum Size Limit
+                # KLC_TEXT_SIZE_MIN is 0.25mm
+                # But, this is very small and our "best guess" should be conservative
+                
+                MIN = 0.5
+                
+                # Limit to smallest KLC value
+                if text_size < MIN:
+                    text_size = MIN
+                
+                text_line = round(0.15 * text_size, 3)
+            # Still can't get bounds? Use 0,0
+            else:
+                pos = {'x': 0, 'y': 0}
+                text_size = 1.0
+                text_line = 0.15
+                
+            self.info("Adding second RefDes to F.Fab layer @ {x},{y}".format(
+                x = pos['x'],
+                y = pos['y']))
+                
+            font = {'thickness': text_line, 'height': text_size, 'width': text_size }
+            
+            module.addUserText('%R',
+                {'pos': pos,
+                 'font': font,
+                 'layer': 'F.Fab'
+                    
+                })
+            
