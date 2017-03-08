@@ -13,8 +13,8 @@ def _rotatePoint(point, degrees):
 
     # Create a new point (copy)
     p = {}
-    for key, value in point:
-        p[key] = value
+    for key in point:
+        p[key] = point[key]
     
     radians = degrees * math.pi / 180
     
@@ -39,8 +39,8 @@ def _movePoint(point, offset):
     # Copy all points
     
     p = {}
-    for key, value in point:
-        p[key] = value
+    for key in point:
+        p[key] = point[key]
         
     p['x'] += offset['x']
     p['y'] += offset['y']
