@@ -12,7 +12,9 @@ from boundingbox import BoundingBox
 def _rotatePoint(point, degrees):
 
     # Create a new point (copy)
-    p = point
+    p = {}
+    for key, value in point:
+        p[key] = value
     
     radians = degrees * math.pi / 180
     
@@ -31,12 +33,19 @@ def _rotatePoint(point, degrees):
     
     return p
 
-def _movePoint(x, dx):
-    y={'x':x['x']+dx['x'], 'y':x['y']+dx['y']}
-    for key, value in x:
-        if key!='x' and key!='y':
-            y[key]=value
-    return y
+# Move point by certain offset
+def _movePoint(point, offset):
+
+    # Copy all points
+    
+    p = {}
+    for key, value in point:
+        p[key] = value
+        
+    p['x'] += offset['x']
+    p['y'] += offset['y']
+    
+    return p
 
 class KicadMod(object):
     """
@@ -209,6 +218,13 @@ class KicadMod(object):
 
         return result
 
+    def addUserText(self, text, params):
+        user = {'user': text}
+        for key in params:
+            user[key] = params[key]
+            
+        self.userText.append(user)
+        
     def _addText(self, which_text, data):
         # TODO: should check if all keys of dictionary are valid
         # update the arrays
@@ -217,18 +233,23 @@ class KicadMod(object):
 
             # text position
             at = ['at', text['pos']['x'], text['pos']['y']]
-            if text['pos']['orientation'] != 0: at.append(text['pos']['orientation'])
+            
+            if 'orientation' in text['pos'].keys() and text['pos']['orientation'] != 0:
+                at.append(text['pos']['orientation'])
+            
             fp_text.append(at)
 
             # layer
             fp_text.append(['layer', text['layer']])
 
             # text hide
-            if text['hide']: fp_text.append('hide')
+            if 'hide' in text.keys() and text['hide']:
+                fp_text.append(' hide')
 
             # effects
             font = ['font', ['size', text['font']['height'], text['font']['width']], ['thickness', text['font']['thickness']]]
-            if text['font']['italic']: font.append('italic')
+            if 'italic' in text['font'].keys() and text['font']['italic']:
+                font.append(' italic')
             fp_text.append(['effects', font])
 
             # create the array
