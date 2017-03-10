@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import sexpr, re, math
+import re, math
 import sys
 sys.path.append("..\common")
 
+import sexpr
 from boundingbox import BoundingBox
 
 # Rotate a point by given angle (in degrees)
