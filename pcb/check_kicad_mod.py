@@ -46,6 +46,9 @@ for f in dir():
     if f.startswith('rule'):
         if selected_rules == None or (f[4:].replace("_",".") in selected_rules):
             all_rules.append(globals()[f].Rule)
+    elif f.startswith('EC'):
+        if selected_rules == None or f in selected_rules:
+            all_rules.append(globals()[f].Rule)
 
 files = []
 
