@@ -11,7 +11,7 @@ import re, os, math
 from rules.klc_constants import *
 
 import sys
-sys.path.append("..\..\common")
+sys.path.append(os.path.join('..','..','common'))
 
 from boundingbox import BoundingBox
 
