@@ -7,7 +7,7 @@ from kicad_mod import *
 import sys
 import os
 
-sys.path.append("..\common")
+sys.path.append(os.path.join('..','common'))
 
 from print_color import *
 from rules import *

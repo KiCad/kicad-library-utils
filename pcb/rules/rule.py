@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import string
-import sys
-sys.path.append("..\..\common")
+import sys, os
+sys.path.append(os.path.join('..','..','common'))
 
 from rule import *
 

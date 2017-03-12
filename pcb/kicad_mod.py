@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import re, math
-import sys
-sys.path.append("..\common")
+import sys, os
+sys.path.append(os.path.join('..','common'))
 
 import sexpr
 from boundingbox import BoundingBox

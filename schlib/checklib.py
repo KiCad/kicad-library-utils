@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import argparse
-import sys
+import sys, os
 from schlib import *
 
-sys.path.append("..\common")
+sys.path.append(os.path.join('..', 'common'))
 
 from print_color import *
 import re
