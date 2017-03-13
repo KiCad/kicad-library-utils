@@ -723,8 +723,8 @@ class KicadMod(object):
         # Add all arcs
         arcs=self.filterArcs(layer)
         for c in arcs:
-            cx = c['center']['x']
-            cy = c['center']['y']
+            cx = c['start']['x']
+            cy = c['start']['y']
             ex = c['end']['x']
             ey = c['end']['y']
             
