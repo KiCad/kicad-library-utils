@@ -23,6 +23,8 @@ class Rule(KLCRule):
     
         if model.startswith(SYSMOD_PREFIX):
             model = model.replace(SYSMOD_PREFIX,"")
+        else:
+            self.warning("Model path should start with '" + SYSMOD_PREFIX + "'")
             
         try:
             model_dir = os.path.dirname(model)
