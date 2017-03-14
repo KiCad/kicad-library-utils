@@ -47,8 +47,12 @@ class Rule(KLCRule):
             error = True
             
         if not model_file == fp_name:
-            self.error("3D model name is different from footprint name (found '{n1}', should be '{n2}')".format(n1=model_file, n2=fp_name))
-            error = True
+            # Exception for footprints that have additions e.g. "_ThermalPad"
+            if fp_name.startswith(model_file):
+                self.warning("3D model name is different from footprint name (found '{n1}', should be '{n2}')".format(n1=model_file, n2=fp_name))
+            else:
+                self.error("3D model name is different from footprint name (found '{n1}', should be '{n2}')".format(n1=model_file, n2=fp_name))
+                error = True
             
         if not isValidName(model_file):
             error = True
