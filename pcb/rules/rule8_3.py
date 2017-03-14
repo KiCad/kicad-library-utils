@@ -9,7 +9,8 @@ class Rule(KLCRule):
     def __init__(self, module, args):
         super(Rule, self).__init__(module, args, 'Rule 8.3', 'SMD pad layer requirements')
         
-        self.required_layers = ["F.Cu","F.Mask","F.Paste"]
+        self.sides = ["F.", "B."]
+        self.required_layers = ["Cu","Mask","Paste"]
         
     def checkPads(self, pads):
         
@@ -30,17 +31,28 @@ class Rule(KLCRule):
             
             err = False
             
-            # check required layers
+            # Check that required layers are present
             for layer in self.required_layers:
-                if layer not in layers:
+                present = False
+                for side in self.sides:
+                    lyr = side + layer
+                    if lyr in layers:
+                        present = True
+                        
+                if not present:
                     errors.append("Pad '{n}' missing layer '{lyr}'".format(
                         n=pad['number'],
                         lyr=layer))
                     err = True
                         
-            # check for extra layers
+            # Check for extra layers
+            allowed = []
+            for layer in self.required_layers:
+                for side in self.sides:
+                    allowed.append(side + layer)
+                    
             for layer in layers:
-                if layer not in self.required_layers:
+                if layer not in allowed:
                     errors.append("Pad '{n}' has extra layer '{lyr}'".format(
                         n=pad['number'],
                         lyr=layer))
