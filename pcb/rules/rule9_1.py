@@ -24,12 +24,19 @@ class Rule(KLCRule):
         self.pth_count = len(module.filterPads('thru_hole'))
         self.smd_count = len(module.filterPads('smd'))
         
-        if self.pth_count > self.smd_count and module.attribute != 'pth':
-            self.error("Through Hole attribute not set")
-            self.errorExtra("For THT footprints, 'Placement type' must be set to 'Through hole'")
-            return True
+        error = False
+        
+        if self.pth_count > 0 and module.attribute != 'pth':
+            # Only THT pads
+            if self.smd_count == 0:
+                self.error("Through Hole attribute not set")
+                self.errorExtra("For THT footprints, 'Placement type' must be set to 'Through hole'")
+                error = True
+            # A mix of THT pads
+            elif self.pth_count > self.smd_count:
+                self.warning("THT and SMD pads found - Suggest setting 'Placement type' to 'Through hole'")
             
-        return False
+        return error
 
 
     def fix(self):
