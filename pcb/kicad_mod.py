@@ -774,6 +774,8 @@ class KicadMod(object):
         for pad in self.pads:
             if pad['type'] == pad_type:
                 pads.append(pad)
+                
+        pads = sorted(pads, key = lambda p : p['number'])
 
         return pads
         
