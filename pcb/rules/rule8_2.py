@@ -28,7 +28,11 @@ class Rule(KLCRule):
         
         err = False
         
-        if not center['x'] == 0 or not center['y'] == 0:
+        THRESHOLD = 0.001
+        x = center['x']
+        y = center['y']
+        
+        if abs(x) > THRESHOLD or abs(y) > THRESHOLD:
             self.error("Footprint anchor is not located at center of footprint")
             self.errorExtra("Footprint center calculated as ({x},{y})mm".format(
                 x = center['x'],
