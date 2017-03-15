@@ -23,13 +23,21 @@ class Rule(KLCRule):
         
         self.pth_count = len(module.filterPads('thru_hole'))
         self.smd_count = len(module.filterPads('smd'))
+
+        error = False
         
-        if self.pth_count < self.smd_count and module.attribute != 'smd':
-            self.error("Surface Mount attribute not set")
-            self.errorExtra("For SMD footprints, 'Placement type' must be set to 'Surface mount'")
-            return True
+        if self.smd_count > 0 and module.attribute != 'smd':
+            # Only SMD pads?
+            if self.pth_count == 0:
+                self.error("Surface Mount attribute not set")
+                self.errorExtra("For SMD footprints, 'Placement type' must be set to 'Surface mount'")
+                error = True
+            else:
+                self.warning("Surface Mount attribute not set")
+                self.warningExtra("Both THT and SMD pads were found")
+                self.warningExtra("Suggest setting 'Placement Type' to 'Surface Mount'")
             
-        return False
+        return error
 
 
     def fix(self):

@@ -32,9 +32,7 @@ class Rule(KLCRule):
                 self.error("Through Hole attribute not set")
                 self.errorExtra("For THT footprints, 'Placement type' must be set to 'Through hole'")
                 error = True
-            # A mix of THT pads
-            elif self.pth_count > self.smd_count:
-                self.warning("THT and SMD pads found - Suggest setting 'Placement type' to 'Through hole'")
+            # A mix of THT and SMD pads - probably a SMD footprint
             
         return error
 

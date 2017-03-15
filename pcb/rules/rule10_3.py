@@ -27,7 +27,7 @@ class Rule(KLCRule):
             self.error("Attribute autoplace_cost180 == {0} != 0!".format(module.autoplace_cost180))
             err = True
             
-        # Following is allowed to conform to manufacturer specifications
+        # Following is allowed (with warning) to conform to manufacturer specifications
         if module.clearance != 0:
             self.warning("Attribute clearance == {0} != 0!".format(module.clearance))
         if module.solder_mask_margin != 0:
