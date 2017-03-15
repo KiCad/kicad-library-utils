@@ -775,7 +775,7 @@ class KicadMod(object):
             if pad['type'] == pad_type:
                 pads.append(pad)
                 
-        pads = sorted(pads, key = lambda p : p['number'])
+        pads = sorted(pads, key = lambda p : str(p['number']))
 
         return pads
         
@@ -805,7 +805,7 @@ class KicadMod(object):
             pads = self.pads
             
         for pad in pads:
-            pos = pad.pos
+            pos = pad['pos']
             bb.addPoint(pos['x'], pos['y'])
             
         return bb
