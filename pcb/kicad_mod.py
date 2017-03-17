@@ -7,7 +7,7 @@ import sys, os
 sys.path.append(os.path.join('..','common'))
 
 import sexpr
-from boundingbox import BoundingBox
+from boundingbox import BoundingBox       
 
 # Rotate a point by given angle (in degrees)
 def _rotatePoint(point, degrees):
@@ -221,37 +221,6 @@ class KicadMod(object):
             user[key] = params[key]
             
         self.userText.append(user)
-        
-    def _addText(self, which_text, data):
-        # TODO: should check if all keys of dictionary are valid
-        # update the arrays
-        for text in data:
-            fp_text = ['fp_text', which_text, text[which_text]]
-
-            # text position
-            at = ['at', text['pos']['x'], text['pos']['y']]
-            
-            if 'orientation' in text['pos'].keys() and text['pos']['orientation'] != 0:
-                at.append(text['pos']['orientation'])
-            
-            fp_text.append(at)
-
-            # layer
-            fp_text.append(['layer', text['layer']])
-
-            # text hide
-            if 'hide' in text.keys() and text['hide']:
-                fp_text.append(' hide')
-
-            # effects
-            font = ['font', ['size', text['font']['height'], text['font']['width']], ['thickness', text['font']['thickness']]]
-            if 'italic' in text['font'].keys() and text['font']['italic']:
-                font.append(' italic')
-            fp_text.append(['effects', font])
-
-            # create the array
-            self._createArray(fp_text, ['fp_text', 'attr', 'tags', 'descr', 'tedit'])
-
 
     def _getLines(self, layer=None):
         lines = []
@@ -280,17 +249,6 @@ class KicadMod(object):
 
         return lines
 
-    def _addLines(self, lines):
-        for line in lines:
-            fp_line = ['fp_line',
-                ['start', line['start']['x'], line['start']['y']],
-                ['end', line['end']['x'], line['end']['y']],
-                ['layer', line['layer']],
-                ['width', line['width']]]
-
-            self._createArray(fp_line, ['fp_line', 'fp_text', 'attr', 'tags', 'descr', 'tedit'])
-
-
     def _getCircles(self, layer=None):
         circles = []
         for circle in self._getArray(self.sexpr_data, 'fp_circle'):
@@ -318,16 +276,6 @@ class KicadMod(object):
                 circles.append(circle_dict)
 
         return circles
-
-    def _addCircles(self, circles):
-        for circle in circles:
-            fp_circle = ['fp_circle',
-                ['center', circle['center']['x'], circle['center']['y']],
-                ['end', circle['end']['x'], circle['end']['y']],
-                ['layer', circle['layer']],
-                ['width', circle['width']]]
-
-            self._createArray(fp_circle, ['fp_circle','fp_line', 'fp_text', 'attr', 'tags', 'descr', 'tedit'])
 
     def _getArcs(self, layer=None):
         arcs = []
@@ -359,17 +307,6 @@ class KicadMod(object):
                 arcs.append(arc_dict)
 
         return arcs
-
-    def _addArcs(self, arcs):
-        for arc in arcs:
-            fp_arc = ['fp_arc',
-                ['start', arc['start']['x'], arc['start']['y']],
-                ['end', arc['end']['x'], arc['end']['y']],
-                ['angle', arc['angle']],
-                ['layer', arc['layer']],
-                ['width', arc['width']]]
-
-            self._createArray(fp_arc, ['fp_arc', 'fp_circle','fp_line', 'fp_text', 'attr', 'tags', 'descr', 'tedit'])
 
     def _getPads(self):
         pads = []
@@ -465,79 +402,6 @@ class KicadMod(object):
 
         return pads
 
-    def _addPads(self, pads):
-        for p in pads:
-            # number, type, shape
-            pad = ['pad', p['number'], p['type'], p['shape']]
-
-            # position
-            at = ['at', p['pos']['x'], p['pos']['y']]
-            if p['pos']['orientation'] != 0: at.append(p['pos']['orientation'])
-            pad.append(at)
-
-            # size
-            pad.append(['size', p['size']['x'], p['size']['y']])
-
-            # drill
-            if p['drill']:
-                drill = ['drill']
-
-                # drill shape
-                if p['drill']['shape'] == 'oval':
-                    drill += ['oval']
-
-                # drill size
-                if p['drill']['size']:
-                    drill += [p['drill']['size']['x']]
-
-                    # if shape is oval has y size
-                    if p['drill']['shape'] == 'oval':
-                        drill += [p['drill']['size']['y']]
-
-                # drill offset
-                if p['drill']['offset']:
-                    drill.append(['offset', p['drill']['offset']['x'], p['drill']['offset']['y']])
-
-                pad.append(drill)
-
-            # layers
-            pad.append(['layers'] + p['layers'])
-
-            # die length
-            if p['die_length']:
-                pad.append(['die_length', p['die_length']])
-
-            # rect_delta
-            if p['rect_delta']:
-                pad.append(['rect_delta'] + p['rect_delta'])
-
-            ## clearances zones settings
-            # clearance
-            if p['clearance']:
-                  pad.append(['clearance', p['clearance']])
-            # solder mask margin
-            if p['solder_mask_margin']:
-                  pad.append(['solder_mask_margin', p['solder_mask_margin']])
-            # solder paste margin
-            if p['solder_paste_margin']:
-                  pad.append(['solder_paste_margin', p['solder_paste_margin']])
-            # solder paste margin ratio
-            if p['solder_paste_margin_ratio']:
-                  pad.append(['solder_paste_margin_ratio', p['solder_paste_margin_ratio']])
-
-            ## copper zones settings
-            # zone connect
-            if p['zone_connect']:
-                  pad.append(['zone_connect', p['zone_connect']])
-            # thermal width
-            if p['thermal_width']:
-                  pad.append(['thermal_width', p['thermal_width']])
-            # thermal gap
-            if p['thermal_gap']:
-                  pad.append(['thermal_gap', p['thermal_gap']])
-
-            self._createArray(pad, ['pad', 'fp_arc', 'fp_circle','fp_line', 'fp_text', 'attr', 'tags', 'descr', 'tedit'])
-
     def _getModels(self):
         models_array = self._getArray(self.sexpr_data, 'model')
 
@@ -560,16 +424,6 @@ class KicadMod(object):
             models.append(model_dict)
 
         return models
-
-    def _addModels(self, models):
-        for model in models:
-            m = ['model', model['file'],
-                ['at', ['xyz', model['pos']['x'], model['pos']['y'], model['pos']['z']]],
-                ['scale', ['xyz', model['scale']['x'], model['scale']['y'], model['scale']['z']]],
-                ['rotate', ['xyz', model['rotate']['x'], model['rotate']['y'], model['rotate']['z']]]
-                ]
-
-            self._createArray(m, ['model', 'pad', 'fp_arc', 'fp_circle','fp_line', 'fp_text', 'attr', 'tags', 'descr', 'tedit'])
 
     def addLine(self, start, end, layer, width):
         line={
@@ -844,95 +698,283 @@ class KicadMod(object):
                 bb.addPoint(x,y)
                         
         return bb
+        
+    def _formatText(self, text_type, text, se):
+        
+        """
+        Text is formatted like thus:
+        (fp_text <type> <value> (at <x> <y> <R>*) (layer <layer>)
+          (effects (font (size <sx> <sy>) (thickness <t>)))
+        )
+        """
+        
+        # Text
+        se.startGroup('fp_text')
+        
+        # Extract position informat
+        tp = text['pos']
+        pos = [tp['x'], tp['y']]
+        rot = tp.get('orientation',0)
+        if not rot in [0, None]:
+            pos.append(rot)
+            
+        se.addItems(text_type, text[text_type], {'at': pos}, {'layer': text['layer']}, newline=False)
+        
+        tf = text['font']
+        
+        font = [{'font': [{'size': [tf['height'], tf['width']]}, {'thickness': tf['thickness']}]}]
+        italic = tf.get('italic',None)
+        if italic:
+            font.append(italic)
+        
+        se.startGroup('effects', indent=True)
+        se.addItems(*font, newline=False)
+        se.endGroup(False)
+        se.endGroup(True)
+        
+    def _formatLine(self, line, se):
+        se.startGroup('fp_line', newline=True, indent=False)
+        
+        start = line['start']
+        end = line['end']
+        
+        fp_line = [
+            {'start': [start['x'], start['y']]},
+            {'end': [end['x'], end['y']]},
+            {'layer': line['layer']},
+            {'width': line['width']}
+            ]
+            
+        se.addItems(*fp_line, newline=False)
+        se.endGroup(newline=False)
+        
+    def _formatCircle(self, circle, se):
+        se.startGroup('fp_circle', newline=True, indent=False)
+        
+        center = circle['center']
+        end = circle['end']
+        
+        fp_circle = [
+            {'center': [center['x'], center['y']]},
+            {'end': [end['x'], end['y']]},
+            {'layer': circle['layer']},
+            {'width': circle['width']}
+            ]
+            
+        se.addItems(*fp_circle, newline=False)
+        se.endGroup(newline=False)
+    
+    def _formatArc(self, arc, se):
+        se.startGroup('fp_arc', newline=True, indent=False)
+        
+        start = arc['start']
+        end = arc['end']
+        
+        fp_arc = [
+            {'start': [start['x'], start['y']]},
+            {'end': [end['x'], end['y']]},
+            {'angle': arc['angle']},
+            {'layer': arc['layer']},
+            {'width': arc['width']}
+            ]
+            
+        se.addItems(*fp_arc, newline=False)
+        se.endGroup(newline=False)
+    
+    def _formatPad(self, pad, se):
+        pos = pad['pos']
+        
+        se.startGroup('pad', newline=True, indent=False)
+        
+        fp_pad = [pad['number'], pad['type'], pad['shape']]
+        
+        at = [pos['x'], pos['y']]
+        
+        rot = pos.get('orientation',0)
+        if rot:
+            at.append(rot)
+            
+        fp_pad.append({'at': at})
+        
+        fp_pad.append({'size': [pad['size']['x'], pad['size']['y']]})
+        
+        # Drill?
+        _drill = pad.get('drill', None)
+        
+        if _drill:
+            d = []
+            if _drill['shape'] == 'oval':
+                d.append('oval')
+            
+            if _drill['size']:
+                d.append(_drill['size']['x'])
+                
+                # Oval drill requires x,y pair
+                if _drill['shape'] == 'oval':
+                    d.append(_drill['size']['y'])
+                    
+            if _drill['offset']:
+                o = [_drill['offset']['x'], _drill['offset']['y']]
+                d.append({'offset': o})
+            
+            fp_pad.append({'drill': d})
+            
+        # Layers
+        fp_pad.append({'layers': pad['layers']})
+        
+        se.addItems(*fp_pad, newline=False)
+        
+        extras = []
+        
+        # die length
+        if pad['die_length']:
+            extras.append({'die_length': pad['die_length']})
+
+        # rect_delta
+        if pad['rect_delta']:
+            extras.append({'rect_delta': pad['rect_delta']})
+
+        ## clearances zones settings
+        # clearance
+        if pad['clearance']:
+            extras.append({'clearance': pad['clearance']})
+        # solder mask margin
+        if pad['solder_mask_margin']:
+            extras.append({'solder_mask_margin': pad['solder_mask_margin']})
+        # solder paste margin
+        if pad['solder_paste_margin']:
+            extras.append({'solder_paste_margin': pad['solder_paste_margin']})
+        # solder paste margin ratio
+        if pad['solder_paste_margin_ratio']:
+            extras.append({'solder_paste_margin_ratio': pad['solder_paste_margin_ratio']})
+
+        ## copper zones settings
+        # zone connect
+        if pad['zone_connect']:
+            extras.append({'zone_connect': pad['zone_connect']})
+        # thermal width
+        if pad['thermal_width']:
+            extras.append({'thermal_width': pad['thermal_width']})
+        # thermal gap
+        if pad['thermal_gap']:
+            extras.append({'thermal_gap': pad['thermal_gap']})
+            
+        if len(extras) > 0:
+            se.addItem(extras[0], newline=True, indent=True)
+            for ext in extras[1:]:
+                se.addItem(ext, newline=True, indent=False)
+                
+            se.unIndent()
+            
+        se.endGroup(newline=False)
+                
+    def _formatModel(self, model, se):
+        se.startGroup('model', newline=True, indent=False)
+        
+        se.addItems(model['file'],newline=False)
+        
+        """
+          at
+          scale
+          rotate
+        """
+        
+        at = model['pos']
+        sc = model['scale']
+        ro = model['rotate']
+
+        se.addItems({'at': {'xyz': [at['x'],at['y'],at['z']]}}, newline=True, indent=True)
+        se.addItems({'scale': {'xyz': [sc['x'],sc['y'],sc['z']]}}, newline=True, indent=False)
+        se.addItems({'rotate': {'xyz': [ro['x'],ro['y'],ro['z']]}}, newline=True)
+        
+        se.endGroup(newline=True)
                 
     def save(self, filename=None):
-        if not filename: filename = self.filename
+        if not filename:
+            filename = self.filename
+            
+        se = sexpr.SexprBuilder('module')
 
-        # module name
-        self.sexpr_data[1] = self.name
-
-        # locked flag
-        try:
-            self.sexpr_data.remove('locked')
-        except ValueError:
-            pass
+        # Hex value of current epoch timestamp (in seconds)
+        tedit = hex(int(time.time())).upper()[2:]
+        
+        # Output must be precisely formatted
+        
+        """ Header order is as follows
+        (*items are optional)
+        
+        module <name> locked* <layer>  <tedit>
+        descr
+        tags
+        autoplace_cost_90*
+        autoplace_cost_180*
+        solder_mask_margin*
+        solder_paste_margin*
+        solder_paste_ratio*
+        clearance*
+        attr
+        
+        fp_text reference
+        fp_text value
+        [fp_text user]
+        """
+        
+        # Build the header string
+        header = [self.name]
         if self.locked:
-            self.sexpr_data.insert(2, 'locked')
-
-        # description
-        if self.description: self._updateCreateArray(['descr', self.description], ['tedit'])
-
-        # tags
-        if self.tags: self._updateCreateArray(['tags', self.tags], ['descr', 'tedit'])
-
-        # auto place settings
-        if self.autoplace_cost90: self._updateCreateArray(['autoplace_cost90', self.autoplace_cost90], ['tags', 'descr', 'tedit'])
-        if self.autoplace_cost180: self._updateCreateArray(['autoplace_cost180', self.autoplace_cost180], ['tags', 'descr', 'tedit'])
-
-        # module clearance settings
-        if self.clearance: self._updateCreateArray(['clearance', self.clearance], ['tags', 'descr', 'tedit'])
-        if self.solder_mask_margin: self._updateCreateArray(['solder_mask_margin', self.solder_mask_margin], ['tags', 'descr', 'tedit'])
-        if self.solder_paste_margin: self._updateCreateArray(['solder_paste_margin', self.solder_paste_margin], ['tags', 'descr', 'tedit'])
-        if self.solder_paste_ratio: self._updateCreateArray(['solder_paste_ratio', self.solder_paste_ratio], ['tags', 'descr', 'tedit'])
-
-        # attribute
+            header.append('locked')
+        header.append({'layer': self.layer})
+        header.append({'tedit': tedit})
+        
+        se.addItems(*header, newline=False)
+        se.addItems({'descr': self.description}, indent=True)
+        se.addItems({'tags': self.tags})
+        
+        # 'pth' type is assumed
         attr = self.attribute.lower()
-        assert attr in ['pth', 'smd', 'virtual'], "attribute must be one of the following options: 'pth', 'smd', 'virtual'"
-        # when the footprint is PTH the attr isn't explicitly defined, thus the field attr doesn't exists
-        try:
-            self.sexpr_data.remove(self._getArray(self.sexpr_data, 'attr')[0])
-        except IndexError:
-            pass
-        # create the field attr if not pth
-        if attr != 'pth': self._updateCreateArray(['attr', attr], ['tags', 'descr', 'tedit'])
-
-        # remove all existing text arrays
-        for text in self._getArray(self.sexpr_data, 'fp_text'):
-            self.sexpr_data.remove(text)
-        # reference
-        self._addText('reference', [self.reference])
-        # value
-        self._addText('value', [self.value])
-        # user text
-        self._addText('user', self.userText)
-
-        # lines
-        # remove all existing lines arrays
-        for line in self._getArray(self.sexpr_data, 'fp_line'):
-            self.sexpr_data.remove(line)
-        self._addLines(self.lines)
-
-        # circles
-        # remove all existing circles arrays
-        for circle in self._getArray(self.sexpr_data, 'fp_circle'):
-            self.sexpr_data.remove(circle)
-        self._addCircles(self.circles)
-
-        # arcs
-        # remove all existing arcs arrays
-        for arc in self._getArray(self.sexpr_data, 'fp_arc'):
-            self.sexpr_data.remove(arc)
-        self._addArcs(self.arcs)
-
-        # pads
-        # remove all existing pads arrays
-        for pad in self._getArray(self.sexpr_data, 'pad'):
-            self.sexpr_data.remove(pad)
-        self._addPads(self.pads)
-
-        # models
-        # remove all existing models arrays
-        for model in self._getArray(self.sexpr_data, 'model'):
-            self.sexpr_data.remove(model)
-        self._addModels(self.models)
-
-        # convert array data to s-expression and save in the disc
-        output = sexpr.build_sexp(self.sexpr_data)
-        output = sexpr.format_sexp(output, max_nesting=1)
-        f = open(filename, 'w', newline='')
-        f.write(output)
-        f.close()
-
+        if attr in ['smd', 'virtual']:
+            se.addItems({'attr': attr})
+        
+        # Following items are optional (only written if non-zero)
+        se.addOptItem('autoplace_cost90', self.autoplace_cost90)
+        se.addOptItem('autoplace_cost180', self.autoplace_cost180)
+        se.addOptItem('clearance', self.clearance)
+        se.addOptItem('solder_mask_margin', self.solder_mask_margin)
+        se.addOptItem('solder_paste_margin', self.solder_paste_margin)
+        se.addOptItem('solder_paste_ratio', self.solder_paste_ratio)
+        
+        # Add text items
+        self._formatText('reference', self.reference, se)
+        self._formatText('value', self.value, se)
+        
+        for text in self.userText:
+            self._formatText('user', text, se)
+            
+        # Add Line Data
+        for line in self.lines:
+            self._formatLine(line, se)
+            
+        # Add Circle Data
+        for circle in self.circles:
+            self._formatCircle(circle, se)
+            
+        # Add Arc Data
+        for arc in self.arcs:
+            self._formatArc(arc, se)
+            
+        # Add Pad Data
+        for pad in self.pads:
+            self._formatPad(pad, se)
+            
+        # Add Model Data
+        for model in self.models:
+            self._formatModel(model, se)
+            
+        se.endGroup(True)
+        
+        with open(filename, 'w') as f:
+            f.write(se.output)
+            f.write('\n')
 
 if __name__ == '__main__':
 #    module = KicadMod('/tmp/SOT-23.kicad_mod')
