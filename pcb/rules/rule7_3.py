@@ -29,7 +29,7 @@ class Rule(KLCRule):
         
         # Check correct value of reference field
         if not ref['reference'] == 'REF**':
-            errors.append("Reference value is '{v}', expected: 'REF**'".format(
+            errors.append("Reference text is '{v}', expected: 'REF**'".format(
                 v = ref['reference']))
         
         # Check correct layer for reference
