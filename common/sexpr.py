@@ -93,6 +93,10 @@ def SexprItem(val, key=None):
         for key in val.keys():
             values.append(SexprItem(val[key],key))
         val = ' '.join(values)
+    elif t == float:
+        val = str(val).rstrip('0').rstrip('.')
+    elif t == int:
+        val = str(val)
     #elif t == float:
     #    val = float_render % val
     elif t == str and re.search(r'[\s()\"]', val):
