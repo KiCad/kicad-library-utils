@@ -121,6 +121,6 @@ for filename in files:
         module.save()
 
 if args.fix:
-    printer.light_red('Please, resave the files using KiCad to keep indentation standard.')
+    printer.light_red('Some files were updated - ensure that they still load correctly in KiCad')
 
 sys.exit(exit_code)
