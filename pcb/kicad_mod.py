@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import time
 import re, math
 import sys, os
 sys.path.append(os.path.join('..','common'))
@@ -71,19 +72,19 @@ class KicadMod(object):
         self.layer = self._getValue('layer')
 
         # locked flag
-        self.locked = True if self._hasValue(self.sexpr_data, 'locked') else False
+        self.locked = self._hasValue(self.sexpr_data, 'locked')
 
         # description
         self.description = self._getValue('descr')
 
         # tags
         self.tags = self._getValue('tags')
-
+        
         # auto place settings
         self.autoplace_cost90 = self._getValue('autoplace_cost90', 0)
         self.autoplace_cost180 = self._getValue('autoplace_cost180', 0)
 
-        # module clearance settings
+        # global footprint clearance settings
         self.clearance = self._getValue('clearance', 0)
         self.solder_mask_margin = self._getValue('solder_mask_margin', 0)
         self.solder_paste_margin = self._getValue('solder_paste_margin', 0)
@@ -119,7 +120,7 @@ class KicadMod(object):
     # check if value exists in any element of data
     def _hasValue(self, data, value):
         for i in data:
-            if type(i) == type([]):
+            if type(i) in [list, tuple]:
                 if self._hasValue(i, value):
                     return True
             elif str(i) == value:
