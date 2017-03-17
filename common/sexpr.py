@@ -84,7 +84,9 @@ def SexprItem(val, key=None):
     
     t = type(val)
     
-    if t in [list, tuple]:
+    if val is None or t == str and len(val) == 0:
+        val = '""'
+    elif t in [list, tuple]:
         val = ' '.join([SexprItem(v) for v in val])
     elif t == dict:
         values = []
