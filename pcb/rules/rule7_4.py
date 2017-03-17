@@ -232,7 +232,7 @@ class Rule(KLCRule):
                 text_size = 1.0
                 text_line = 0.15
                 
-            self.info("Adding second RefDes to F.Fab layer @ {x},{y}".format(
+            self.info("Adding second RefDes to F.Fab layer @ ({x},{y})".format(
                 x = pos['x'],
                 y = pos['y']))
                 
