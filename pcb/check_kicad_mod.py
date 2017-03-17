@@ -103,6 +103,8 @@ for filename in files:
             if first:
                 printer.green("Checking footprint '{fp}':".format(fp=module.name))
                 first = False
+                
+            printer.yellow("Violating " + rule.name, indentation=2)
             rule.processOutput(printer, args.verbose, args.silent)
         
         if error:

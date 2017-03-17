@@ -103,6 +103,8 @@ for libfile in libfiles:
                 if first:
                     printer.green("Checking symbol '{sym}':".format(sym=component.name))
                     first = False
+                    
+                printer.yellow("Violating " + rule.name, indentation=2)
                 rule.processOutput(printer, args.verbose, args.silent)
             
             # Specifically check for errors

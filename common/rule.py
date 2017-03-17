@@ -64,7 +64,7 @@ class KLCRuleBase(object):
         self.verboseOut(Verbosity.HIGH, Severity.ERROR, " - " + msg)
         
     def info(self, msg):
-        self.verboseOut(Verbosity.NORMAL, Severity.INFO, msg)
+        self.verboseOut(Verbosity.NORMAL, Severity.INFO, "> " + msg)
         
     def success(self, msg):
         self.verboseOut(Verbosity.NORMAL, Severity.SUCCESS, msg)
@@ -94,10 +94,7 @@ class KLCRuleBase(object):
         # No violations
         if len(self.messageBuffer) == 0:
             return False
-            
-        else:
-            printer.yellow("Violating " + self.name, indentation = 2)
-            
+
         if verbosity > 0:
             printer.light_blue(self.description, indentation=4, max_width=100)
     
