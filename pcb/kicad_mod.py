@@ -977,12 +977,4 @@ class KicadMod(object):
             f.write('\n')
 
 if __name__ == '__main__':
-#    module = KicadMod('/tmp/SOT-23.kicad_mod')
-#    module = KicadMod('/tmp/USB_A_Vertical.kicad_mod')
-    #module = KicadMod('/tmp/SATA-7_SMD.kicad_mod')
-    module = KicadMod('/home/ricardo/devel/kicad-stuff/footprints/Pin_Headers.pretty/Pin_Header_Angled_2x06.kicad_mod')
-
-    import pprint
-    #pprint.pprint(module.sexpr_data)
-    #module.save('/tmp/SATA-7_SMD.kicad_mod.output')
-    module.save('/tmp/Pin_Header_Angled_2x06.kicad_mod')
+    pass
