@@ -24,9 +24,11 @@ class Rule(KLCRule):
         
         errors = []
         
-        if not val['value'] == 'VAL**':
-            errors.append("Value text is '{v}', expected: 'VAL**'".format(
-                v = val['value']))
+        if not val['value'] == mod.name:
+            errors.append("Value text should match footprint name:")
+            errors.append("Value text is '{v}', expected: '{n}'".format(
+                v = val['value'],
+                n = mod.name))
         
         # Check for presense of 'value'
         if val['layer'] not in ['F.Fab', 'B.Fab']:
@@ -195,8 +197,8 @@ class Rule(KLCRule):
                 graph['width'] = KLC_FAB_WIDTH
                 
         if self.missing_value:
-            self.info("Fixing 'VAL**' text on F.Fab layer")
-            module.value['value'] = 'VAL**'
+            self.info("Fixing 'Value' text on F.Fab layer")
+            module.value['value'] = module.name
             module.value['layer'] = 'F.Fab'
             module.value['font']['height'] = KLC_TEXT_SIZE
             module.value['font']['width'] = KLC_TEXT_SIZE
