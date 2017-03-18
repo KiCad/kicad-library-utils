@@ -89,5 +89,10 @@ class Rule(KLCRule):
         
         for pad in module.filterPads('smd'):
             self.info("Pad {n} - Setting required layers for SMD pad".format(n=pad['number']))
-            pad['layers'] = self.required_layers
         
+            # Guess pad layer (Front / Back)
+            back = any([x.startswith("B.") for x in pad['layers']])
+            
+            prefix = 'B.' if back else 'F.'
+            
+            pad['layers'] = [prefix + layer for layer in self.required_layers]
