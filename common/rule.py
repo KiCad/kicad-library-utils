@@ -64,7 +64,7 @@ class KLCRuleBase(object):
         self.verboseOut(Verbosity.HIGH, Severity.ERROR, " - " + msg)
         
     def info(self, msg):
-        self.verboseOut(Verbosity.NORMAL, Severity.INFO, "> " + msg)
+        self.verboseOut(Verbosity.NONE, Severity.INFO, "> " + msg)
         
     def success(self, msg):
         self.verboseOut(Verbosity.NORMAL, Severity.SUCCESS, msg)
