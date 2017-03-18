@@ -860,10 +860,7 @@ class KicadMod(object):
             extras.append({'thermal_gap': pad['thermal_gap']})
             
         if len(extras) > 0:
-            se.addItem(extras[0], newline=True, indent=True)
-            for ext in extras[1:]:
-                se.addItem(ext, newline=True, indent=False)
-                
+            se.addItems(extras, newline=True, indent=True)                
             se.unIndent()
             
         se.endGroup(newline=False)
