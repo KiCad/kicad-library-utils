@@ -94,7 +94,7 @@ def SexprItem(val, key=None):
             values.append(SexprItem(val[key],key))
         val = ' '.join(values)
     elif t == float:
-        val = str(val).rstrip('0').rstrip('.')
+        val = str(round(val,10)).rstrip('0').rstrip('.')
     elif t == int:
         val = str(val)
     #elif t == float:

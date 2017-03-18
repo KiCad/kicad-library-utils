@@ -195,7 +195,7 @@ class Rule(KLCRule):
                 graph['width'] = KLC_FAB_WIDTH
                 
         if self.missing_value:
-            self.info("Adding 'VAL**' text to F.Fab layer")
+            self.info("Fixing 'VAL**' text on F.Fab layer")
             module.value['value'] = 'VAL**'
             module.value['layer'] = 'F.Fab'
             module.value['font']['height'] = KLC_TEXT_SIZE
@@ -212,6 +212,11 @@ class Rule(KLCRule):
             
             if bounds.valid:
                 pos = bounds.center
+                
+                # Ensure position is on grid
+                pos['x'] = round(mapToGrid(pos['x'],0.001),4)
+                pos['y'] = round(mapToGrid(pos['y'],0.001),4)
+                
                 # these numbers were a litle bit "trial and error"
                 text_size = 4.0
                 
@@ -241,7 +246,7 @@ class Rule(KLCRule):
                 x = pos['x'],
                 y = pos['y']))
                 
-            font = {'thickness': text_line, 'height': text_size, 'width': text_size }
+            font = {'thickness': text_line, 'height': text_size, 'width': text_size}
             
             module.addUserText('%R',
                 {'pos': pos,
