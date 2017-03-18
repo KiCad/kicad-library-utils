@@ -10,7 +10,7 @@ class Rule(KLCRule):
         super(Rule, self).__init__(module, args, 'Rule 8.3', 'SMD pad layer requirements')
         
         self.sides = ["F.", "B."]
-        self.required_layers = ["Cu","Mask","Paste"]
+        self.required_layers = ["Cu","Paste","Mask"]
         
     def checkPads(self, pads):
         
