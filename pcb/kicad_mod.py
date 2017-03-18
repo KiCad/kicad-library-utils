@@ -69,29 +69,29 @@ class KicadMod(object):
         self.name = self.sexpr_data[1]
 
         # module layer
-        self.layer = self._getValue('layer')
+        self.layer = self._getValue('layer', 'pth', 2)
 
         # locked flag
-        self.locked = self._hasValue(self.sexpr_data, 'locked')
+        self.locked = self._getValue('locked', False, 2)
 
         # description
-        self.description = self._getValue('descr')
+        self.description = self._getValue('descr', 2)
 
         # tags
-        self.tags = self._getValue('tags')
+        self.tags = self._getValue('tags', 2)
         
         # auto place settings
-        self.autoplace_cost90 = self._getValue('autoplace_cost90', 0)
-        self.autoplace_cost180 = self._getValue('autoplace_cost180', 0)
+        self.autoplace_cost90 = self._getValue('autoplace_cost90', 0, 2)
+        self.autoplace_cost180 = self._getValue('autoplace_cost180', 0, 2)
 
         # global footprint clearance settings
         self.clearance = self._getValue('clearance', 0)
-        self.solder_mask_margin = self._getValue('solder_mask_margin', 0)
-        self.solder_paste_margin = self._getValue('solder_paste_margin', 0)
-        self.solder_paste_ratio = self._getValue('solder_paste_ratio', 0)
+        self.solder_mask_margin = self._getValue('solder_mask_margin', 0, 2)
+        self.solder_paste_margin = self._getValue('solder_paste_margin', 0, 2)
+        self.solder_paste_ratio = self._getValue('solder_paste_ratio', 0, 2)
 
         # attribute
-        self.attribute =  self._getValue('attr', 'pth')
+        self.attribute =  self._getValue('attr', 'pth', 2)
 
         # reference
         self.reference = self._getText('reference')[0]
@@ -128,11 +128,17 @@ class KicadMod(object):
         return False
 
     # return the array which has value as first element
-    def _getArray(self, data, value, result=None):
+    def _getArray(self, data, value, result=None, level=0, max_level = None):
         if result is None: result = []
+        
+        level += 1
+        
+        if max_level is not None and max_level <= level:
+            return result
+        
         for i in data:
             if type(i) == type([]):
-                self._getArray(i, value, result)
+                self._getArray(i, value, result, level=level)
             else:
                 if i == value:
                     result.append(data)
@@ -169,8 +175,8 @@ class KicadMod(object):
     # return the second element of the array because the array is expected
     # to have the following format: [key value]
     # returns def_value if not field the value
-    def _getValue(self, array, def_value=None):
-        a = self._getArray(self.sexpr_data, array)
+    def _getValue(self, array, def_value=None, max_level=None):
+        a = self._getArray(self.sexpr_data, array, max_level=max_level)
         return def_value if not a else a[0][1]
 
     def _getText(self, which_text):
@@ -927,18 +933,19 @@ class KicadMod(object):
         se.addItems({'descr': self.description}, indent=True)
         se.addItems({'tags': self.tags})
         
-        # 'pth' type is assumed
-        attr = self.attribute.lower()
-        if attr in ['smd', 'virtual']:
-            se.addItems({'attr': attr})
         
         # Following items are optional (only written if non-zero)
         se.addOptItem('autoplace_cost90', self.autoplace_cost90)
         se.addOptItem('autoplace_cost180', self.autoplace_cost180)
-        se.addOptItem('clearance', self.clearance)
         se.addOptItem('solder_mask_margin', self.solder_mask_margin)
         se.addOptItem('solder_paste_margin', self.solder_paste_margin)
         se.addOptItem('solder_paste_ratio', self.solder_paste_ratio)
+        se.addOptItem('clearance', self.clearance)
+        
+        # 'pth' type is assumed
+        attr = self.attribute.lower()
+        if attr in ['smd', 'virtual']:
+            se.addItems({'attr': attr})
         
         # Add text items
         self._formatText('reference', self.reference, se)
