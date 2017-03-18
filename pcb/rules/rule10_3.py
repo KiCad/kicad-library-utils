@@ -49,7 +49,10 @@ class Rule(KLCRule):
             module.locked = False
             module.autoplace_cost90 = 0
             module.autoplace_cost180 = 0
-            module.clearance = 0
-            module.solder_mask_margin = 0
-            module.solder_paste_margin = 0
-            module.solder_paste_ratio = 0
+            
+            # These might actually be required to match datasheet spec.
+            
+            #module.clearance = 0
+            #module.solder_mask_margin = 0
+            #module.solder_paste_margin = 0
+            #odule.solder_paste_ratio = 0
