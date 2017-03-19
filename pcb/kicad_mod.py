@@ -654,20 +654,8 @@ class KicadMod(object):
     # Get the middle position between pads
     def padMiddlePosition(self, pads=None):
         
-        x = y = 0
-    
-        # Default to all pads
-        if not pads:
-            pads = self.pads
-    
-        for pad in pads:
-            x += pad['pos']['x']
-            y += pad['pos']['y']
-            
-        x /= len(self.pads)
-        y /= len(self.pads)
-        
-        return {'x': x, 'y': y}
+        bb = self.padsBounds(pads)
+        return bb.center()
 
     def padsBounds(self, pads=None):
         
