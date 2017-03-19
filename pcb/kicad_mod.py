@@ -430,6 +430,17 @@ class KicadMod(object):
             models.append(model_dict)
 
         return models
+        
+    # Add a 3D model
+    def addModel(self, filename, pos=[0,0,0], scale=[1,1,1], rotate=[0,0,0]):
+        model_dict = {'file':filename}
+        # position
+        model_dict['pos'] = {'x':pos[0], 'y':pos[1], 'z':pos[2]}
+        # scale
+        model_dict['scale'] = {'x':scale[0], 'y':scale[1], 'z':scale[2]}
+        # rotate
+        model_dict['rotate'] = {'x':rotate[0], 'y':rotate[1], 'z':rotate[2]}
+        self.models.append(model_dict)
 
     def addLine(self, start, end, layer, width):
         line={
