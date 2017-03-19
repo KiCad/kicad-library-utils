@@ -75,10 +75,10 @@ class KicadMod(object):
         self.locked = self._getValue('locked', False, 2)
 
         # description
-        self.description = self._getValue('descr', 2)
+        self.description = self._getValue('descr', '', 2)
 
         # tags
-        self.tags = self._getValue('tags', 2)
+        self.tags = self._getValue('tags', '', 2)
         
         # auto place settings
         self.autoplace_cost90 = self._getValue('autoplace_cost90', 0, 2)
