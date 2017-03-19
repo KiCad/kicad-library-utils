@@ -655,7 +655,7 @@ class KicadMod(object):
     def padMiddlePosition(self, pads=None):
         
         bb = self.padsBounds(pads)
-        return bb.center()
+        return bb.center
 
     def padsBounds(self, pads=None):
         
