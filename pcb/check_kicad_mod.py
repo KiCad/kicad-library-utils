@@ -3,11 +3,14 @@
 from __future__ import print_function
 
 import argparse
-from kicad_mod import *
-import sys
-import os
 
-sys.path.append(os.path.join('..','common'))
+import sys,os
+
+common = os.path.abspath(os.path.join(sys.path[0], '..','common'))
+
+if not common in sys.path:
+    sys.path.append(common)
+from kicad_mod import *
 
 from print_color import *
 from rules import *

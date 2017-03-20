@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
 
 import sys, os
-sys.path.append(os.path.join('..','..','common'))
 
-from rule import *
+common = os.path.abspath(os.path.join(sys.path[0], '..','common'))
+
+if not common in sys.path:
+    sys.path.append(common)
+
+from rulebase import *
 
 #this should go to separate file
 def pinElectricalTypeToStr(pinEType):

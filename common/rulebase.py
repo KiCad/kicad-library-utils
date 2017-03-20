@@ -4,8 +4,8 @@
 def isValidName(name):
         name = str(name).lower()
         for c in name:
-            # Numeric characters
-            if c.isnumeric():
+            # Numeric characters check
+            if c.isalnum():
                 continue
                 
             # Alpha characters (simple set only)

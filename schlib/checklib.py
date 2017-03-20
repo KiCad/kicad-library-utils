@@ -3,9 +3,13 @@
 
 import argparse
 import sys, os
-from schlib import *
 
-sys.path.append(os.path.join('..', 'common'))
+common = os.path.abspath(os.path.join(sys.path[0], '..','common'))
+
+if not common in sys.path:
+    sys.path.append(common)
+    
+from schlib import *
 
 from print_color import *
 import re
