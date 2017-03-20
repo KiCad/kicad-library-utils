@@ -26,14 +26,20 @@ class Rule(KLCRule):
         else:
             self.warning("Model path should start with '" + SYSMOD_PREFIX + "'")
             
-        try:
-            model_dir = os.path.dirname(model)
-            fn = os.path.basename(model).split(".")
-            model_file = ".".join(fn[:-1])
-            model_ext = fn[-1]
-        except:
-            self.error("Model '{mod}' is invalid path".format(mod=model))
-            return True
+        model_split = model.split("/")
+        if len(model_split) <= 1:
+            model_split = model.split("\\")
+        
+        if len(model_split) <= 1:
+            model_dir = ""
+            filename = model_split[0]
+        else:
+            model_dir = os.path.join(*model_split[:-1])
+            filename = model_split[-1]
+            
+        fn = filename.split(".")
+        model_file = ".".join(fn[:-1])
+        model_ext = fn[-1]
             
         if not model_ext.lower() in extensions:
             self.error("Model '{mod}' is incompatible format (must be STEP or WRL file)".format(mod=model))
@@ -48,8 +54,8 @@ class Rule(KLCRule):
             
         if not model_file == fp_name:
             # Exception for footprints that have additions e.g. "_ThermalPad"
-            if fp_name.startswith(model_file):
-                self.warning("3D model name is different from footprint name (found '{n1}', should be '{n2}')".format(n1=model_file, n2=fp_name))
+            if fp_name.startswith(model_file) or model_file in fp_name or fp_name in model_file:
+                self.warning("3D model name is different from footprint name (found '{n1}', expected '{n2}')".format(n1=model_file, n2=fp_name))
             else:
                 self.error("3D model name is different from footprint name (found '{n1}', should be '{n2}')".format(n1=model_file, n2=fp_name))
                 error = True

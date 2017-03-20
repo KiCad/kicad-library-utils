@@ -723,7 +723,7 @@ class KicadMod(object):
         if not rot in [0, None]:
             pos.append(rot)
             
-        se.addItems(text_type, text[text_type], {'at': pos}, {'layer': text['layer']}, newline=False)
+        se.addItems([text_type, text[text_type], {'at': pos}, {'layer': text['layer']}], newline=False)
         
         tf = text['font']
         
@@ -733,7 +733,7 @@ class KicadMod(object):
             font.append(italic)
         
         se.startGroup('effects', indent=True)
-        se.addItems(*font, newline=False)
+        se.addItems(font, newline=False)
         se.endGroup(False)
         se.endGroup(True)
         
@@ -750,7 +750,7 @@ class KicadMod(object):
             {'width': line['width']}
             ]
             
-        se.addItems(*fp_line, newline=False)
+        se.addItems(fp_line, newline=False)
         se.endGroup(newline=False)
         
     def _formatCircle(self, circle, se):
@@ -766,7 +766,7 @@ class KicadMod(object):
             {'width': circle['width']}
             ]
             
-        se.addItems(*fp_circle, newline=False)
+        se.addItems(fp_circle, newline=False)
         se.endGroup(newline=False)
     
     def _formatArc(self, arc, se):
@@ -783,7 +783,7 @@ class KicadMod(object):
             {'width': arc['width']}
             ]
             
-        se.addItems(*fp_arc, newline=False)
+        se.addItems(fp_arc, newline=False)
         se.endGroup(newline=False)
     
     def _formatPad(self, pad, se):
@@ -827,7 +827,7 @@ class KicadMod(object):
         # Layers
         fp_pad.append({'layers': pad['layers']})
         
-        se.addItems(*fp_pad, newline=False)
+        se.addItems(fp_pad, newline=False)
         
         extras = []
         
@@ -928,7 +928,7 @@ class KicadMod(object):
         header.append({'layer': self.layer})
         header.append({'tedit': tedit})
         
-        se.addItems(*header, newline=False)
+        se.addItems(header, newline=False)
         se.addItems({'descr': self.description}, indent=True)
         se.addItems({'tags': self.tags})
         

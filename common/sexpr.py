@@ -157,14 +157,17 @@ class SexprBuilder(object):
         self.items.append(SexprItem(item))
             
     # Add a (preformatted) item
-    def addItems(self, *arg, newline=True, indent=False):
+    def addItems(self, items, newline=True, indent=False):
         self._addItems()
         if indent:
             self.indent += 1
         if newline:
             self.newLine()
-        for a in arg:
-            self.items.append(SexprItem(a))
+        if type(items) in [list, tuple]:
+            for item in items:
+                self.items.append(SexprItem(item))
+        else:
+            self.items.append(SexprItem(items))
             
     def newLine(self, indent=False):
         self._addItems()
