@@ -7,7 +7,7 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad lib files.
     """
     def __init__(self, component):
-        super(Rule, self).__init__(component, 'EC04 - Extra Checking', 'Check line width and background for box outlines parts.')
+        super(Rule, self).__init__(component, 'Rule 4.2 - Symbol visual style', 'Symbol visual style should follow standard aesthetic style')
 
     def check(self):
         """
@@ -21,10 +21,10 @@ class Rule(KLCRule):
         if self.n_rectangles != 1: return False
 
         if (self.component.draw['rectangles'][0]['thickness'] != '10'):
-            self.verboseOut(Verbosity.HIGH,Severity.WARNING,"Component line thickness {0}, recommended {1}".format(self.component.draw['rectangles'][0]['thickness'],10))
+            self.error("Component line is thickness {0}mil, recommended is {1}mil".format(self.component.draw['rectangles'][0]['thickness'],10))
             rectangle_need_fix = True
         if (self.component.draw['rectangles'][0]['fill'] != 'f'):
-            self.verboseOut(Verbosity.HIGH,Severity.WARNING,"Component background filled with {0} color, recommended is {1} color".format(backgroundFillToStr(self.component.draw['rectangles'][0]['fill']),backgroundFillToStr('f')))
+            self.error("Component background is filled with {0} color, recommended is filling with {1} color".format(backgroundFillToStr(self.component.draw['rectangles'][0]['fill']),backgroundFillToStr('f')))
             rectangle_need_fix = True
 
         return True if rectangle_need_fix else False
@@ -33,7 +33,7 @@ class Rule(KLCRule):
         """
         Proceeds the fixing of the rule, if possible.
         """
-        self.verboseOut(Verbosity.HIGH, Severity.INFO,"Fixing...")
+        self.info("Fixing...")
         self.component.draw['rectangles'][0]['thickness'] = '10'
         self.component.draw['rectangles'][0]['fill'] = 'f'
 

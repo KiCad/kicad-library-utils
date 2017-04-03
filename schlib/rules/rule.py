@@ -1,5 +1,14 @@
 # -*- coding: utf-8 -*-
 
+import sys, os
+
+common = os.path.abspath(os.path.join(sys.path[0], '..','common'))
+
+if not common in sys.path:
+    sys.path.append(common)
+
+from rulebase import *
+
 #this should go to separate file
 def pinElectricalTypeToStr(pinEType):
     pinMap={"I":"INPUT",\
@@ -26,12 +35,12 @@ def pinTypeToStr(pinType):
     "CL":"CLOCK LOW",\
     "V":"OUTPUT LOW",\
     "F":"FALLING EDGE CLOCK",\
-    "X":"NON LOGIc"}
+    "X":"NON LOGIC"}
     if pinType in pinMap.keys():
         return pinMap[pinType]
     else:
         return "INVALID"
-
+        
 def backgroundFillToStr(bgFill):
     bgMap={
     "F":"FOREGROUND",
@@ -41,27 +50,23 @@ def backgroundFillToStr(bgFill):
         return bgMap[bgFill]
     else:
         return "INVALID"
+        
+def pinString(pin, loc=True, unit=None, convert=None):
+    return "Pin {name} ({num}){loc}{unit}".format(
+        name = pin['name'],
+        num  = pin['num'],
+        loc  = ' @ ({x},{y})'.format(x=pin['posx'],y=pin['posy']) if loc else '',
+        unit = ' in unit {n}'.format(n=unit) if unit else '')
 
 def positionFormater(element):
     if type(element) != type({}):
         raise Exception("input type: ",type(element),"expected dictionary, ",element)
     if(not {"posx","posy"}.issubset(element.keys())):
         raise Exception("missing keys 'posx' and 'posy' in"+str(element))
-    return "posx {0}, posy {1}".format(element['posx'],element['posy'])
+    return "@ ({0}, {1})".format(element['posx'],element['posy'])
     # return "pos [{0},{1}]".format(element['posx'],element['posy'])
 
-class Verbosity:
-    NONE=0
-    NORMAL=1
-    HIGH=2
-
-class Severity:
-    INFO=0
-    WARNING=1
-    ERROR=2
-    SUCCESS=3
-
-class KLCRule(object):
+class KLCRule(KLCRuleBase):
     """
     A base class to represent a KLC rule
     """
@@ -69,23 +74,9 @@ class KLCRule(object):
     verbosity = 0
 
     def __init__(self, component, name, description):
+    
+        KLCRuleBase.__init__(self, name, description)
+        
         self.component = component
-        self.name = name
-        self.description = description
-        self.messageBuffer=[]
-
-    #adds message into buffer only if such level of verbosity is wanted
-    def verboseOut(self, msgVerbosity, severity, message):
-        self.messageBuffer.append([message,msgVerbosity,severity])
-
-    def check(self, component):
-        raise NotImplementedError('The check method must be implemented')
-
-    def fix(self, component):
-        raise NotImplementedError('The fix method must be implemented')
-
-    def recheck(self):
-        if self.check():
-            self.verboseOut(Verbosity.HIGH, Severity.ERROR,"...could't be fixed")
-        else:
-            self.verboseOut(Verbosity.HIGH, Severity.SUCCESS,"everything fixed")
+        
+    

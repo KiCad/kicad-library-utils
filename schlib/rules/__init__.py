@@ -1,14 +1,17 @@
 
 __all__ = [
-"rule3_1",
-"rule3_2",
-"rule3_6",
-"rule3_7",
-"rule3_8", 
-"rule3_9", 
-"EC01", 
-"EC02", 
-#"EC03", # Generating too much noise 
-"EC04",
-"EC05"
+"rule4_1",
+"rule4_2",
+"rule4_3",
+"rule4_5",
+"rule4_6",
+"rule4_7",
+"rule4_8", 
+"rule4_9", 
+"rule4_10",
+"rule4_11",
+"rule4_12", 
+"EC01",
+# Disable EC02 for now (way too confusing)
+# "EC02",
 ]

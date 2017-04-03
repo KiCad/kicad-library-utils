@@ -5,7 +5,6 @@ from __future__ import print_function
 from schlib import *
 import argparse, sys
 
-
 # cases covered by this script:
 #  (1) resize field text sizes that are not 50mils
 

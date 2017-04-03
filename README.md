@@ -74,7 +74,7 @@ How to use
     ./add_part_number.py -h
 
 
-## Footprint Checker (wip)
+## Footprint Checker
 
     # first get into pcb directory
     cd pcb
