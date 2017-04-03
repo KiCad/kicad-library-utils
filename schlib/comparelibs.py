@@ -12,9 +12,16 @@ This is to be used to compare an updated library file with a previous version to
 
 import argparse
 import sys
+import os
+
+# Path to common directory
+common = os.path.abspath(os.path.join(sys.path[0], '..','common'))
+
+if not common in sys.path:
+    sys.path.append(common)
+
 from schlib import *
 from print_color import *
-import os
 
 def ExitError( msg ):
     print(msg)
@@ -47,7 +54,7 @@ def KLCCheck(component):
                 cmp = component,
                 nocolor = "--nocolor" if args.nocolor else ""
                 )
-                
+
     return os.system(call)
 
 printer = PrintColor(use_color = not args.nocolor)
@@ -72,20 +79,20 @@ errors = 0
 
 for cmp in new_lib.components:
     new_chk[cmp.name] = cmp.checksum
-    
+
 for cmp in old_lib.components:
     old_chk[cmp.name] = cmp.checksum
-    
+
 for name in old_chk.keys():
     # First, check if any components have been deleted
     if not name in new_chk:
         deleted.append(name)
         continue
-        
+
     # Next, check for checksum mismatch
     if not old_chk[name] == new_chk[name]:
         updated.append(name)
-        
+
 # Finally, check for NEW components
 for name in new_chk.keys():
     if not name in old_chk:
@@ -97,7 +104,7 @@ if len(deleted) > 0:
         printer.light_red("Components Removed: {n}".format(n=len(deleted)))
     for cmp in deleted:
         printer.light_red("- " + cmp)
-            
+
 # Display any added components
 if len(added) > 0:
     if args.verbose:
@@ -109,7 +116,7 @@ if len(added) > 0:
         if args.check:
             if KLCCheck(cmp) is not 0:
                 errors += 1
-                
+
 # Display any updated components
 if len(updated) > 0:
     if args.verbose:
@@ -121,9 +128,9 @@ if len(updated) > 0:
         if args.check:
             if KLCCheck(cmp) is not 0:
                 errors += 1
-                
+
 if args.verbose and len(deleted) == 0 and len(added) == 0 and len(updated) == 0:
     printer.green("No component variations found")
-            
-# Return the number of errors found ( zero if --check is not set )                
+
+# Return the number of errors found ( zero if --check is not set )
 sys.exit(errors)
