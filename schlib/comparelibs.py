@@ -49,7 +49,7 @@ def KLCCheck(component):
     if " " in lib and '"' not in lib:
         lib = '"' + lib + '"'
 
-    call = 'python checklib.py {lib} -c={cmp} --enable-extra -vv -s {nocolor}'.format(
+    call = 'python checklib.py {lib} -c={cmp} -vv -s {nocolor}'.format(
                 lib = lib,
                 cmp = component,
                 nocolor = "--nocolor" if args.nocolor else ""
