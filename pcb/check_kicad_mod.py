@@ -61,13 +61,13 @@ for f in args.kicad_mod_files:
 if len(files) == 0:
     printer.red("File argument invalid: {f}".format(f=args.kicad_mod_files))
     sys.exit(1)
-    
+
 for filename in files:
 
     if not os.path.exists(filename):
         printer.red('File does not exist: %s' % filename)
         continue
-        
+
     if not filename.endswith('.kicad_mod'):
         printer.red('File is not a .kicad_mod : %s' % filename)
         continue
@@ -87,41 +87,45 @@ for filename in files:
     if args.rotate!=0:
         module.rotateFootprint(int(args.rotate))
         printer.green('rotated footprint by {deg} degrees'.format(deg=int(args.rotate)))
-        
+
     n_violations = 0
-    
+
     no_warnings = True
-    
+
     output = []
-    
+
     first = True
-    
+
     for rule in all_rules:
-    
+
         rule = rule(module,args)
-        
+
         error = rule.check()
-        
+
         if rule.hasOutput():
             if first:
                 printer.green("Checking footprint '{fp}':".format(fp=module.name))
                 first = False
-                
+
             printer.yellow("Violating " + rule.name, indentation=2)
             rule.processOutput(printer, args.verbose, args.silent)
-        
+
         if error:
             n_violations += 1
-            
+
             if args.fix:
                 rule.fix()
                 rule.processOutput(printer, args.verbose, args.silent)
-                
+
     # No messages?
     if first:
         if not args.silent:
             printer.green("Checking footprint '{fp}' - No errors".format(fp=module.name))
-                   
+
+    # increment the number of violations
+    if n_violations > 0:
+        exit_code += 1
+
     if args.fix or args.rotate!=0:
         module.save()
 
