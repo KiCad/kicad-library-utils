@@ -11,8 +11,9 @@ class Rule(KLCRule):
         super(Rule, self).__init__(component, 'Rule 4.5 - Pin orientation', 'Wherever possible, pins should be arranged by function')
         
     def checkGroundPins(self):
-    
-        GND = ['^[ad]*g(rou)*nd$']
+
+        # Includes negative power pins
+        GND = ['^[ad]*g(rou)*nd$', '^[ad]*v(ss|\-)$']
         
         first = True
         
@@ -24,11 +25,13 @@ class Rule(KLCRule):
                     if not pin['direction'] == 'U':
                         if first:
                             first = False
-                            self.warning("Ground pins should be placed at bottom of symbol")
+                            self.warning("Ground and negative power pins should be placed at bottom of symbol")
                         self.warningExtra(pinString(pin))
                            
     def checkPowerPins(self):
-        PWR = ['^[ad]*v(aa|cc|dd|ss|bat|in)$']
+
+        # Positive power pins only
+        PWR = ['^[ad]*v(aa|cc|dd|bat|in|\+)$']
     
         first = True
         
@@ -40,7 +43,7 @@ class Rule(KLCRule):
                     if not pin['direction'] == 'D':
                         if first:
                             first = False
-                            self.warning("Power pins should be placed at top of symbol")
+                            self.warning("Positive power pins should be placed at top of symbol")
                         self.warningExtra(pinString(pin))
 
     def check(self):
