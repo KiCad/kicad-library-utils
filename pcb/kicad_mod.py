@@ -652,9 +652,10 @@ class KicadMod(object):
         return pads
         
     # Get the middle position between pads
+    # Use the outer dimensions of pads to handle footprints with pads of different sizes
     def padMiddlePosition(self, pads=None):
         
-        bb = self.padsBounds(pads)
+        bb = self.overpadsBounds(pads)
         return bb.center
 
     def padsBounds(self, pads=None):
