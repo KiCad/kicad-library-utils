@@ -13,7 +13,7 @@ class Rule(KLCRule):
     def checkGroundPins(self):
 
         # Includes negative power pins
-        GND = ['^[ad]*g(rou)*nd$', '^[ad]*v(ss|\-)$']
+        GND = ['^[ad]*g(rou)*nd$', '^[ad]*v(ss)$']
         
         first = True
         
@@ -31,7 +31,7 @@ class Rule(KLCRule):
     def checkPowerPins(self):
 
         # Positive power pins only
-        PWR = ['^[ad]*v(aa|cc|dd|bat|in|\+)$']
+        PWR = ['^[ad]*v(aa|cc|dd|bat|in)$']
     
         first = True
         
