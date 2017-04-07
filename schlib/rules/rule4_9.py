@@ -16,7 +16,7 @@ class Rule(KLCRule):
     def checkEmpty(self, field):
         if 'name' in field.keys():
             name = field['name']
-            if name:
+            if name and name not in ['""', "''"] and len(name) > 0:
                 return False
         return True
 
