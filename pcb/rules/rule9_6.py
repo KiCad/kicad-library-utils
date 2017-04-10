@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import division
+
 from rules.rule import *
 
 class Rule(KLCRule):
