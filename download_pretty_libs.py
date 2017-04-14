@@ -47,8 +47,6 @@ def Fail(msg, result=-1):
 # Run a system command, print output
 def Call(cmd):
 
-    cmd = [cmd]
-
     # Windows requires that commands are piped through cmd.exe
     if platform.platform().lower().count('windows') > 0:
         cmd = ["cmd", "/c"] + cmd
@@ -83,7 +81,7 @@ def RepoUrl(repo):
 def CloneRepository(repo):
 
     # Clone
-    Call('git clone {url}'.format(url=RepoUrl(repo)))
+    Call(['git', 'clone', RepoUrl(repo)])
 
     return True
 
@@ -127,7 +125,7 @@ def UpdateRepository(repo):
         print("Error: '{path}' does not exist".format(path=path))
         return
 
-    Call('cd {path} && git pull'.format(path=path))
+    Call(['cd', path, '&&', 'git' 'pull'])
 
 try:
     # Download the footprint-library-table
