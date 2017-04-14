@@ -7,7 +7,7 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad lib files.
     """
     def __init__(self, component):
-        super(Rule, self).__init__(component, 'Rule 3.6', 'Field text uses a common size of 50mils.')
+        super(Rule, self).__init__(component, 'Rule 4.8 - Field text size', 'Field text uses a common size of 50mils.')
 
     def check(self):
         """
@@ -28,7 +28,7 @@ class Rule(KLCRule):
                 else:
                     message="UNKNOWN"
                 message+=(" at posx {0} posy {1}".format(field["posx"],field["posy"]))
-                self.verboseOut(Verbosity.HIGH, Severity.ERROR,"field: {0} size {1}".format(message,field["text_size"]) )
+                self.error(" - Field {0} size {1}".format(message,field["text_size"]) )
 
 
         self.violating_pins = []
@@ -37,7 +37,7 @@ class Rule(KLCRule):
             num_text_size = int(pin['num_text_size'])
             if (name_text_size != 50) or (num_text_size != 50):
                 self.violating_pins.append(pin)
-                self.verboseOut(Verbosity.HIGH, Severity.ERROR, 'pin: {0} ({1}), text size {2}, number size {3}'.format(pin['name'], pin['num'], pin['name_text_size'], pin['num_text_size']))
+                self.error(' - Pin {0} ({1}), text size {2}, number size {3}'.format(pin['name'], pin['num'], pin['name_text_size'], pin['num_text_size']))
 
         if (len(self.violating_fields) > 0 or
             len(self.violating_pins) > 0):
@@ -49,10 +49,13 @@ class Rule(KLCRule):
         """
         Proceeds the fixing of the rule, if possible.
         """
-        self.verboseOut(Verbosity.HIGH, Severity.INFO,"Fixing...")
+        if len(self.violating_fields) > 0:
+            self.info("Fixing field text size")
         for field in self.violating_fields:
             field['text_size'] = '50'
 
+        if len(self.violating_pins) > 0:
+            self.info("Fixing pin text size")
         for pin in self.violating_pins:
             pin['name_text_size'] = '50'
             pin['num_text_size'] = '50'

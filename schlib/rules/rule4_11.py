@@ -7,7 +7,7 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad lib files.
     """
     def __init__(self, component):
-        super(Rule, self).__init__(component, 'Rule 3.9', 'For components with a single default footprint, footprint field is filled with valid footprint filename')
+        super(Rule, self).__init__(component, 'Rule 4.11 - Default footprint', 'For components with a single default footprint, footprint field is filled with valid footprint filename')
 
     def check(self):
         """
@@ -32,18 +32,18 @@ class Rule(KLCRule):
                 #footprint field should be set to invisible (if it has any text in it)
                 if fp['visibility'] == 'V':
                     fail = True
-                    self.verboseOut(Verbosity.HIGH, Severity.WARNING, fp_desc + "should be set to invisible.")
+                    self.error(fp_desc + "should be set to invisible.")
                    
                 # Footprint field should be of the format "Footprint_Library:Footprint_Name"
                 if fp_name.count(":") is not 1 or fp_name.startswith(":") or fp_name.endswith(":"):
                     fail = True
-                    self.verboseOut(Verbosity.HIGH, Severity.ERROR, fp_desc + "should be of the format Library:Footprint")
+                    self.error(fp_desc + "should be of the format 'Library:Footprint'")
                     
                 # Footprint name cannot contain any illegal pathname characters
-                invalid = '\/*?"<>|'
-                if any([i in fp_name for i in invalid]):
-                    fail = True
-                    self.verboseOut(Verbosity.HIGH, Severity.ERROR, fp_desc + "contains illegal filename characters")
+                invalid = '\/*?"<>|[]\'@#~`'
+                for ii in invalid:
+                    if ii in fp_name:
+                        self.error(fp_desc + " contains illegal character '{c}'".format(c=ii))
             
         return fail
 
@@ -51,4 +51,4 @@ class Rule(KLCRule):
         """
         Proceeds the fixing of the rule, if possible.
         """
-        self.verboseOut(Verbosity.NORMAL, Severity.INFO, "FIX: not supported" )
+        self.info("FIX: not supported")

@@ -2,8 +2,15 @@
 # -*- coding: utf-8 -*-
 
 import argparse
-import sys
+import sys, os
+
+common = os.path.abspath(os.path.join(sys.path[0], '..','common'))
+
+if not common in sys.path:
+    sys.path.append(common)
+    
 from schlib import *
+
 from print_color import *
 import re
 from rules import *
@@ -12,38 +19,19 @@ from rules.rule import KLCRule
 #enable windows wildcards
 from glob import glob
 
-def processVerboseOutput(messageBuffer):
-    if args.verbose:
-        for msg in messageBuffer:
-            if msg[1] <= args.verbose:
-                if msg[2]==0:#Severity.INFO
-                    printer.gray(msg[0], indentation=4)
-                elif msg[2]==1:#Severity.WARNING
-                    printer.brown(msg[0], indentation=4)
-                elif msg[2]==2:#Severity.ERROR
-                    printer.red(msg[0], indentation=4)
-                elif msg[2]==3:#Severity.SUCCESS
-                    printer.green(msg[0], indentation=4)
-                else:
-                    printer.red("unknown severity: "+msg[2], indentation=4)
-
-parser = argparse.ArgumentParser(description='Execute checkrule scripts checking 3.* KLC rules in the libraries')
+parser = argparse.ArgumentParser(description='Checks KiCad library files (.lib) against KiCad Library Convention (KLC v2.0) rules. You can find the KLC at https://github.com/KiCad/kicad-library/wiki/Kicad-Library-Convention')
 parser.add_argument('libfiles', nargs='+')
 parser.add_argument('-c', '--component', help='check only a specific component (implicitly verbose)', action='store')
 parser.add_argument('-p', '--pattern', help='Check multiple components by matching a regular expression', action='store')
 parser.add_argument('-r','--rule',help='Select a particular rule (or rules) to check against (default = all rules). Use comma separated values to select multiple rules. e.g. "-r 3.1,EC02"')
 parser.add_argument('--fix', help='fix the violations if possible', action='store_true')
 parser.add_argument('--nocolor', help='does not use colors to show the output', action='store_true')
-parser.add_argument('--enable-extra', help='enable extra checking', action='store_true')
-parser.add_argument('-v', '--verbose', help='show status of all components and extra information about the violation', action='count')
+parser.add_argument('-v', '--verbose', help='Enable verbose output. -v shows brief information, -vv shows complete information', action='count')
 parser.add_argument('-s', '--silent', help='skip output for symbols passing all checks', action='store_true')
 
 args = parser.parse_args()
 
 printer = PrintColor(use_color = not args.nocolor)
-
-# force to be verbose if is looking for a specific component
-if not args.verbose and args.component: args.verbose = 1
 
 # set verbosity globally
 KLCRule.verbosity = args.verbose
@@ -64,15 +52,11 @@ for f in dir():
         if (selected_rules == None) or (f[4:].replace("_",".") in selected_rules):
             all_rules.append(globals()[f].Rule)
 
-# gel all extra checking
-all_ec = []
+# add all extra checking
 for f in dir():
     if f.startswith('EC'):
         if (selected_rules is None) or (f.lower() in [r.lower() for r in selected_rules]):
-            all_ec.append(globals()[f].Rule)
-            #force --enable-extra on if an EC rule is selected
-            if selected_rules is not None:
-                args.enable_extra = True
+            all_rules.append(globals()[f].Rule)
 
 #grab list of libfiles (even on windows!)
 libfiles = []
@@ -80,19 +64,22 @@ libfiles = []
 for libfile in args.libfiles:
     libfiles += glob(libfile)
 
+if len(libfiles) == 0:
+    printer.red("File argument invalid: {f}".format(f=args.libfiles))
+    sys.exit(1)
+    
 exit_code = 0
 
 for libfile in libfiles:
     lib = SchLib(libfile)
     n_components = 0
 
-    # Print the library name if multiple libraries have been passed
+    # Print library name
     if len(libfiles) > 1:
-        printer.purple('library: %s' % libfile)
+        printer.purple('Library: %s' % libfile)
 
     for component in lib.components:
-        # skip components with non matching names
-
+        
         #simple match
         match = True
         if args.component:
@@ -108,49 +95,40 @@ for libfile in libfiles:
 
         # check the rules
         n_violations = 0
+
+        first = True
+    
         for rule in all_rules:
             rule = rule(component)
-            if rule.check():
-                #this is the first violation
-                if n_violations == 0:
-                    printer.green('checking component: %s' % component.name)
-
+            
+            error = rule.check()
+            
+            if rule.hasOutput():
+                if first:
+                    printer.green("Checking symbol '{sym}':".format(sym=component.name))
+                    first = False
+                    
+                printer.yellow("Violating " + rule.name, indentation=2)
+                rule.processOutput(printer, args.verbose, args.silent)
+            
+            # Specifically check for errors
+            if error:
                 n_violations += 1
-                printer.yellow('Violating ' +  rule.name, indentation=2)
-                if args.verbose:
-                    printer.light_blue(rule.description, indentation=4, max_width=100)
 
                 if args.fix:
                     rule.fix()
-
-                processVerboseOutput(rule.messageBuffer)
-
-        # extra checking
-        if args.enable_extra:
-            for ec in all_ec:
-                ec = ec(component)
-                if ec.check():
-                    if n_violations == 0: #this is the first violation
-                        printer.green('checking component: %s' % component.name)
-                    n_violations += 1
-                    printer.yellow('Violating ' +  ec.name, indentation=2)
-
-                    if args.verbose:
-                        printer.light_blue(ec.description, indentation=4, max_width=100)
-
-                    if args.fix:
-                        ec.fix()
-
-                    processVerboseOutput(ec.messageBuffer)
-
+                    rule.processOutput(printer, args.verbose, args.silent)
+            
+        # No messages?
+        if first:
+            if not args.silent:
+                printer.green("Checking symbol '{sym}' - No errors".format(sym=component.name))
+            
         # check the number of violations
-        if n_violations == 0 and not args.silent:
-            printer.light_green('Component: {cmp}'.format(cmp=component.name))
-            printer.light_green('No violations found', indentation=2)
-        else:
+        if n_violations > 0:
             exit_code += 1
 
     if args.fix:
         lib.save()
-
+		
 sys.exit(exit_code);
