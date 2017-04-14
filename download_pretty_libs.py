@@ -19,7 +19,7 @@ FP_LIB_TABLE_FILE = "fp-lib-table.txt"
 STATIC_ZIP = "archive/master.zip"
 
 if sys.version_info[0] == 2:
-    import urllib2 as urllib
+    import urllib2 as urlrequest
 else:
     import urllib.request as urlrequest
 
