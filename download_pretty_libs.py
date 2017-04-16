@@ -16,7 +16,6 @@ import zipfile
 GITHUB_URL = "https://www.github.com/KiCad"
 GITHUB_FP_LIB_TABLE = "https://raw.githubusercontent.com/KiCad/kicad-library/master/template/fp-lib-table.for-github"
 FP_LIB_TABLE_FILE = "fp-lib-table.txt"
-STATIC_ZIP = "archive/master.zip"
 
 if sys.version_info[0] == 2:
     import urllib2 as urlrequest
@@ -28,7 +27,6 @@ parser = argparse.ArgumentParser(description="Download KiCad footprint libraries
 parser.add_argument("-p", "--path", help="Directory to download libs. Current directory is used if unspecified", action="store")
 parser.add_argument("-l", "--lib", help="Select which libraries to download (regex filter)", action="store")
 parser.add_argument("-i", "--ignore", help="Select which libraries to ignore (regex filter)", action="store")
-parser.add_argument("-s", "--static", help="Download static copies of each library (no git integration)", action="store_true")
 parser.add_argument("-d", "--deprecated", help="Include libraries marked as deprecated", action="store_true")
 parser.add_argument("-u", "--update", help="Update libraries from github (no new libs will be downloaded)", action="store_true")
 parser.add_argument("-t", "--test", help="Test run only - libraries will be listed but not downloadded", action="store_true")
@@ -85,47 +83,21 @@ def CloneRepository(repo):
 
     return True
 
-# Make a static copy of a repository
-def StaticCopyRepository(repo):
-
-    url = "{repo}/{zip}".format(repo=RepoUrl(repo), zip=STATIC_ZIP)
-    zip_file = repo + ".zip"
-    repo_path = os.path.sep.join([base_dir, repo])
-
-    print("Downloading",repo)
-
-    if DownloadFile(url, zip_file):
-
-        tmp_dir = os.path.sep.join([base_dir, repo + ".tmp"])
-        # Extract top-level zip into a temporary folder
-        with zipfile.ZipFile(zip_file) as archive:
-            archive.extractall(tmp_dir)
-
-        # Zip folder now has folder named with the '-master' suffix
-        master = os.path.sep.join([tmp_dir, repo + "-master"])
-        os.rename(master,repo)
-
-        # Cleanup - delete tmp and zip files
-        os.rmdir(tmp_dir)
-        os.remove(zip_file)
-
-        return True
-    else:
-        print("Error downloading",repo)
-        return False
-
 # Perform git update of the repository
 def UpdateRepository(repo):
-    print("Updating {lib}".format(lib=repo))
     path = os.path.sep.join([base_dir, repo])
 
     path = r"" + path
 
+    # Skip repo directories that do not exist
     if not os.path.exists(path):
-        print("Error: '{path}' does not exist".format(path=path))
         return
 
-    Call(['cd', path, '&&', 'git' 'pull'])
+    print("Updating {lib}".format(lib=repo))
+
+    os.chdir(path)
+    Call(['git', 'pull'])
+    os.chdir(base_dir)
 
 try:
     # Download the footprint-library-table
@@ -180,10 +152,7 @@ for lib in libs:
         print(url, "exists, skipping...")
         continue
 
-    if not args.static:
-        CloneRepository(url)
-    else:
-        StaticCopyRepository(url)
+    CloneRepository(url)
 
 print("Done")
 sys.exit(0)
