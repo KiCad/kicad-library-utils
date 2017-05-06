@@ -121,15 +121,34 @@ class Rule(KLCRule):
                         self.different_names=True
                             
                 # Different types!
-                if len(pin_etypes) > 1:
-                    self.error(self.stackStr(loc) + " have different types")
-                    err = True
-                    for pin in loc['pins']:
-                        self.errorExtra("{pin} : {etype}".format(
-                            pin = self.pinStr(pin),
-                            etype = pinElectricalTypeToStr(pin['electrical_type'])))
-                        self.different_types=True
-            
+                if (len(pin_etypes) > 1):
+                    powerpads=False;
+                    if (len(pin_etypes)==2) and ("W" in pin_etypes) and ("P" in pin_etypes):
+                        powerpads=True;
+                    if (len(pin_etypes)==2) and ("w" in pin_etypes) and ("P" in pin_etypes):
+                        powerpads=True;
+                    if not powerpads:
+                        self.error(self.stackStr(loc) + " have different types")
+                        err = True
+                        for pin in loc['pins']:
+                            self.errorExtra("{pin} : {etype}".format(
+                                pin = self.pinStr(pin),
+                                etype = pinElectricalTypeToStr(pin['electrical_type'])))
+                            self.different_types=True
+                    else:
+                        # in power-pin stacks the power-pin whould be visible and the passive pins invisible
+                        for pin in loc['pins']:
+                            if pin['electrical_type']=='P' and (not pin['pin_type'].startswith('N')):
+                                self.errorExtra("{pin} : {etype} should be invisible (power-pin stack)".format(
+                                    pin = self.pinStr(pin),
+                                    etype = pinElectricalTypeToStr(pin['electrical_type'])))
+                                err = True
+                            if (pin['electrical_type']=='W' or pin['electrical_type']=='w') and pin['pin_type'].startswith('N'):
+                                self.errorExtra("{pin} : {etype} should be visible (power-pin stack)".format(
+                                    pin = self.pinStr(pin),
+                                    etype = pinElectricalTypeToStr(pin['electrical_type'])))
+                                err = True
+                        
                 # Only one pin should be visible
                 if not vis_pin_count == 1:
                     self.error(self.stackStr(loc) + " must have exactly one (1) invisible pin")
