@@ -123,7 +123,7 @@ class Rule(KLCRule):
                 # Different types!
                 if (len(pin_etypes) > 1):
                     powerpads=False;
-                    if (len(pin_etypes)==2) and ("W" in pin_etypes) and ("P" in pin_etypes):
+                    if (len(pin_etypes)==2) and ("O" in pin_etypes) and ("P" in pin_etypes):
                         powerpads=True;
                     if (len(pin_etypes)==2) and ("w" in pin_etypes) and ("P" in pin_etypes):
                         powerpads=True;
@@ -143,8 +143,8 @@ class Rule(KLCRule):
                                     pin = self.pinStr(pin),
                                     etype = pinElectricalTypeToStr(pin['electrical_type'])))
                                 err = True
-                            if (pin['electrical_type']=='W' or pin['electrical_type']=='w') and pin['pin_type'].startswith('N'):
-                                self.errorExtra("{pin} : {etype} should be visible (power-pin stack)".format(
+                            if (pin['electrical_type']=='O' or pin['electrical_type']=='w') and pin['pin_type'].startswith('N'):
+                                self.errorExtra("{pin} : {etype} should be visible in a (power)-output pin stack".format(
                                     pin = self.pinStr(pin),
                                     etype = pinElectricalTypeToStr(pin['electrical_type'])))
                                 err = True
