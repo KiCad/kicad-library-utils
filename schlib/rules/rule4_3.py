@@ -12,6 +12,10 @@ class Rule(KLCRule):
         self.NC_stacked=False
         self.different_types=False
         self.only_one_visible=False
+        # variables for fixing special pin-stack pins
+        self.fix_make_invisible=set();
+        self.fix_make_visible=set();
+        self.fix_make_passive=set();
 
     def stackStr(self, stack):
         multi_unit = int(self.component.definition['unit_count']) > 1
@@ -121,13 +125,22 @@ class Rule(KLCRule):
                         self.different_names=True
                             
                 # Different types!
+                isSpecialXPassivePinStack=False;
                 if (len(pin_etypes) > 1):
-                    powerpads=False;
+                    # an exception is done for some special pin-stacks:
+                    # isSpecialXPassivePinStack are those pins stacks that fulfill one of the following conditions:
+                    #    1. consists only of output and passive pins
                     if (len(pin_etypes)==2) and ("O" in pin_etypes) and ("P" in pin_etypes):
-                        powerpads=True;
+                        isSpecialXPassivePinStack=output;
+                    #    2. consists only of power-output and passive pins
                     if (len(pin_etypes)==2) and ("w" in pin_etypes) and ("P" in pin_etypes):
-                        powerpads=True;
-                    if not powerpads:
+                        isSpecialXPassivePinStack=True;
+                    #    3. consists only of power-input and passive pins
+                    if (len(pin_etypes)==2) and ("W" in pin_etypes) and ("P" in pin_etypes):
+                        isSpecialXPassivePinStack=True;
+                    
+                    # a non-special pin-stack needs to have all pins of the same type
+                    if not isSpecialXPassivePinStack:
                         self.error(self.stackStr(loc) + " have different types")
                         err = True
                         for pin in loc['pins']:
@@ -136,21 +149,38 @@ class Rule(KLCRule):
                                 etype = pinElectricalTypeToStr(pin['electrical_type'])))
                             self.different_types=True
                     else:
-                        # in power-pin stacks the power-pin whould be visible and the passive pins invisible
+                        # in special pin stacks the power-input/power-output/output pin has to be visible and the passive pins need to be invisible
+                        specialpincount=0
                         for pin in loc['pins']:
+                            # check if all passive pins are invisible
                             if pin['electrical_type']=='P' and (not pin['pin_type'].startswith('N')):
                                 self.errorExtra("{pin} : {etype} should be invisible (power-pin stack)".format(
                                     pin = self.pinStr(pin),
                                     etype = pinElectricalTypeToStr(pin['electrical_type'])))
                                 err = True
-                            if (pin['electrical_type']=='O' or pin['electrical_type']=='w') and pin['pin_type'].startswith('N'):
-                                self.errorExtra("{pin} : {etype} should be visible in a (power)-output pin stack".format(
+                                self.fix_make_invisible.add(pin['num'])
+                            # check if power-pin is visible
+                            if (pin['electrical_type']=='O' or pin['electrical_type']=='w' or pin['electrical_type']=='W') :
+                                if pin['pin_type'].startswith('N'):
+                                    self.errorExtra("{pin} : {etype} should be visible in a power-in/power-out/output pin stack".format(
+                                        pin = self.pinStr(pin),
+                                        etype = pinElectricalTypeToStr(pin['electrical_type'])))
+                                    err = True
+                                    self.fix_make_visible.add(pin['num'])
+                                    specialpincount=specialpincount+1
+                                    if specialpincount<=1:
+                                        self.fix_make_visible.add(pin['num'])
+                                else:
+                                    specialpincount=specialpincount+1
+                            if specialpincount>1:
+                                self.errorExtra("{pin} : {etype} should be an invisible PASSIVE pin power-in/power-out/output pin stack".format(
                                     pin = self.pinStr(pin),
                                     etype = pinElectricalTypeToStr(pin['electrical_type'])))
-                                err = True
+                                self.fix_make_invisible.add(pin['num'])
+                                self.fix_make_passive.add(pin['num'])
                         
-                # Only one pin should be visible
-                if not vis_pin_count == 1:
+                # Only one pin should be visible (checks have already been done, when isSpecialXPassivePinStack=true)
+                if (not isSpecialXPassivePinStack) and (not vis_pin_count == 1):
                     self.error(self.stackStr(loc) + " must have exactly one (1) invisible pin")
                     err = True
                     for pin in loc['pins']:
@@ -196,7 +226,18 @@ class Rule(KLCRule):
                                 y = pin['posy']))
                             continue
                     i += 1
-                    
+        
+        for pin in self.component.pins:
+            if pin['num'] in self.fix_make_passive:
+                pin['electrical_type']='P'
+                self.info("pin "+pin['num']+" "+pin['name']+" is passive now (pin['electrical_type']="+pin['electrical_type']+")")
+            if pin['num'] in self.fix_make_invisible:
+                pin['pin_type']='N'+pin['pin_type']
+                self.info("pin "+pin['num']+" "+pin['name']+" is invisible now (pin['pin_type']="+pin['pin_type']+")")
+            if pin['num'] in self.fix_make_visible:
+                pin['pin_type']=pin['pin_type'][1:len(pin['pin_type'])]
+                self.info("pin "+pin['num']+" "+pin['name']+" is visible now (pin['pin_type']="+pin['pin_type']+")")
+            
         if self.different_names:
             self.info("FIX for 'different pin names' not supported (yet)! Please fix manually.")
         if self.NC_stacked:
