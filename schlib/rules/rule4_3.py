@@ -126,19 +126,17 @@ class Rule(KLCRule):
                             
                 # Different types!
                 isSpecialXPassivePinStack=False;
-                if (len(pin_etypes) > 1):
+                isSpecialSingleTypeStack=((len(pin_etypes)==1) and (("w" in pin_etypes) or ("O" in pin_etypes)));
+                if (len(pin_etypes) > 1) or isSpecialSingleTypeStack:
                     # an exception is done for some special pin-stacks:
                     # isSpecialXPassivePinStack are those pins stacks that fulfill one of the following conditions:
                     #    1. consists only of output and passive pins
-                    if (len(pin_etypes)==2) and ("O" in pin_etypes) and ("P" in pin_etypes):
-                        isSpecialXPassivePinStack=output;
                     #    2. consists only of power-output and passive pins
-                    if (len(pin_etypes)==2) and ("w" in pin_etypes) and ("P" in pin_etypes):
-                        isSpecialXPassivePinStack=True;
                     #    3. consists only of power-input and passive pins
-                    if (len(pin_etypes)==2) and ("W" in pin_etypes) and ("P" in pin_etypes):
+                    #    4. consists only of power-output/output pins (isSpecialSingleTypeStack)
+                    if ((len(pin_etypes)==2) and ("O" in pin_etypes) and ("P" in pin_etypes)) or ((len(pin_etypes)==2) and ("w" in pin_etypes) and ("P" in pin_etypes)) or ((len(pin_etypes)==2) and ("W" in pin_etypes) and ("P" in pin_etypes)) or isSpecialSingleTypeStack:
                         isSpecialXPassivePinStack=True;
-                    
+                        
                     # a non-special pin-stack needs to have all pins of the same type
                     if not isSpecialXPassivePinStack:
                         self.error(self.stackStr(loc) + " have different types")
@@ -188,6 +186,17 @@ class Rule(KLCRule):
                             pin = self.pinStr(pin),
                             vis = 'INVISIBLE' if pin['pin_type'].startswith('N') else 'VISIBLE'))
                         self.only_one_visible=True
+						
+        # check for invisible power I/O-pins (unless in power.lib)
+        isPowerLib=(self.component.reference=='#PWR')
+        if (not err) and (not isPowerLib):
+            for pin in self.component.pins:
+                if ((pin['electrical_type']=='w') or (pin['electrical_type']=='W')) and pin['pin_type'].startswith('N'):
+                    self.errorExtra("{pin} : {etype} should be visible (power-in/power-out pins may never be invisible, unless in a power-net tag/symbol)".format(
+                                    pin = self.pinStr(pin),
+                                    etype = pinElectricalTypeToStr(pin['electrical_type'])))
+                    self.fix_make_visible.add(pin['num'])
+                    err=True
         return err
                     
     def fix(self):
