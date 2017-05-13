@@ -6,13 +6,15 @@ import re
 from print_color import *
 
 
+
+
 class Config:
 
     def __init__(self):
-        # TODO improve this function
+        # TODO change to a path to KiCad repo root, then sub-paths from there
+        # TODO fix ALL paths !!!
         main_3D_ext = ['wrl']
         other_3D_ext = ['step', 'stp']
-        # TODO choose better names
         self.regex_1 = '.*\{ext:s}$'.format(ext=main_3D_ext[0])
         self.regex_2 = '.*\.({ext:s})$'.format(ext='|'.join(main_3D_ext + other_3D_ext))
         # Accept both forward and backward slash characters in path
@@ -61,13 +63,13 @@ def check_pretty(config, pretty):
     printer.green('\r\nChecking: {p:s}\r\n'.format(p=pretty))
     full_path = config.module_path + pretty
     try:
-        for file in os.listdir(full_path):
-            if re.match('.*\.kicad_mod$', file):
-                reference = parse_module('{mp:s}/{mf:s}'.format(mp=full_path, mf=file))
-                if reference:
-                    references.append(ReferenceRecord(reference, file))
-                    # TODO add verbose control
-                    printer.green('Ref: {r:s} From: {m:s}'.format(r=reference, m=file)) 
+        module_files = [f for f in os.listdir(full_path) if os.path.isfile(os.path.join(full_path, f)) and f.endswith('.kicad_mod')]
+        for f in sorted(module_files):
+            reference = parse_module(os.path.join(full_path, f))
+            if reference:
+                references.append(ReferenceRecord(reference, f))
+                # TODO add verbose control
+                printer.green('Ref: {r:s} From: {m:s}'.format(r=reference, m=f)) 
     except FileNotFoundError:
         printer.red('Module path not found: {mp:s}'.format(mp=config.module_path))
         sys.exit(1)
@@ -76,6 +78,7 @@ def check_pretty(config, pretty):
 
     try:
         for file in os.listdir(config.model_3D_path):
+        # TODO replace regexes with .endswith(('wrl', 'step', 'stp'))
             if re.match(config.regex_2, file):
                 models.append(file)
     except FileNotFoundError:
@@ -93,9 +96,9 @@ def check_pretty(config, pretty):
         else:
             printer.red('No 3D model for reference {r:s} in module {m:s}'.format(r=reference.model_3D, m=reference.module))
 
-    for model in unused:
-        if re.match(config.regex_1, model):
-            printer.red('Unused 3D model: {m:s}'.format(m=model))
+    unused_models = [model for model in unused if model.endswith('.wrl')]
+    for model in unused_models:
+        printer.red('Unused 3D model: {m:s}'.format(m=model))
 
 
 # main program
@@ -107,10 +110,9 @@ printer = PrintColor(use_color=True)
 config = Config()
 
 try:
-    for folder in os.listdir(config.module_path):
-        # TODO handle like other regexes
-        if re.match('.*\.pretty$', folder):
-            check_pretty(config, folder)
+    pretty_folders = [f for f in os.listdir(config.module_path) if os.path.isdir(os.path.join(config.module_path, f)) and f.endswith('.pretty')]
+    for folder in sorted(pretty_folders):
+        check_pretty(config, folder)
 except FileNotFoundError:
     printer.red('Module path not found: {mp:s}'.format(mp=config.module_path))
     sys.exit(1)
