@@ -64,7 +64,7 @@ class Config:
     def valid_modules(self, pretty_name):
         dir_name = self.footprint_dir_name(pretty_name)
         try:
-            return sorted ([f for f in os.listdir(dir_name) if os.path.isfile(os.path.join(dir_name, f)) and f.endswith('.kicad_mod')])
+            return sorted([f for f in os.listdir(dir_name) if os.path.isfile(os.path.join(dir_name, f)) and f.endswith('.kicad_mod')])
         except FileNotFoundError:
             printer.red('EXIT: module directory not found: {d:s}'.format(d=dir_name))
             sys.exit(1)
@@ -93,7 +93,7 @@ class ReferenceRecord:
         self.module = module
 
 
-def parse_module(filename):
+def parse_module(filename, warnings):
 
     if config.verbose:
         printer.green('Parsing: {f:s}'.format(f=filename))
@@ -106,6 +106,7 @@ def parse_module(filename):
         long_reference = module.models[0]['file']
     except IndexError:
         printer.yellow("- No model file specified in {fn:s}".format(fn=filename))
+        warnings += 1
         return None
     try:
         # Accept both forward and backward slash characters in path
@@ -113,16 +114,18 @@ def parse_module(filename):
         return os.path.basename(long_reference)
     except:
         printer.yellow("- Invalid model reference {f:s}".format(f=full))
+        warnings += 1
         return None
 
 
 def check_footprint_library(pretty_name):
 
     references = []
+    warning_count = 0
 
-    printer.green('\r\nChecking: {p:s}'.format(p=pretty_name))
+    printer.green('\r\nChecking {p:s} (contains {n:d} modules)'.format(p=pretty_name, n=len(config.valid_modules(pretty_name))))
     for module in config.valid_modules(pretty_name):
-        model_ref = parse_module(os.path.join(config.footprint_dir_name(pretty_name), module))
+        model_ref = parse_module(os.path.join(config.footprint_dir_name(pretty_name), module), warning_count)
         if model_ref:
             references.append(ReferenceRecord(model_ref, module))
             if config.verbose:
@@ -139,10 +142,16 @@ def check_footprint_library(pretty_name):
                 unused.remove(reference.model_3D)
         else:
             printer.yellow('- No 3D model for reference {r:s} in module {m:s}'.format(r=reference.model_3D, m=reference.module))
+            warning_count += 1
+
+    if warning_count > 0:
+        printer.yellow('- {n:d} module warnings'.format(n=warning_count))
 
     unused_models = [model for model in unused if model.endswith('.wrl')]
     for model in unused_models:
-        printer.yellow('Unused 3D model {m:s}'.format(m=model))
+        printer.yellow('- Unused ''.wrl'' model {m:s}'.format(m=model))
+    if len(unused_models) > 0:
+        printer.yellow('- {n:d} unused model warnings'.format(n=len(unused_models)))
 
 
 # main program
