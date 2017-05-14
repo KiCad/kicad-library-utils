@@ -1,9 +1,16 @@
+#!/usr/bin/env python
+
 from __future__ import print_function
 
 import os
+import argparse
+
 from kicad_mod import *
-import re
 from print_color import *
+
+common = os.path.abspath(os.path.join(sys.path[0], '..', 'common'))
+if not common in sys.path:
+    sys.path.append(common)
 
 
 class Config:
@@ -17,12 +24,14 @@ class Config:
         # "path name" includes directory name and file name with extension
         # "base name" is file name with extension
 
-        # TODO add arguments for ...
-        self.verbose = True
+        # Set default argument values
+        self.verbose = False
         self.print_colour = True
-
-        self.pretty_root = '/home/ray/KiCad Contributing/'
-        self.model_root = '/home/ray/KiCad Contributing/kicad-library/modules/packages3d/'
+        self.pretty = []
+        self.root = '../../'
+        self.parse_arguments()
+        self.pretty_root = self.root
+        self.model_root = os.path.join(self.root, 'kicad-library/modules/packages3d/')
 
     def model_dir_name(self, pretty_name):
         return os.path.join(self.model_root, pretty_name + '.3dshapes/')
@@ -32,10 +41,18 @@ class Config:
 
     def valid_pretty_names(self):
         try:
-            return sorted([f.split('.')[0] for f in os.listdir(self.pretty_root) if os.path.isdir(os.path.join(self.pretty_root, f)) and f.endswith('.pretty')])
+            prettys = sorted([f.split('.')[0] for f in os.listdir(self.pretty_root) if os.path.isdir(os.path.join(self.pretty_root, f)) and f.endswith('.pretty')])
         except FileNotFoundError:
             printer.red('EXIT: module root not found: {mr:s}'.format(mr=self.pretty_root))
             sys.exit(1)
+        if self.pretty:
+            if self.pretty[0] in prettys:
+                return self.pretty
+            else:
+                printer.red('EXIT: footprint library not found: {fl:s}'.format(fl=self.pretty[0]))
+                sys.exit(1)
+        else:
+            return prettys
 
     def valid_models(self, pretty_name):
         try:
@@ -52,6 +69,22 @@ class Config:
             printer.red('EXIT: module directory not found: {d:s}'.format(d=dir_name))
             sys.exit(1)
 
+    def parse_arguments(self):
+        parser = argparse.ArgumentParser(description='Checks which KiCad footprint files (.kicad_mod) reference 3D model files that exist in the KiCad library.')
+        parser.add_argument('-p', '--pretty', help='name of footprint library to check (e.g. Housings_SOIC) (default is all libraries)', type=str, nargs=1)
+        parser.add_argument('-r', '--root', help='path to root KiCad folder (defalt is ../../)', type=str, nargs=1)
+        parser.add_argument('-v', '--verbose', help='enable verbose output', action='store_true')
+        parser.add_argument('--nocolour', help='do not use colour text in output', action='store_true')
+        args = parser.parse_args()
+        if args.verbose:
+            self.verbose = True
+        if args.nocolour:
+            self.print_colour = False
+        if args.pretty:
+            self.pretty.append(str(args.pretty[0]))
+        if args.root:
+            self.root = str(args.root[0]) + '/'
+
 
 class ReferenceRecord:
 
@@ -67,19 +100,19 @@ def parse_module(filename):
     try:
         module = KicadMod(filename)
     except FileNotFoundError:
-        printer.red('EXIT: module file not found: {fn:s}'.format(fn=filename))
+        printer.red('EXIT: module file {fn:s} not found'.format(fn=filename))
         sys.exit(1)
     try:
         long_reference = module.models[0]['file']
     except IndexError:
-        printer.yellow("- No model file specified: {fn:s}".format(fn=filename))
+        printer.yellow("- No model file specified in {fn:s}".format(fn=filename))
         return None
     try:
         # Accept both forward and backward slash characters in path
         long_reference = '/'.join(long_reference.split('\\'))
         return os.path.basename(long_reference)
     except:
-        printer.yellow("- Invalid model reference: {f:s}".format(f=full))
+        printer.yellow("- Invalid model reference {f:s}".format(f=full))
         return None
 
 
@@ -109,7 +142,7 @@ def check_footprint_library(pretty_name):
 
     unused_models = [model for model in unused if model.endswith('.wrl')]
     for model in unused_models:
-        printer.yellow('Unused 3D model: {m:s}'.format(m=model))
+        printer.yellow('Unused 3D model {m:s}'.format(m=model))
 
 
 # main program
