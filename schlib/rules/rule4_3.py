@@ -38,6 +38,7 @@ class Rule(KLCRule):
         return pinString(pin, unit)
         
     def check(self):
+        self.component.padInSpecialPowerStack=set();
     
         # List of lists of pins that are entirely duplicated
         self.duplicated_pins = []
@@ -150,6 +151,7 @@ class Rule(KLCRule):
                         # in special pin stacks the power-input/power-output/output pin has to be visible and the passive pins need to be invisible
                         specialpincount=0
                         for pin in loc['pins']:
+                            self.component.padInSpecialPowerStack.add(pin['num'])
                             # check if all passive pins are invisible
                             if pin['electrical_type']=='P' and (not pin['pin_type'].startswith('N')):
                                 self.errorExtra("{pin} : {etype} should be invisible (power-pin stack)".format(
@@ -186,7 +188,7 @@ class Rule(KLCRule):
                             pin = self.pinStr(pin),
                             vis = 'INVISIBLE' if pin['pin_type'].startswith('N') else 'VISIBLE'))
                         self.only_one_visible=True
-						
+                        
         # check for invisible power I/O-pins (unless in power.lib)
         isPowerLib=(self.component.reference=='#PWR')
         if (not err) and (not isPowerLib):

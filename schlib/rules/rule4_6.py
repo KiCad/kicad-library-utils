@@ -54,7 +54,7 @@ class Rule(KLCRule):
             name = pin['name'].lower()
             etype = pin['electrical_type']
 
-            if self.test(name.lower(), self.POWER_INPUTS) and not etype.lower() == 'w':
+            if self.test(name.lower(), self.POWER_INPUTS) and (not etype.lower() == 'w') and (not pin['num'] in self.component.padInSpecialPowerStack):
                 if len(self.power_errors) == 0:
                     self.error("Power pins should be of type POWER INPUT or POWER OUTPUT")
                 self.power_errors.append(pin)
