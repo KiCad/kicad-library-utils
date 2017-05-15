@@ -39,7 +39,7 @@ KiCad utilities
 
 **checkruleX_Y.py**: Each checkrule script checks your correspondent rule and prints out a report informing what is in disagreement with the [KiCad Library Convention](https://github.com/KiCad/kicad-library/wiki/Kicad-Library-Convention).
 
-**check_3d_coverage.py**: This script checks which KiCad footprint files have references to 3D models that exist in the correct `3dshapes` folder in the KiCad library. It also shows unused 3D model files.
+**check_3d_coverage.py**: This script checks which KiCad footprint files have references to 3D models that exist in the associated `3dshapes` folder in the KiCad library. It also shows unused 3D model files.
 
 How to use
 ==========
@@ -93,8 +93,11 @@ How to use
     # first get into pcb directory
     cd pcb
 
-    # run the script passing
+    # run the script to check all footprints
     ./check_3d_coverage.py
+
+    # run the script to check only the specified .pretty folder
+    ./check_3d_coverage.py --prettty Housings_SOIC
 
     # run the following command to see other options
     ./check_3d_coverage.py -h
