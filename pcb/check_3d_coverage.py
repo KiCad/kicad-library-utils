@@ -25,13 +25,15 @@ class Config:
         # "base name" is file name with extension
 
         # Set default argument values
+        self.use_packages3D = False
         self.verbose = False
         self.print_colour = True
         self.pretty = []
         self.root = '../../'
         self.parse_arguments()
         self.pretty_root = self.root
-        self.model_root = os.path.join(self.root, 'kicad-library/modules/packages3d/')
+        self.model_root = os.path.join(self.root, 'packages3D/') if self.use_packages3D else os.path.join(self.root, 'kicad-library/modules/packages3d/')
+        print(self.model_root)
 
     def model_dir_name(self, pretty_name):
         return os.path.join(self.model_root, pretty_name + '.3dshapes/')
@@ -73,6 +75,7 @@ class Config:
         parser = argparse.ArgumentParser(description='Checks which KiCad footprint files (.kicad_mod) reference 3D model files that exist in the KiCad library.')
         parser.add_argument('-p', '--pretty', help='name of footprint library to check (e.g. Housings_SOIC) (default is all libraries)', type=str, nargs=1)
         parser.add_argument('-r', '--root', help='path to root KiCad folder (defalt is ../../)', type=str, nargs=1)
+        parser.add_argument('--usepackages3D', help='check against the packages3D repo instead of kicad-library', action='store_true')
         parser.add_argument('-v', '--verbose', help='enable verbose output', action='store_true')
         parser.add_argument('--nocolour', help='do not use colour text in output', action='store_true')
         args = parser.parse_args()
@@ -84,6 +87,8 @@ class Config:
             self.pretty.append(str(args.pretty[0]))
         if args.root:
             self.root = str(args.root[0]) + '/'
+        if args.usepackages3D:
+            self.use_packages3D = True
 
 
 class ReferenceRecord:
