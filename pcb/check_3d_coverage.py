@@ -60,8 +60,8 @@ class Config:
         try:
             return sorted([model for model in os.listdir(self.model_dir_name(pretty_name)) if model.endswith(('wrl', 'step', 'stp'))])
         except FileNotFoundError:
-            printer.red('EXIT: 3D model directory not found: {d:s}'.format(d=self.model_dir_name(pretty_name)))
-            sys.exit(1)
+            printer.red('- 3D model directory not found: {d:s}'.format(d=self.model_dir_name(pretty_name)))
+            return None
 
     def valid_modules(self, pretty_name):
         dir_name = self.footprint_dir_name(pretty_name)
@@ -137,26 +137,24 @@ def check_footprint_library(pretty_name):
                 printer.green('- Reference: {r:s}'.format(r=model_ref)) 
 
     models = config.valid_models(pretty_name)
-    unused = models[:]
-
-    for reference in references:
-        if config.verbose:
-            printer.green('3D model: {r:s}'.format(r=reference.model_3D))
-        if reference.model_3D in models:
-            if reference.model_3D in unused:
-                unused.remove(reference.model_3D)
-        else:
-            printer.yellow('- No 3D model for reference {r:s} in module {m:s}'.format(r=reference.model_3D, m=reference.module))
-            warning_count += 1
-
-    if warning_count > 0:
-        printer.yellow('- {n:d} module warnings'.format(n=warning_count))
-
-    unused_models = [model for model in unused if model.endswith('.wrl')]
-    for model in unused_models:
-        printer.yellow('- Unused ''.wrl'' model {m:s}'.format(m=model))
-    if len(unused_models) > 0:
-        printer.yellow('- {n:d} unused model warnings'.format(n=len(unused_models)))
+    if models:
+        unused = models[:]
+        for reference in references:
+            if config.verbose:
+                printer.green('3D model: {r:s}'.format(r=reference.model_3D))
+            if reference.model_3D in models:
+                if reference.model_3D in unused:
+                    unused.remove(reference.model_3D)
+            else:
+                printer.yellow('- No 3D model for reference {r:s} in module {m:s}'.format(r=reference.model_3D, m=reference.module))
+                warning_count += 1
+        if warning_count > 0:
+            printer.yellow('- {n:d} module warnings'.format(n=warning_count))
+        unused_models = [model for model in unused if model.endswith('.wrl')]
+        for model in unused_models:
+            printer.yellow('- Unused ''.wrl'' model {m:s}'.format(m=model))
+        if len(unused_models) > 0:
+            printer.yellow('- {n:d} unused model warnings'.format(n=len(unused_models)))
 
 
 # main program
