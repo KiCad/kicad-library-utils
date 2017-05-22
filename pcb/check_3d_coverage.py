@@ -33,7 +33,6 @@ class Config:
         self.parse_arguments()
         self.pretty_root = self.root
         self.model_root = os.path.join(self.root, 'packages3D/') if self.use_packages3D else os.path.join(self.root, 'kicad-library/modules/packages3d/')
-        print(self.model_root)
 
     def model_dir_name(self, pretty_name):
         return os.path.join(self.model_root, pretty_name + '.3dshapes/')
@@ -162,6 +161,10 @@ def check_footprint_library(pretty_name):
 config = Config()
 
 printer = PrintColor(use_color=config.print_colour)
+
+if config.verbose:
+    printer.green('Pretty root: {r:s}'.format(r=config.pretty_root))
+    printer.green('Model root:  {r:s}'.format(r=config.model_root))
 
 for pretty in config.valid_pretty_names():
     check_footprint_library(pretty)
