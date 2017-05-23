@@ -161,6 +161,9 @@ def check_footprint_library(pretty_name):
             printer.yellow('- Unused ''.wrl'' model {m:s}'.format(m=model))
         if len(unused_models) > 0:
             printer.yellow('- {n:d} unused model warnings'.format(n=len(unused_models)))
+    else:
+        if warning_count > 0:
+            printer.yellow('- {n:d} module warnings'.format(n=warning_count))
 
 
 # main program
