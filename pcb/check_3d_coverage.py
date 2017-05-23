@@ -13,6 +13,13 @@ if not common in sys.path:
     sys.path.append(common)
 
 
+# For Python 2 compatibility
+try:
+    FileNotFoundError
+except NameError:
+    FileNotFoundError = OSError
+
+
 class Config:
 
     def __init__(self):
