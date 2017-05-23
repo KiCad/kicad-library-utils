@@ -51,13 +51,13 @@ class Config:
         try:
             prettys = sorted([f.split('.')[0] for f in os.listdir(self.pretty_root) if os.path.isdir(os.path.join(self.pretty_root, f)) and f.endswith('.pretty')])
         except FileNotFoundError:
-            printer.red('EXIT: module root not found: {mr:s}'.format(mr=self.pretty_root))
+            printer.red('EXIT: problem reading from module root: {mr:s}'.format(mr=self.pretty_root))
             sys.exit(1)
         if self.pretty:
             if self.pretty[0] in prettys:
                 return self.pretty
             else:
-                printer.red('EXIT: footprint library not found: {fl:s}'.format(fl=self.pretty[0]))
+                printer.red('EXIT: problem reading footprint library: {fl:s}'.format(fl=self.pretty[0]))
                 sys.exit(1)
         else:
             return prettys
@@ -66,7 +66,7 @@ class Config:
         try:
             return sorted([model for model in os.listdir(self.model_dir_name(pretty_name)) if model.endswith(('wrl', 'step', 'stp'))])
         except FileNotFoundError:
-            printer.red('- 3D model directory not found: {d:s}'.format(d=self.model_dir_name(pretty_name)))
+            printer.red('- problem reading from 3D model directory: {d:s}'.format(d=self.model_dir_name(pretty_name)))
             return None
 
     def valid_modules(self, pretty_name):
@@ -74,7 +74,7 @@ class Config:
         try:
             return sorted([f for f in os.listdir(dir_name) if os.path.isfile(os.path.join(dir_name, f)) and f.endswith('.kicad_mod')])
         except FileNotFoundError:
-            printer.red('EXIT: module directory not found: {d:s}'.format(d=dir_name))
+            printer.red('EXIT: problem reading from module directory: {d:s}'.format(d=dir_name))
             sys.exit(1)
 
     def parse_arguments(self):
@@ -111,7 +111,7 @@ def parse_module(filename, warnings):
     try:
         module = KicadMod(filename)
     except FileNotFoundError:
-        printer.red('EXIT: module file {fn:s} not found'.format(fn=filename))
+        printer.red('EXIT: problem reading module file {fn:s}'.format(fn=filename))
         sys.exit(1)
     try:
         long_reference = module.models[0]['file']
