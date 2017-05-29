@@ -43,7 +43,8 @@ class Rule(KLCRule):
 
         # Non circular pad
         else:
-            ring_x = (pad_x - drill_x) / 2
+            # Round the number to 5 decimal places to prevent floating-point errors
+            ring_x = round((pad_x - drill_x) / 2, 5)
 
             if ring_x < MIN_RING:
                 self.error("Pad {n} x-dimension annular ring ({d}mm) is below minimum ({mr}mm)".format(
@@ -52,7 +53,8 @@ class Rule(KLCRule):
                     mr = MIN_RING))
                 err = True
 
-            ring_y = (pad_y - drill_y) / 2
+            # Round the number to 5 decimal places to prevent floating-point errors
+            ring_y = round((pad_y - drill_y) / 2, 5)
 
             if ring_y < MIN_RING:
                 self.error("Pad {n} y-dimension annular ring ({d}mm) is below minimum ({mr}mm)".format(
