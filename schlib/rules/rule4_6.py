@@ -64,7 +64,7 @@ class Rule(KLCRule):
                 if len(self.power_errors) == 0:
                     self.error("Power pins should be of type POWER INPUT or POWER OUTPUT")
                     if Rule43NotExecuted:
-                        self.errorExtra("NOTE: If power-pins have been stacked, you may ignore this error in some cases. Ensure to also check rule 4.3 in this case!")
+                        self.errorExtra("NOTE: If power-pins have been stacked, you may ignore this error in some cases (Ensure to check rule 4.3 in addition to recognize such stacks).")
                 self.power_errors.append(pin)
                 self.errorExtra("{pin} is of type {t}".format(
                     pin = pinString(pin),
