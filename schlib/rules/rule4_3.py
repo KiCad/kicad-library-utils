@@ -181,7 +181,7 @@ class Rule(KLCRule):
                         
                 # Only one pin should be visible (checks have already been done, when isSpecialXPassivePinStack=true)
                 if (not isSpecialXPassivePinStack) and (not vis_pin_count == 1):
-                    self.error(self.stackStr(loc) + " must have exactly one (1) invisible pin")
+                    self.error(self.stackStr(loc) + " must have exactly one (1) visible pin")
                     err = True
                     for pin in loc['pins']:
                         self.errorExtra("{pin} is {vis}".format(
