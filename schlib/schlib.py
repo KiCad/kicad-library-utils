@@ -23,7 +23,7 @@ class Documentation(object):
         self.components = OrderedDict()
         self.validFile = False
         self.header = None
-
+        
         self.checksum = ""
 
         if create:
@@ -53,15 +53,14 @@ class Documentation(object):
 
         name = None
         f.seek(0)
-
+        
         checksum_data = ''
-
+        
         for line in f.readlines():
             checksum_data += line.strip()
             line = line.replace('\n', '')
-            line = line.replace('\r', '')
             if line.startswith(Documentation.line_keys['start']):
-                name = line[5:].strip()
+                name = line[5:]
                 keywords = None
                 description = None
                 datasheet = None
@@ -75,14 +74,14 @@ class Documentation(object):
                 self.components[name] = OrderedDict([('description',description), ('keywords',keywords), ('datasheet',datasheet)])
             #FIXME: we do not handle comments except separators around components
         f.close()
-
+        
         try:
             md5 = hashlib.md5(checksum_data.encode('utf-8'))
         except UnicodeDecodeError:
             md5 = hashlib.md5(checksum_data)
-
+            
         self.checksum = md5.hexdigest()
-
+        
         return True
 
     def save(self, filename=None):
@@ -140,11 +139,11 @@ class Component(object):
         building_fplist = False
         building_draw = False
         building_fields = False
-
+        
         checksum_data = ''
-
+        
         self.resetDraw()
-
+        
         for line in data:
             checksum_data += line.strip()
             line = line.replace('\n', '')
@@ -235,8 +234,8 @@ class Component(object):
         self.pins = self.draw['pins']
 
         # get documentation
-        self.documentation = self.getDocumentation(documentation, self.name)
-
+        self.documentation = self.getDocumentation(documentation,self.name)
+        
     def resetDraw(self):
         self.draw = {
                     'arcs':[],
@@ -247,11 +246,10 @@ class Component(object):
                     'pins':[]
                 }
 
-    def getDocumentation(self, documentation, name):
+    def getDocumentation(self,documentation,name):
         try:
             return documentation.components[name]
         except KeyError:
-            print("Description missing for '{name}'".format(name=name))
             return {}
 
     def getPinsByName(self, name):
@@ -295,11 +293,11 @@ class SchLib(object):
         self.header = None
         self.components = []
         self.validFile = False
-
+        
         self.checksum = ""
 
         self.documentation = Documentation(self.libToDcmFilename(self.filename))
-
+        
         if create:
             if os.path.lexists(self.filename):
                 sys.stderr.write("File already exists!\n")
@@ -323,13 +321,13 @@ class SchLib(object):
 
     def __parse(self):
         f = open(self.filename, 'r')
-
+        
         checksum_data = ""
-
+        
         self.header = [f.readline()]
 
         checksum_data += self.header[0]
-
+        
         if self.header and not SchLib.line_keys['header'] in self.header[0]:
             sys.stderr.write("'{fn}' is not a KiCad Schematic Library File\n".format(fn=self.filename))
             return False
@@ -339,9 +337,9 @@ class SchLib(object):
 
         comments = []
         for line in f.readlines():
-
+        
             checksum_data += line.strip()
-
+        
             if line.startswith('#'):
                 comments.append(line)
 
@@ -357,31 +355,31 @@ class SchLib(object):
                     self.components.append(Component(component_data, comments, self.documentation))
                     comments = []
         f.close()
-
+        
         #perform checksum calculation
         try:
             md5 = hashlib.md5(checksum_data.encode('utf-8'))
         except UnicodeDecodeError:
             md5 = hashlib.md5(checksum_data)
         self.checksum = md5.hexdigest()
-
+        
         return True
-
+        
     def validChecksum(self):
         if len(self.checksum) == 0:
             return False
         if len(self.documentation.checksum) == 0:
             return False
-
+            
         return True
-
+        
     def compareChecksum(self, otherlib):
-
+    
         if not self.validChecksum() or not otherlib.validChecksum():
             return False
-
+    
         return self.checksum == otherlib.checksum and self.documentation.checksum == otherlib.documentation.checksum
-
+        
 
     def getComponentByName(self, name):
         for component in self.components:
@@ -441,10 +439,10 @@ class SchLib(object):
 
                 for k, key in enumerate(keys_list):
                     key_val = component.fields[i][key]
-
+                    
                     if k == 0 and not key_val.startswith('"'):
                         key_val = '"' + key_val + '"'
-
+                        
                     line += key_val + ' '
 
                 line = line.rstrip() + '\n'
