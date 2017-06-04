@@ -33,10 +33,10 @@ class Rule(KLCRule):
         return invalid_documentation > 0
 
     def checkDocumentation(self, name, documentation, alias=False):
-    
+
         errors = []
         warnings = []
-    
+
         if not documentation:
             errors.append("Missing all documentation fields (description, keywords, datasheet)")
         elif (not documentation['description'] or
@@ -49,14 +49,14 @@ class Rule(KLCRule):
                 errors.append("Missing KEYWORDS field")
             if (not documentation['datasheet']):
                 errors.append("Missing DATASHEET field")
-                
+
                 if (documentation['description'] and
                     documentation['keywords']):
                     self.only_datasheet_missing = True
 
         elif name.lower() in documentation['description'].lower():
             warnings.append("Symbol name should not be included in description")
-            
+
         if len(errors) > 0 or len(warnings) > 0:
             msg = "{cmp} {name} has metadata errors:".format(
                 cmp = "ALIAS" if alias else "Component",
@@ -65,12 +65,12 @@ class Rule(KLCRule):
                 self.warning(msg)
             else:
                 self.error(msg)
-                
+
             for err in errors:
                 self.errorExtra(err)
             for warn in warnings:
                 self.warningExtra(warn)
-                
+
         return len(errors) > 0
 
 
