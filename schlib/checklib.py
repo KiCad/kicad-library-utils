@@ -61,6 +61,18 @@ for f in dir():
 #grab list of libfiles (even on windows!)
 libfiles = []
 
+if len(all_rules)<=0:
+    printer.red("No rules selected for check!")
+    sys.exit(1)
+else:
+    if (args.verbose>2):
+        printer.regular("checking rules:")	
+        for rule in all_rules:
+            printer.regular("  - "+str(rule))
+        printer.regular("")	
+
+
+
 for libfile in args.libfiles:
     libfiles += glob(libfile)
 
@@ -100,6 +112,8 @@ for libfile in libfiles:
     
         for rule in all_rules:
             rule = rule(component)
+            if (args.verbose>2):
+                printer.white("checking rule "+rule.name)	
             
             error = rule.check()
             
