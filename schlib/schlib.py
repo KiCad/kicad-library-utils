@@ -59,8 +59,9 @@ class Documentation(object):
         for line in f.readlines():
             checksum_data += line.strip()
             line = line.replace('\n', '')
+            line = line.replace('\r', '')
             if line.startswith(Documentation.line_keys['start']):
-                name = line[5:]
+                name = line[5:].strip()
                 keywords = None
                 description = None
                 datasheet = None
