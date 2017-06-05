@@ -12,6 +12,7 @@ class Rule(KLCRule):
         self.makePinINVISIBLE=False
         self.makePinPowerInput=False
         self.fixTooManyPins=False
+        self.fixPinSignalName=False
 
     
     def check(self):
@@ -34,6 +35,10 @@ class Rule(KLCRule):
                     self.error("The pin in power-flag symbols has to be INVISIBLE")
                     fail=True
                     self.makePinINVISIBLE=True
+                if ((self.component.pins[0]['name'] != self.component.name) and ('~'+self.component.pins[0]['name'] != self.component.name)):
+                    self.error("The pin name ("+self.component.pins[0]['name']+") in power-flag symbols has to be the same as the component name ("+self.component.name+")")
+                    fail=True
+                    self.fixPinSignalName=True
         
         return fail
 
@@ -48,4 +53,10 @@ class Rule(KLCRule):
             self.component.pins[0]['electrical_type']='w'
         if self.makePinINVISIBLE:
             self.info("FIX: making pin invisible")
+            self.component.pins[0]['pin_type']='N'+self.component.pins[0]['pin_type']
+        if self.fixPinSignalName:
+            newname=self.component.name
+            if self.component.name.startswith('~'):
+                newname=self.component.name[1:len(self.component.name)]
+            self.info("FIX: change pin name to '"+newname+"'")
             self.component.pins[0]['pin_type']='N'+self.component.pins[0]['pin_type']
