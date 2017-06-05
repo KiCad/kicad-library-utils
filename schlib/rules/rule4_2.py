@@ -15,6 +15,11 @@ class Rule(KLCRule):
         The following variables will be accessible after checking:
             * n_rectangles
         """
+        
+        # no checks for power-symbols or graphical symbols:
+        if self.component.isPowerSymbol() or self.component.isGraphicalSymbol():
+            return False
+        
         rectangle_need_fix = False
         # check if component has just one rectangle, if not, skip checking
         self.n_rectangles = len(self.component.draw['rectangles'])
