@@ -12,6 +12,10 @@ class Rule(KLCRule):
         self.NC_stacked=False
         self.different_types=False
         self.only_one_visible=False
+        # variables for fixing special pin-stack pins
+        self.fix_make_invisible=set();
+        self.fix_make_visible=set();
+        self.fix_make_passive=set();
 
     def stackStr(self, stack):
         multi_unit = int(self.component.definition['unit_count']) > 1
@@ -34,6 +38,7 @@ class Rule(KLCRule):
         return pinString(pin, unit)
         
     def check(self):
+        self.component.padInSpecialPowerStack=set();
     
         # List of lists of pins that are entirely duplicated
         self.duplicated_pins = []
@@ -121,24 +126,79 @@ class Rule(KLCRule):
                         self.different_names=True
                             
                 # Different types!
-                if len(pin_etypes) > 1:
-                    self.error(self.stackStr(loc) + " have different types")
-                    err = True
-                    for pin in loc['pins']:
-                        self.errorExtra("{pin} : {etype}".format(
-                            pin = self.pinStr(pin),
-                            etype = pinElectricalTypeToStr(pin['electrical_type'])))
-                        self.different_types=True
-            
-                # Only one pin should be visible
-                if not vis_pin_count == 1:
-                    self.error(self.stackStr(loc) + " must have exactly one (1) invisible pin")
+                isSpecialXPassivePinStack=False;
+                isSpecialSingleTypeStack=((len(pin_etypes)==1) and (("w" in pin_etypes) or ("O" in pin_etypes)));
+                if (len(pin_etypes) > 1) or isSpecialSingleTypeStack:
+                    # an exception is done for some special pin-stacks:
+                    # isSpecialXPassivePinStack are those pins stacks that fulfill one of the following conditions:
+                    #    1. consists only of output and passive pins
+                    #    2. consists only of power-output and passive pins
+                    #    3. consists only of power-input and passive pins
+                    #    4. consists only of power-output/output pins (isSpecialSingleTypeStack)
+                    if ((len(pin_etypes)==2) and ("O" in pin_etypes) and ("P" in pin_etypes)) or ((len(pin_etypes)==2) and ("w" in pin_etypes) and ("P" in pin_etypes)) or ((len(pin_etypes)==2) and ("W" in pin_etypes) and ("P" in pin_etypes)) or isSpecialSingleTypeStack:
+                        isSpecialXPassivePinStack=True;
+                        
+                    # a non-special pin-stack needs to have all pins of the same type
+                    if not isSpecialXPassivePinStack:
+                        self.error(self.stackStr(loc) + " have different types")
+                        err = True
+                        for pin in loc['pins']:
+                            self.errorExtra("{pin} : {etype}".format(
+                                pin = self.pinStr(pin),
+                                etype = pinElectricalTypeToStr(pin['electrical_type'])))
+                            self.different_types=True
+                    else:
+                        # in special pin stacks the power-input/power-output/output pin has to be visible and the passive pins need to be invisible
+                        specialpincount=0
+                        for pin in loc['pins']:
+                            self.component.padInSpecialPowerStack.add(pin['num'])
+                            # check if all passive pins are invisible
+                            if pin['electrical_type']=='P' and (not pin['pin_type'].startswith('N')):
+                                self.errorExtra("{pin} : {etype} should be invisible (power-pin stack)".format(
+                                    pin = self.pinStr(pin),
+                                    etype = pinElectricalTypeToStr(pin['electrical_type'])))
+                                err = True
+                                self.fix_make_invisible.add(pin['num'])
+                            # check if power-pin is visible
+                            if (pin['electrical_type']=='O' or pin['electrical_type']=='w' or pin['electrical_type']=='W') :
+                                if pin['pin_type'].startswith('N'):
+                                    self.errorExtra("{pin} : {etype} should be visible in a power-in/power-out/output pin stack".format(
+                                        pin = self.pinStr(pin),
+                                        etype = pinElectricalTypeToStr(pin['electrical_type'])))
+                                    err = True
+                                    self.fix_make_visible.add(pin['num'])
+                                    specialpincount=specialpincount+1
+                                    if specialpincount<=1:
+                                        self.fix_make_visible.add(pin['num'])
+                                else:
+                                    specialpincount=specialpincount+1
+                            if specialpincount>1:
+                                self.errorExtra("{pin} : {etype} should be an invisible PASSIVE pin power-in/power-out/output pin stack".format(
+                                    pin = self.pinStr(pin),
+                                    etype = pinElectricalTypeToStr(pin['electrical_type'])))
+                                self.fix_make_invisible.add(pin['num'])
+                                self.fix_make_passive.add(pin['num'])
+                        
+                # Only one pin should be visible (checks have already been done, when isSpecialXPassivePinStack=true)
+                if (not isSpecialXPassivePinStack) and (not vis_pin_count == 1):
+                    self.error(self.stackStr(loc) + " must have exactly one (1) visible pin")
                     err = True
                     for pin in loc['pins']:
                         self.errorExtra("{pin} is {vis}".format(
                             pin = self.pinStr(pin),
                             vis = 'INVISIBLE' if pin['pin_type'].startswith('N') else 'VISIBLE'))
                         self.only_one_visible=True
+                        
+        # check for invisible power I/O-pins (unless in power.lib)
+        isPowerLib=(self.component.reference=='#PWR')
+        if (not err) and (not isPowerLib):
+            for pin in self.component.pins:
+                if ((pin['electrical_type']=='w') or (pin['electrical_type']=='W')) and pin['pin_type'].startswith('N'):
+                    self.errorExtra("{pin} : {etype} should be visible (power-in/power-out pins may never be invisible, unless in a power-net tag/symbol)".format(
+                                    pin = self.pinStr(pin),
+                                    etype = pinElectricalTypeToStr(pin['electrical_type'])))
+                    self.fix_make_visible.add(pin['num'])
+                    err=True
         return err
                     
     def fix(self):
@@ -177,7 +237,18 @@ class Rule(KLCRule):
                                 y = pin['posy']))
                             continue
                     i += 1
-                    
+        
+        for pin in self.component.pins:
+            if pin['num'] in self.fix_make_passive:
+                pin['electrical_type']='P'
+                self.info("pin "+pin['num']+" "+pin['name']+" is passive now (pin['electrical_type']="+pin['electrical_type']+")")
+            if pin['num'] in self.fix_make_invisible:
+                pin['pin_type']='N'+pin['pin_type']
+                self.info("pin "+pin['num']+" "+pin['name']+" is invisible now (pin['pin_type']="+pin['pin_type']+")")
+            if pin['num'] in self.fix_make_visible:
+                pin['pin_type']=pin['pin_type'][1:len(pin['pin_type'])]
+                self.info("pin "+pin['num']+" "+pin['name']+" is visible now (pin['pin_type']="+pin['pin_type']+")")
+            
         if self.different_names:
             self.info("FIX for 'different pin names' not supported (yet)! Please fix manually.")
         if self.NC_stacked:
