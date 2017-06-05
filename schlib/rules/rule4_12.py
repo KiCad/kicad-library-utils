@@ -48,7 +48,7 @@ class Rule(KLCRule):
         
         filters = self.component.fplist
         
-        if len(filters) == 0:
+        if (not self.component.isGraphicSymbol() and not self.component.isPowerSymbol()) and len(filters) == 0:
             self.warning("No footprint filters defined")
             
         self.checkFilters(filters)

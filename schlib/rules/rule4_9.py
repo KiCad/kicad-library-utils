@@ -26,10 +26,15 @@ class Rule(KLCRule):
 
         ref = self.component.fields[0]
 
-        if not self.checkVisibility(ref):
-            self.error("Ref field must be VISIBLE")
-            fail = True
-
+        if (not self.component.isGraphicSymbol()) and (not self.component.isPowerSymbol()):
+            if not self.checkVisibility(ref):
+                self.error("Ref(erence) field must be VISIBLE")
+                fail = True
+        else:
+            if self.checkVisibility(ref):
+                self.error("Ref(erence) field must be INVISIBLE in graphic symbols or power-symbols")
+                fail = True
+        
         return fail
 
     def checkValue(self):
@@ -42,19 +47,24 @@ class Rule(KLCRule):
         if name.startswith('"') and name.endswith('"'):
             name = name[1:-1]
 
-        if not name == self.component.name:
-            self.error("Value {val} does not match component name.".format(val=name))
-            fail = True
+        if (not self.component.isGraphicSymbol()) and (not self.component.isPowerSymbol()):
+            if not name == self.component.name:
+                self.error("Value {val} does not match component name.".format(val=name))
+                fail = True
+            # name field must be visible!
+            if not self.checkVisibility(value):
+                self.error("Value field must be VISIBLE")
+                fail = True
+        else:
+            if (not ('~'+name) == self.component.name) and (not name == self.component.name):
+                self.error("Value {val} does not match component name.".format(val=name))
+                fail = True
 
-        if not isValidName(self.component.name):
+        if not isValidName(self.component.name, self.component.isGraphicSymbol(), self.component.isPowerSymbol()):
             self.error("Symbol name '{val}' contains invalid characters as per KLC 1.7".format(
                 val = self.component.name))
             fail = True
 
-        # name field must be visible!
-        if not self.checkVisibility(value):
-            self.error("Value field must be VISIBLE")
-            fail = True
 
         return fail
 

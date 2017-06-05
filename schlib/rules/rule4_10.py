@@ -20,19 +20,19 @@ class Rule(KLCRule):
         invalid_documentation = 0
 
         #check part itself
-        if self.checkDocumentation(self.component.name, self.component.documentation):
+        if self.checkDocumentation(self.component.name, self.component.documentation, False, self.component.isGraphicSymbol() or self.component.isPowerSymbol()):
             invalid_documentation += 1
 
         #check all its aliases too
         if self.component.aliases:
             invalid = []
             for alias in self.component.aliases.keys():
-                if self.checkDocumentation(alias, self.component.aliases[alias], True):
+                if self.checkDocumentation(alias, self.component.aliases[alias], True, self.component.isGraphicSymbol() or self.component.isPowerSymbol()):
                     invalid_documentation+=1
 
         return invalid_documentation > 0
 
-    def checkDocumentation(self, name, documentation, alias=False):
+    def checkDocumentation(self, name, documentation, alias=False, isGraphicOrPowerSymbol=False):
     
         errors = []
         warnings = []
@@ -47,7 +47,7 @@ class Rule(KLCRule):
                 errors.append("Missing DESCRIPTION field")
             if (not documentation['keywords']):
                 errors.append("Missing KEYWORDS field")
-            if (not documentation['datasheet']):
+            if (not isGraphicOrPowerSymbol) and (not documentation['datasheet']):
                 errors.append("Missing DATASHEET field")
                 
                 if (documentation['description'] and

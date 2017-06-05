@@ -11,6 +11,7 @@ __all__ = [
 "rule4_10",
 "rule4_11",
 "rule4_12", 
+"rule4_13", 
 "EC01",
 # Disable EC02 for now (way too confusing)
 # "EC02",
