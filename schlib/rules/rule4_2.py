@@ -17,7 +17,7 @@ class Rule(KLCRule):
         """
         
         # no checks for power-symbols or graphical symbols:
-        if self.component.isPowerSymbol() or self.component.isGraphicalSymbol():
+        if self.component.isPowerSymbol() or self.component.isGraphicSymbol():
             return False
         
         rectangle_need_fix = False
