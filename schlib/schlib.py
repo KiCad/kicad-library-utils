@@ -286,10 +286,10 @@ class Component(object):
         return self.reference.startswith('#')
 
     def isPowerSymbol(self):
-        return (self.reference=='#PWR' or self.reference=='#FLG') and (len(self.pins)==1) and (self.pins[0]['electrical_type'].lower()=='w')
+        return (self.reference=='#PWR') and (len(self.pins)==1) and (self.pins[0]['electrical_type'].lower()=='w')
     
     def isPossiblyPowerSymbol(self):
-        return (self.reference=='#PWR' or self.reference=='#FLG') 
+        return (self.reference=='#PWR') 
 
     def isGraphicSymbol(self):
         return self.isNonBOMSymbol() and len(self.pins)==0
