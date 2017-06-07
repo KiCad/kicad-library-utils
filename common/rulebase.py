@@ -1,9 +1,15 @@
 # -*- coding: utf-8 -*-
 
 # Static functions
-def isValidName(name):
+def isValidName(name, checkForGraphicSymbol=False, checkForPowerSymbol=False):
         name = str(name).lower()
+        firstChar=True
         for c in name:
+            # first character may be '~' in some cases
+            if (checkForPowerSymbol or checkForGraphicSymbol) and firstChar and c=='~':
+                continue
+            
+            firstChar=False
             # Numeric characters check
             if c.isalnum():
                 continue
@@ -13,6 +19,9 @@ def isValidName(name):
                 continue
                 
             if c in ['_', '-', '.']:
+                continue
+            
+            if checkForPowerSymbol and (c in ['+']):
                 continue
             
             return False

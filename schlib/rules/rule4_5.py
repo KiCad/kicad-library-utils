@@ -22,7 +22,7 @@ class Rule(KLCRule):
             for gnd in GND:
                 if re.search(gnd, name, flags=re.IGNORECASE) is not None:
                     # Pin orientation should be "up"
-                    if not pin['direction'] == 'U':
+                    if (not self.component.isPowerSymbol()) and (not pin['direction'] == 'U'):
                         if first:
                             first = False
                             self.warning("Ground and negative power pins should be placed at bottom of symbol")
@@ -40,7 +40,7 @@ class Rule(KLCRule):
             for pwr in PWR:
                 if re.search(pwr, name, flags=re.IGNORECASE) is not None:
                     # Pin orientation should be "down"
-                    if not pin['direction'] == 'D':
+                    if (not self.component.isPowerSymbol()) and not pin['direction'] == 'D':
                         if first:
                             first = False
                             self.warning("Positive power pins should be placed at top of symbol")
