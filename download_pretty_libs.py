@@ -79,6 +79,7 @@ def RepoUrl(repo):
 def CloneRepository(repo):
 
     # Clone
+    os.chdir(base_dir)
     Call(['git', 'clone', RepoUrl(repo)])
 
     return True
