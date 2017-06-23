@@ -23,7 +23,7 @@ parser = argparse.ArgumentParser(description='Checks KiCad footprint files (.kic
 parser.add_argument('kicad_mod_files', nargs='+')
 parser.add_argument('--fix', help='fix the violations if possible', action='store_true')
 parser.add_argument('--fixmore', help='fix additional violations, not covered by --fix (e.g. rectangular courtyards), implies --fix!', action='store_true')
-parser.add_argument('--rotate', help='rotate the whole symbol by the given number of degrees', action='store', default=0)
+parser.add_argument('--rotate', help='rotate the whole symbol clockwise by the given number of degrees', action='store', default=0)
 parser.add_argument('-r', '--rule', help='specify single rule to check (default = check all rules)', action='store')
 parser.add_argument('--nocolor', help='does not use colors to show the output', action='store_true')
 parser.add_argument('-v', '--verbose', help='Enable verbose output. -v shows brief information, -vv shows complete information', action='count')
