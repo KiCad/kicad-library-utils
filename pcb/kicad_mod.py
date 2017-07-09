@@ -52,11 +52,11 @@ class KicadMod(object):
     """
     def __init__(self, filename):
         self.filename = filename
-        
+
         # check file line-endings
         self.unix_line_endings=True
         filecontentsraw=open(filename,"rb").readline()
-        if (filecontentsraw[-2]==0x0D and filecontentsraw[-1]==0x0A) or (filecontentsraw[-1]==0x0D):
+        if (ord(filecontentsraw[-2])==0x0D and ord(filecontentsraw[-1])==0x0A) or (ord(filecontentsraw[-1])==0x0D):
             self.unix_line_endings=False
 
         # read the s-expression data
