@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from rules.rule import *
+import platform
 
 class Rule(KLCRule):
     """
@@ -11,7 +12,9 @@ class Rule(KLCRule):
 
     def check(self):
 
-        if not self.module.unix_line_endings:
+        # Only perform this check on linux systems (i.e. Travis)
+        # Windows automatically checks out with CR+LF line endings
+        if 'linux' in platform.platform().lower() and not self.module.unix_line_endings:
             self.warning("Incorrect line ending")
             self.warningExtra("Library files must use Unix-style line endings (LF)")
             return True
