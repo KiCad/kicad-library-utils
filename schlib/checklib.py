@@ -34,7 +34,11 @@ args = parser.parse_args()
 printer = PrintColor(use_color = not args.nocolor)
 
 # set verbosity globally
-KLCRule.verbosity = args.verbose
+verbosity=0
+if args.verbose:
+    # hack to care for not given -v
+    verbosity=args.verbose
+KLCRule.verbosity = verbosity
 
 #user can select various rules
 #in the format -r=3.1 or --rule=3.1,EC01,EC05
@@ -65,7 +69,7 @@ if len(all_rules)<=0:
     printer.red("No rules selected for check!")
     sys.exit(1)
 else:
-    if (args.verbose>2):
+    if (verbosity>2):
         printer.regular("checking rules:")	
         for rule in all_rules:
             printer.regular("  - "+str(rule))
@@ -112,7 +116,7 @@ for libfile in libfiles:
     
         for rule in all_rules:
             rule = rule(component)
-            if (args.verbose>2):
+            if (verbosity>2):
                 printer.white("checking rule "+rule.name)	
             
             error = rule.check()
@@ -123,7 +127,7 @@ for libfile in libfiles:
                     first = False
                     
                 printer.yellow("Violating " + rule.name, indentation=2)
-                rule.processOutput(printer, args.verbose, args.silent)
+                rule.processOutput(printer, verbosity, args.silent)
             
             # Specifically check for errors
             if error:
@@ -131,7 +135,7 @@ for libfile in libfiles:
 
                 if args.fix:
                     rule.fix()
-                    rule.processOutput(printer, args.verbose, args.silent)
+                    rule.processOutput(printer, verbosity, args.silent)
             
         # No messages?
         if first:
