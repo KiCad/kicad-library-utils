@@ -61,7 +61,7 @@ class KicadMod(object):
         LE2 = filecontentsraw[-1]
 
         # Ord is different for python3
-        if sys.version_info.major == 3:
+        if sys.version_info.major >= 3:
             LE1 = chr(LE1)
             LE2 = chr(LE2)
 
