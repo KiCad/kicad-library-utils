@@ -14,7 +14,7 @@ KLC_CRTYD_GRID = 0.01
 
 # text size
 KLC_TEXT_SIZE = 1.0
-KLC_TEXT_SIZE_MIN = 0.25
+KLC_TEXT_SIZE_MIN = 0.10
 KLC_TEXT_SIZE_MAX = 2.00
 
 # text thicknesss
