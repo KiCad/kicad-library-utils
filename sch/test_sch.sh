@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/usr/bin/env bash
 
 # This script file is used to test the consistency of files saved
 # from sch python class. Spaces and line positioning will be ignored

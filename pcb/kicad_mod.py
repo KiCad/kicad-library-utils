@@ -9,7 +9,7 @@ import sys, os
 sys.path.append(os.path.join('..','common'))
 
 import sexpr
-from boundingbox import BoundingBox       
+from boundingbox import BoundingBox
 
 # Rotate a point by given angle (in degrees)
 def _rotatePoint(point, degrees):
@@ -18,32 +18,32 @@ def _rotatePoint(point, degrees):
     p = {}
     for key in point:
         p[key] = point[key]
-    
+
     radians = degrees * math.pi / 180
-    
+
     x = point['x']
     y = point['y']
-    
+
     p['x'] = x * math.cos(radians) - y * math.sin(radians)
     p['y'] = y * math.cos(radians) + x * math.sin(radians)
-        
+
     if 'orientation' in point:
         p['orientation'] -= degrees
-    
+
     return p
 
 # Move point by certain offset
 def _movePoint(point, offset):
 
     # Copy all points
-    
+
     p = {}
     for key in point:
         p[key] = point[key]
-        
+
     p['x'] += offset['x']
     p['y'] += offset['y']
-    
+
     return p
 
 class KicadMod(object):
@@ -52,11 +52,23 @@ class KicadMod(object):
     """
     def __init__(self, filename):
         self.filename = filename
-        
+
         # check file line-endings
         self.unix_line_endings=True
         filecontentsraw=open(filename,"rb").readline()
-        if (filecontentsraw[-2]==0x0D and filecontentsraw[-1]==0x0A) or (filecontentsraw[-1]==0x0D):
+
+        LE1 = filecontentsraw[-2]
+        LE2 = filecontentsraw[-1]
+
+        # Ord is different for python3
+        if sys.version_info.major >= 3:
+            LE1 = chr(LE1)
+            LE2 = chr(LE2)
+
+        LE1 = ord(LE1)
+        LE2 = ord(LE2)
+
+        if (LE1 == 0x0D and LE2 == 0x0A) or (LE2 == 0x0D):
             self.unix_line_endings=False
 
         # read the s-expression data
@@ -81,7 +93,7 @@ class KicadMod(object):
 
         # tags
         self.tags = self._getValue('tags', '', 2)
-        
+
         # auto place settings
         self.autoplace_cost90 = self._getValue('autoplace_cost90', 0, 2)
         self.autoplace_cost180 = self._getValue('autoplace_cost180', 0, 2)
@@ -132,12 +144,12 @@ class KicadMod(object):
     # return the array which has value as first element
     def _getArray(self, data, value, result=None, level=0, max_level = None):
         if result is None: result = []
-        
+
         level += 1
-        
+
         if max_level is not None and max_level <= level:
             return result
-        
+
         for i in data:
             if type(i) == type([]):
                 self._getArray(i, value, result, level=level)
@@ -199,21 +211,21 @@ class KicadMod(object):
 
                 # text font
                 font = self._getArray(text, 'font')[0]
-                
+
                 # Some footprints miss out some parameters
                 text_dict['font'] = {'thickness': 0, 'height': 0, 'width': 0}
-                
+
                 for pair in font[1:]:
                     key = pair[0]
                     data = pair[1:]
-                    
+
                     if key == 'thickness':
                         text_dict['font']['thickness'] = data[0]
-                        
+
                     elif key == 'size':
                         text_dict['font']['height'] = data[0]
                         text_dict['font']['width'] = data[1]
-                        
+
                 text_dict['font']['italic'] = self._hasValue(a, 'italic')
 
                 # text hide
@@ -227,7 +239,7 @@ class KicadMod(object):
         user = {'user': text}
         for key in params:
             user[key] = params[key]
-            
+
         self.userText.append(user)
 
     def _getLines(self, layer=None):
@@ -246,7 +258,7 @@ class KicadMod(object):
                     line_dict['layer'] = a[1]
                 except:
                     line_dict['layer'] = ''
-                
+
                 try:
                     a = self._getArray(line, 'width')[0]
                     line_dict['width'] = a[1]
@@ -274,13 +286,13 @@ class KicadMod(object):
                     circle_dict['layer'] = a[1]
                 except:
                     circle_dict['layer'] = ''
-                    
+
                 try:
                     a = self._getArray(circle, 'width')[0]
                     circle_dict['width'] = a[1]
                 except:
                     circle_dict['width'] = 0
-                    
+
                 circles.append(circle_dict)
 
         return circles
@@ -305,7 +317,7 @@ class KicadMod(object):
                     arc_dict['layer'] = a[1]
                 except:
                     arc_dict['layer'] = ''
-                    
+
                 try:
                     a = self._getArray(arc, 'width')[0]
                     arc_dict['width'] = a[1]
@@ -432,7 +444,7 @@ class KicadMod(object):
             models.append(model_dict)
 
         return models
-        
+
     # Add a 3D model
     def addModel(self, filename, pos=[0,0,0], scale=[1,1,1], rotate=[0,0,0]):
         model_dict = {'file':filename}
@@ -458,8 +470,8 @@ class KicadMod(object):
         self.addLine( [ start[0], start[1] ], [ start[0], end[1] ], layer, width)
         self.addLine( [ end[0], end[1] ], [ end[0], start[1] ], layer, width)
         self.addLine( [ end[0], end[1] ], [ start[0], end[1] ], layer, width)
-        
-            
+
+
     def setAnchor(self, anchor_point):
         # change reference position
         self.reference['pos']['x'] -= anchor_point[0]
@@ -499,14 +511,14 @@ class KicadMod(object):
         for pad in self.pads:
             pad['pos']['x'] -= anchor_point[0]
             pad['pos']['y'] -= anchor_point[1]
-            
+
         # change models
         for model in self.models:
             model['pos']['x'] -= anchor_point[0]/25.4
             model['pos']['y'] += anchor_point[1]/25.4
-            
-    
-        
+
+
+
     def rotateFootprint(self, degrees):
         # change reference position
         self.reference['pos']=_rotatePoint(self.reference['pos'], degrees)
@@ -517,7 +529,7 @@ class KicadMod(object):
         # change user text position
         for text in self.userText:
             text['pos']=_rotatePoint(text['pos'], degrees)
-            
+
 
         # change lines position
         for line in self.lines:
@@ -537,7 +549,7 @@ class KicadMod(object):
         # change pads positions
         for pad in self.pads:
             pad['pos']=_rotatePoint(pad['pos'], degrees)
-            
+
         # change models
         for model in self.models:
             model['pos']=_rotatePoint(model['pos'], -degrees)
@@ -566,19 +578,19 @@ class KicadMod(object):
                 arcs.append(arc)
 
         return arcs
-       
+
     # Return the geometric bounds for a given layer
     # Includes lines, arcs, circles
     def geometricBoundingBox(self, layer):
-    
+
         bb = BoundingBox()
-        
+
         # Add all lines
         lines = self.filterLines(layer)
         for l in lines:
             bb.addPoint(l['start']['x'], l['start']['y'])
             bb.addPoint(l['end']['x'], l['end']['y'])
-        
+
         # Add all circles
         circles=self.filterCircles(layer)
         for c in circles:
@@ -586,14 +598,14 @@ class KicadMod(object):
             cy = c['center']['y']
             ex = c['end']['x']
             ey = c['end']['y']
-            
+
             dx = ex - cx
             dy = ey - cy
-            
+
             r = math.sqrt(dx*dx + dy*dy)
-            
+
             bb.addPoint(cx, cy, radius=r)
-            
+
         # Add all arcs
         arcs=self.filterArcs(layer)
         for c in arcs:
@@ -601,12 +613,12 @@ class KicadMod(object):
             cy = c['start']['y']
             ex = c['end']['x']
             ey = c['end']['y']
-            
+
             dx = ex - cx
             dy = ey - cy
-            
+
             r = math.sqrt(dx*dx + dy*dy)
-            
+
             dalpha=1
             alphaend=c['angle']
             if math.fabs(alphaend)<1:
@@ -621,14 +633,14 @@ class KicadMod(object):
                     c1=[0,0]
                     c1[0]=math.cos(a/180*3.1415)*c0[0]-math.sin(a/180*3.1415)*c0[1]
                     c1[1]=math.sin(a/180*3.1415)*c0[0]+math.cos(a/180*3.1415)*c0[1]
-                    
+
                     bb.addPoint(cx + c1[0], cy + c1[1])
                     a=a+dalpha
-                
+
             bb.addPoint(ex, None)
 
         return bb
-        
+
 
     def filterGraphs(self, layer):
         return (self.filterLines(layer) +
@@ -648,136 +660,136 @@ class KicadMod(object):
         for pad in self.pads:
             if pad['type'] == pad_type:
                 pads.append(pad)
-                
+
         pads = sorted(pads, key = lambda p : str(p['number']))
 
         return pads
-        
+
     # Get the middle position between pads
     # Use the outer dimensions of pads to handle footprints with pads of different sizes
     def padMiddlePosition(self, pads=None):
-        
+
         bb = self.overpadsBounds(pads)
         return bb.center
 
     def padsBounds(self, pads=None):
-        
+
         bb = BoundingBox()
-    
+
         if pads == None:
             pads = self.pads
-            
+
         for pad in pads:
             pos = pad['pos']
             bb.addPoint(pos['x'], pos['y'])
-            
+
         return bb
-        
+
     def overpadsBounds(self, pads=None):
-    
+
         bb = BoundingBox()
-        
+
         if pads == None:
             pads = self.pads
-            
+
         for pad in pads:
             pos = pad['pos']
             px = pos['x']
             py = pos['y']
-            
+
             # Pad outer dimensions
             sx = pad['size']['x']
             sy = pad['size']['y']
-            
+
             angle = pad['pos']['orientation']
-            
+
             # Add each "corner" of the pad (even for oval shapes)
-            
+
             p1 = _rotatePoint({'x': -sx/2, 'y': -sy/2}, angle)
             p2 = _rotatePoint({'x': -sx/2, 'y': +sy/2}, angle)
             p3 = _rotatePoint({'x': +sx/2, 'y': +sy/2}, angle)
             p4 = _rotatePoint({'x': +sx/2, 'y': -sy/2}, angle)
-            
+
             points = [p1, p2, p3, p4]
-            
+
             for p in points:
                 x = px + p['x']
                 y = py + p['y']
                 bb.addPoint(x,y)
-                        
+
         return bb
-        
+
     def _formatText(self, text_type, text, se):
-        
+
         """
         Text is formatted like thus:
         (fp_text <type> <value> (at <x> <y> <R>*) (layer <layer>)
           (effects (font (size <sx> <sy>) (thickness <t>)))
         )
         """
-        
+
         # Text
         se.startGroup('fp_text')
-        
+
         # Extract position informat
         tp = text['pos']
         pos = [tp['x'], tp['y']]
         rot = tp.get('orientation',0)
         if not rot in [0, None]:
             pos.append(rot)
-            
+
         se.addItems([text_type, text[text_type], {'at': pos}, {'layer': text['layer']}], newline=False)
-        
+
         tf = text['font']
-        
+
         font = [{'font': [{'size': [tf['height'], tf['width']]}, {'thickness': tf['thickness']}]}]
         italic = tf.get('italic',None)
         if italic:
             font.append(italic)
-        
+
         se.startGroup('effects', indent=True)
         se.addItems(font, newline=False)
         se.endGroup(False)
         se.endGroup(True)
-        
+
     def _formatLine(self, line, se):
         se.startGroup('fp_line', newline=True, indent=False)
-        
+
         start = line['start']
         end = line['end']
-        
+
         fp_line = [
             {'start': [start['x'], start['y']]},
             {'end': [end['x'], end['y']]},
             {'layer': line['layer']},
             {'width': line['width']}
             ]
-            
+
         se.addItems(fp_line, newline=False)
         se.endGroup(newline=False)
-        
+
     def _formatCircle(self, circle, se):
         se.startGroup('fp_circle', newline=True, indent=False)
-        
+
         center = circle['center']
         end = circle['end']
-        
+
         fp_circle = [
             {'center': [center['x'], center['y']]},
             {'end': [end['x'], end['y']]},
             {'layer': circle['layer']},
             {'width': circle['width']}
             ]
-            
+
         se.addItems(fp_circle, newline=False)
         se.endGroup(newline=False)
-    
+
     def _formatArc(self, arc, se):
         se.startGroup('fp_arc', newline=True, indent=False)
-        
+
         start = arc['start']
         end = arc['end']
-        
+
         fp_arc = [
             {'start': [start['x'], start['y']]},
             {'end': [end['x'], end['y']]},
@@ -785,55 +797,55 @@ class KicadMod(object):
             {'layer': arc['layer']},
             {'width': arc['width']}
             ]
-            
+
         se.addItems(fp_arc, newline=False)
         se.endGroup(newline=False)
-    
+
     def _formatPad(self, pad, se):
         pos = pad['pos']
-        
+
         se.startGroup('pad', newline=True, indent=False)
-        
+
         fp_pad = [pad['number'], pad['type'], pad['shape']]
-        
+
         at = [pos['x'], pos['y']]
-        
+
         rot = pos.get('orientation',0)
         if rot:
             at.append(rot)
-            
+
         fp_pad.append({'at': at})
-        
+
         fp_pad.append({'size': [pad['size']['x'], pad['size']['y']]})
-        
+
         # Drill?
         _drill = pad.get('drill', None)
-        
+
         if _drill:
             d = []
             if _drill['shape'] == 'oval':
                 d.append('oval')
-            
+
             if _drill['size']:
                 d.append(_drill['size']['x'])
-                
+
                 # Oval drill requires x,y pair
                 if _drill['shape'] == 'oval':
                     d.append(_drill['size']['y'])
-                    
+
             if _drill['offset']:
                 o = [_drill['offset']['x'], _drill['offset']['y']]
                 d.append({'offset': o})
-            
+
             fp_pad.append({'drill': d})
-            
+
         # Layers
         fp_pad.append({'layers': pad['layers']})
-        
+
         se.addItems(fp_pad, newline=False)
-        
+
         extras = []
-        
+
         # die length
         if pad['die_length']:
             extras.append({'die_length': pad['die_length']})
@@ -866,24 +878,24 @@ class KicadMod(object):
         # thermal gap
         if pad['thermal_gap']:
             extras.append({'thermal_gap': pad['thermal_gap']})
-            
+
         if len(extras) > 0:
-            se.addItems(extras, newline=True, indent=True)                
+            se.addItems(extras, newline=True, indent=True)
             se.unIndent()
-            
+
         se.endGroup(newline=False)
-                
+
     def _formatModel(self, model, se):
         se.startGroup('model', newline=True, indent=False)
-        
+
         se.addItems(model['file'],newline=False)
-        
+
         """
           at
           scale
           rotate
         """
-        
+
         at = model['pos']
         sc = model['scale']
         ro = model['rotate']
@@ -891,23 +903,23 @@ class KicadMod(object):
         se.addItems({'at': {'xyz': [at['x'],at['y'],at['z']]}}, newline=True, indent=True)
         se.addItems({'scale': {'xyz': [sc['x'],sc['y'],sc['z']]}}, newline=True, indent=False)
         se.addItems({'rotate': {'xyz': [ro['x'],ro['y'],ro['z']]}}, newline=True)
-        
+
         se.endGroup(newline=True)
-                
+
     def save(self, filename=None):
         if not filename:
             filename = self.filename
-            
+
         se = sexpr.SexprBuilder('module')
 
         # Hex value of current epoch timestamp (in seconds)
         tedit = hex(int(time.time())).upper()[2:]
-        
+
         # Output must be precisely formatted
-        
+
         """ Header order is as follows
         (*items are optional)
-        
+
         module <name> locked* <layer>  <tedit>
         descr
         tags
@@ -918,24 +930,24 @@ class KicadMod(object):
         solder_paste_ratio*
         clearance*
         attr
-        
+
         fp_text reference
         fp_text value
         [fp_text user]
         """
-        
+
         # Build the header string
         header = [self.name]
         if self.locked:
             header.append('locked')
         header.append({'layer': self.layer})
         header.append({'tedit': tedit})
-        
+
         se.addItems(header, newline=False)
         se.addItems({'descr': self.description}, indent=True)
         se.addItems({'tags': self.tags})
-        
-        
+
+
         # Following items are optional (only written if non-zero)
         se.addOptItem('autoplace_cost90', self.autoplace_cost90)
         se.addOptItem('autoplace_cost180', self.autoplace_cost180)
@@ -943,41 +955,41 @@ class KicadMod(object):
         se.addOptItem('solder_paste_margin', self.solder_paste_margin)
         se.addOptItem('solder_paste_ratio', self.solder_paste_ratio)
         se.addOptItem('clearance', self.clearance)
-        
+
         # 'pth' type is assumed
         attr = self.attribute.lower()
         if attr in ['smd', 'virtual']:
             se.addItems({'attr': attr})
-        
+
         # Add text items
         self._formatText('reference', self.reference, se)
         self._formatText('value', self.value, se)
-        
+
         for text in self.userText:
             self._formatText('user', text, se)
-            
+
         # Add Line Data
         for line in self.lines:
             self._formatLine(line, se)
-            
+
         # Add Circle Data
         for circle in self.circles:
             self._formatCircle(circle, se)
-            
+
         # Add Arc Data
         for arc in self.arcs:
             self._formatArc(arc, se)
-            
+
         # Add Pad Data
         for pad in self.pads:
             self._formatPad(pad, se)
-            
+
         # Add Model Data
         for model in self.models:
             self._formatModel(model, se)
-            
+
         se.endGroup(True)
-        
+
         with open(filename, 'w') as f:
             f.write(se.output)
             f.write('\n')
