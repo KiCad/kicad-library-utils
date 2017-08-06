@@ -153,7 +153,7 @@ connector_params = {
 		num_rows = 2,
 		pin_per_row_range = pin_per_row_range,
 		symbol_name_format = 'Conn_02x{num_pins_per_row:02d}_row-letter-last',
-		pin_number_generator = lambda row_idx, pin_idx, pins_per_row:'{letter}{num:d}'.format(
+		pin_number_generator = lambda row_idx, pin_idx, pins_per_row:'{num:d}{letter}'.format(
 			letter = 'a' if row_idx == 1 else 'b', num = pin_idx),
 		description = 'Generic connector, double row, 02x{num_pins_per_row:02d}, row letter last pin numbering scheme (pin number consists of a letter for the row and a number for the pin index in this row. 1a, ..., Na; 1b, ..., Nb))',
 		keywords = 'connector',
