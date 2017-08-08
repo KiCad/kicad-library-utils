@@ -19,7 +19,6 @@ class Point():
         elif isinstance(coordinates, Point):
             self.x = coordinates.x
             self.y = coordinates.y
-            return
 
         elif type(coordinates) is dict:
             self.x = float(coordinates.get('x', 0))
@@ -31,45 +30,26 @@ class Point():
         if grid is not None:
             self.roundToGrid()
 
-    def __operatorPreperation(self, obj):
-        other_point = None
-        if type(obj) in [int, float]:
-            other_point = Point(obj, obj)
-        else:
-            other_point = Point(obj)
-        grid = self.grid
-        if other_point.grid is not None:
-            if grid is None:
-                grid = other_point.grid
-            else:
-                if other_point.grid > grid:
-                    grid = other_point.grid
-
-        return other_point, grid
-
-    def __add__(self, obj):
-        other_point, grid = self.__operatorPreperation(obj)
-        return Point({'x': self.x + other_point.x,
-                      'y': self.y + other_point.y}, grid = grid)
-
-    def __sub__(self, obj):
-        other_point, grid = self.__operatorPreperation(obj)
-        return Point({'x': self.x - other_point.x,
-                      'y': self.y - other_point.y}, grid = grid)
-
     def rotate(self, angle, origin={'x':0, 'y':0}):
         op = Point(origin)
-        temp = self-op
 
         angle = math.radians(angle)
 
-        temp.x = math.cos(angle) * temp.x - math.sin(angle) * temp.y
-        temp.y = math.sin(angle) * temp.x + math.cos(angle) * temp.y
-        return temp + op
+        self.x = op.x + math.cos(angle) * (self.x - op.x) - math.sin(angle) * (self.y - op.y)
+        self.y = op.y + math.sin(angle) * (self.x - op.x) + math.cos(angle) * (self.y - op.y)
+
 
     def translate(self, distance):
         dist = Point(distance)
-        self += dist
+        self.x += dist.x
+        self.y += dist.y
+
+
+    def mirrorHorizontal(self):
+        self.x = -self.x
+
+    def mirrorVertical(self):
+        self.y = -self.y
 
     def roundCoordinateToGrid(value, base):
     	if value >= 0:
