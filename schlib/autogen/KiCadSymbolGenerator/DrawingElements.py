@@ -76,7 +76,7 @@ class DrawingPin:
 
     def __init__(self, at, number, **kwargs):
         self.at = Point(at)
-        self.num = str(number)
+        self.num = number
         self.name = str(kwargs.get('name', self.num))
         self.unit_idx = int(kwargs.get('unit_idx', 1))
         self.deMorgan_idx = int(kwargs.get('deMorgan_idx', 1))
@@ -108,7 +108,7 @@ class DrawingPin:
         else:
             raise TypeError('orientation needs to be of type PinOrientation')
 
-    def updatePinNumber(pinnumber_update_function=lambda old_number:old_number+1,
+    def updatePinNumber(self, pinnumber_update_function=lambda old_number:old_number+1,
             pinname_update_function = lambda old_name, new_number: new_number):
         self.num = pinnumber_update_function(self.num)
         self.name = pinname_update_function(self.name, self.num)
@@ -123,7 +123,7 @@ class DrawingPin:
     def __str__(self):
         # X name pin X Y length PinOrientation sizenum sizename part dmg type shape
         return 'X {name:s} {num:s} {at:s} {pin_length:d} {orientation:s} {sizenumber:d} {sizename:d} {unit_idx:d} {deMorgan_idx:d} {el_type:s}{shape}\n'.format(
-            name = self.name, num = self.num,
+            name = self.name, num = str(self.num),
             at = self.at, pin_length = self.pin_lenght, orientation = self.orientation,
             sizenumber = self.fontsize_pinnumber, sizename = self.fontsize_pinname,
             unit_idx = self.unit_idx, deMorgan_idx = self.deMorgan_idx,
@@ -204,18 +204,18 @@ class DrawingRectangle:
         raise NotImplementedError('Rotating the rectangles is not yet implemented. Use polyline instead.')
         # return obj
 
-    def mirrorVertical(self, distance, apply_on_copy = False):
+    def mirrorVertical(self, apply_on_copy = False):
         obj = self if not apply_on_copy else deepcopy(self)
 
-        obj.start.mirrorVertical(distance)
-        obj.end.mirrorVertical(distance)
+        obj.start.mirrorVertical()
+        obj.end.mirrorVertical()
         return obj
 
-    def mirrorHorizontal(self, distance, apply_on_copy = False):
+    def mirrorHorizontal(self, apply_on_copy = False):
         obj = self if not apply_on_copy else deepcopy(self)
 
-        obj.start.mirrorHorizontal(distance)
-        obj.end.mirrorHorizontal(distance)
+        obj.start.mirrorHorizontal()
+        obj.end.mirrorHorizontal()
         return obj
 
 class DrawingPolyline:
@@ -494,7 +494,7 @@ class Drawing:
         obj.mapOnAll('mirrorVertical')
         return obj
 
-    def updatePinNumber(pinnumber_update_function=lambda x:x+1,
+    def updatePinNumber(self, pinnumber_update_function=lambda x:x+1,
             pinname_update_function = lambda old_name, new_number: new_number):
         for pin in self.pins:
             pin.updatePinNumber(pinnumber_update_function, pinname_update_function)
@@ -509,4 +509,6 @@ class DrawingArray(Drawing):
             self.append(deepcopy(original))
             original.translate(distance)
             if isinstance(original, Drawing) or isinstance(original, DrawingPin):
-                original.updatePinNumber(pinnumber_update_function, pinname_update_function)
+                original.updatePinNumber(
+                    pinnumber_update_function = pinnumber_update_function,
+                    pinname_update_function = pinname_update_function)

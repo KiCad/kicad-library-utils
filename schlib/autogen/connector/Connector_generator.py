@@ -10,7 +10,7 @@ from collections import namedtuple
 from math import sqrt
 
 ################################  Parameters ##################################
-pin_per_row_range = [2]
+pin_per_row_range = [1,2,5,10]
 
 reference_designator = 'J'
 
@@ -38,130 +38,153 @@ filter_terminal_block = ['Connector*Terminal*Block*:*']
 filter_single_row = ['Connector*:*']
 filter_dual_row = ['Connector*:*_02x*']
 
+pinname_update_function = lambda old_name, new_number: 'Pin_{}'.format(new_number)
+
 CONNECTOR = namedtuple("CONNECTOR",[
 	'num_rows',
 	'pin_per_row_range',
     'symbol_name_format',
+    'top_pin_number',
 	'pin_number_generator',
 	'description',
 	'keywords',
 	'datasheet',
 	'default_footprint',
 	'footprint_filter',
-	'graphic_type'
+	'graphic_type',
+    'mirror'
 ])
 
+num_gen_row_letter_first = lambda old_number: old_number[:1] + str(int(old_number[1:])+1)
+num_gen_row_letter_last = lambda old_number: str(int(old_number[:-1])+1) + old_number[-1:]
+
 connector_params = {
-	# 'single_row_screw' : CONNECTOR(
-	# 	num_rows = 1,
-	# 	pin_per_row_range = pin_per_row_range,
-	# 	symbol_name_format = 'Screw_Terminal_01x{num_pins_per_row:02d}',
-	# 	pin_number_generator = lambda row_idx, pin_idx, pins_per_row:(pin_idx),
-	# 	description = 'Generic screw terminal, single row, 01x{num_pins_per_row:02d}',
-	# 	keywords = 'screw terminal',
-	# 	datasheet = '', # generic symbol, no datasheet
-	# 	default_footprint = '', # generic symbol, no default footprint
-	# 	footprint_filter = filter_terminal_block,
-	# 	graphic_type = 3 # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
-	# ),
-	# 'single_row' : CONNECTOR(
-	# 	num_rows = 1,
-	# 	pin_per_row_range = pin_per_row_range,
-	# 	symbol_name_format = 'Conn_01x{num_pins_per_row:02d}',
-	# 	pin_number_generator = lambda row_idx, pin_idx, pins_per_row:(pin_idx),
-	# 	description = 'Generic connector, single row, 01x{num_pins_per_row:02d}',
-	# 	keywords = 'connector',
-	# 	datasheet = '', # generic symbol, no datasheet
-	# 	default_footprint = '', # generic symbol, no default footprint
-	# 	footprint_filter = filter_single_row,
-	# 	graphic_type = 0 # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
-	# ),
-	# 'single_row_male' : CONNECTOR(
-	# 	num_rows = 1,
-	# 	pin_per_row_range = pin_per_row_range,
-	# 	symbol_name_format = 'Conn_Male_01x{num_pins_per_row:02d}',
-	# 	pin_number_generator = lambda row_idx, pin_idx, pins_per_row:(pin_idx),
-	# 	description = 'Generic connector, single row, 01x{num_pins_per_row:02d}',
-	# 	keywords = 'connector',
-	# 	datasheet = '', # generic symbol, no datasheet
-	# 	default_footprint = '', # generic symbol, no default footprint
-	# 	footprint_filter = filter_single_row,
-	# 	graphic_type = 1 # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
-	# ),
-	# 'single_row_female' : CONNECTOR(
-	# 	num_rows = 1,
-	# 	pin_per_row_range = pin_per_row_range,
-	# 	symbol_name_format = 'Conn_Female_01x{num_pins_per_row:02d}',
-	# 	pin_number_generator = lambda row_idx, pin_idx, pins_per_row:(pin_idx),
-	# 	description = 'Generic connector, single row, 01x{num_pins_per_row:02d}',
-	# 	keywords = 'connector',
-	# 	datasheet = '', # generic symbol, no datasheet
-	# 	default_footprint = '', # generic symbol, no default footprint
-	# 	footprint_filter = filter_single_row,
-	# 	graphic_type = 2 # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
-	# ),
+	'single_row_screw' : CONNECTOR(
+		num_rows = 1,
+		pin_per_row_range = pin_per_row_range,
+		symbol_name_format = 'Screw_Terminal_01x{num_pins_per_row:02d}',
+		top_pin_number = [1],
+        pin_number_generator = [lambda old_number: old_number + 1],
+		description = 'Generic screw terminal, single row, 01x{num_pins_per_row:02d}',
+		keywords = 'screw terminal',
+		datasheet = '', # generic symbol, no datasheet
+		default_footprint = '', # generic symbol, no default footprint
+		footprint_filter = filter_terminal_block,
+		graphic_type = 3, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
+        mirror = False
+	),
+	'single_row' : CONNECTOR(
+		num_rows = 1,
+		pin_per_row_range = pin_per_row_range,
+		symbol_name_format = 'Conn_01x{num_pins_per_row:02d}',
+		top_pin_number = [1],
+        pin_number_generator = [lambda old_number: old_number + 1],
+		description = 'Generic connector, single row, 01x{num_pins_per_row:02d}',
+		keywords = 'connector',
+		datasheet = '', # generic symbol, no datasheet
+		default_footprint = '', # generic symbol, no default footprint
+		footprint_filter = filter_single_row,
+		graphic_type = 0, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
+        mirror = False
+	),
+	'single_row_male' : CONNECTOR(
+		num_rows = 1,
+		pin_per_row_range = pin_per_row_range,
+		symbol_name_format = 'Conn_Male_01x{num_pins_per_row:02d}',
+		top_pin_number = [1],
+        pin_number_generator = [lambda old_number: old_number + 1],
+		description = 'Generic connector, single row, 01x{num_pins_per_row:02d}',
+		keywords = 'connector',
+		datasheet = '', # generic symbol, no datasheet
+		default_footprint = '', # generic symbol, no default footprint
+		footprint_filter = filter_single_row,
+		graphic_type = 1, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
+        mirror = True
+	),
+	'single_row_female' : CONNECTOR(
+		num_rows = 1,
+		pin_per_row_range = pin_per_row_range,
+		symbol_name_format = 'Conn_Female_01x{num_pins_per_row:02d}',
+		top_pin_number = [1],
+        pin_number_generator = [lambda old_number: old_number + 1],
+		description = 'Generic connector, single row, 01x{num_pins_per_row:02d}',
+		keywords = 'connector',
+		datasheet = '', # generic symbol, no datasheet
+		default_footprint = '', # generic symbol, no default footprint
+		footprint_filter = filter_single_row,
+		graphic_type = 2, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
+        mirror = False
+	),
 	'dualrow_odd-even' : CONNECTOR(
 		num_rows = 2,
 		pin_per_row_range = pin_per_row_range,
-		symbol_name_format = 'Conn_02x{num_pins_per_row:02d}_odd-even',
-		pin_number_generator = lambda row_idx, pin_idx, pins_per_row:(2*pin_idx if row_idx == 2 else 2*pin_idx - 1),
+		symbol_name_format = 'Conn_02x{num_pins_per_row:02d}_Odd_Even',
+        top_pin_number = [1, lambda num_pin_per_row: 2],
+		pin_number_generator = [lambda old_number: old_number + 2, lambda old_number: old_number + 2],
 		description = 'Generic connector, double row, 02x{num_pins_per_row:02d}, odd/even pin numbering scheme (row 1 odd numbers, row 2 even numbers)',
 		keywords = 'connector',
 		datasheet = '', # generic symbol, no datasheet
 		default_footprint = '', # generic symbol, no default footprint
 		footprint_filter = filter_dual_row,
-		graphic_type = 0 # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
+		graphic_type = 0, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
+        mirror = False
 	),
-	# 'dualrow_counter-clockwise' : CONNECTOR(
-	# 	num_rows = 2,
-	# 	pin_per_row_range = pin_per_row_range,
-	# 	symbol_name_format = 'Conn_02x{num_pins_per_row:02d}_counter-clockwise',
-	# 	pin_number_generator = lambda row_idx, pin_idx, pins_per_row:(pin_idx if row_idx == 1 else 2*pins_per_row - (pin_idx - 1)),
-	# 	description = 'Generic connector, double row, 02x{num_pins_per_row:02d}, counter clockwise pin numbering scheme (similar to DIP packge numbering)',
-	# 	keywords = 'connector',
-	# 	datasheet = '', # generic symbol, no datasheet
-	# 	default_footprint = '', # generic symbol, no default footprint
-	# 	footprint_filter = filter_dual_row,
-	# 	graphic_type = 0 # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
-	# ),
-	# 'dualrow_top-bottom' : CONNECTOR(
-	# 	num_rows = 2,
-	# 	pin_per_row_range = pin_per_row_range,
-	# 	symbol_name_format = 'Conn_02x{num_pins_per_row:02d}_top-bottom',
-	# 	pin_number_generator = lambda row_idx, pin_idx, pins_per_row:(pin_idx if row_idx == 1 else pins_per_row + pin_idx),
-	# 	description = 'Generic connector, double row, 02x{num_pins_per_row:02d}, top/bottom pin numbering scheme (row 1: 1...pins_per_row, row2: pins_per_row+1 ... num_pins)',
-	# 	keywords = 'connector',
-	# 	datasheet = '', # generic symbol, no datasheet
-	# 	default_footprint = '', # generic symbol, no default footprint
-	# 	footprint_filter = filter_dual_row,
-	# 	graphic_type = 0 # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
-	# ),
-	# 'conn_02xPP_row-letter-first' : CONNECTOR(
-	# 	num_rows = 2,
-	# 	pin_per_row_range = pin_per_row_range,
-	# 	symbol_name_format = 'Conn_02x{num_pins_per_row:02d}_row-letter-first',
-	# 	pin_number_generator = lambda row_idx, pin_idx, pins_per_row:'{letter}{num:d}'.format(
-	# 		letter = 'a' if row_idx == 1 else 'b', num = pin_idx),
-	# 	description = 'Generic connector, double row, 02x{num_pins_per_row:02d}, row letter first pin numbering scheme (pin number consists of a letter for the row and a number for the pin index in this row. a1, ..., aN; b1, ..., bN)',
-	# 	keywords = 'connector',
-	# 	datasheet = '', # generic symbol, no datasheet
-	# 	default_footprint = '', # generic symbol, no default footprint
-	# 	footprint_filter = filter_dual_row,
-	# 	graphic_type = 0 # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
-	# ),
-	# 'conn_02xPP_row-letter-last' : CONNECTOR(
-	# 	num_rows = 2,
-	# 	pin_per_row_range = pin_per_row_range,
-	# 	symbol_name_format = 'Conn_02x{num_pins_per_row:02d}_row-letter-last',
-	# 	pin_number_generator = lambda row_idx, pin_idx, pins_per_row:'{num:d}{letter}'.format(
-	# 		letter = 'a' if row_idx == 1 else 'b', num = pin_idx),
-	# 	description = 'Generic connector, double row, 02x{num_pins_per_row:02d}, row letter last pin numbering scheme (pin number consists of a letter for the row and a number for the pin index in this row. 1a, ..., Na; 1b, ..., Nb))',
-	# 	keywords = 'connector',
-	# 	datasheet = '', # generic symbol, no datasheet
-	# 	default_footprint = '', # generic symbol, no default footprint
-	# 	footprint_filter = filter_dual_row,
-	# 	graphic_type = 0 # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
-	# )
+	'dualrow_counter-clockwise' : CONNECTOR(
+		num_rows = 2,
+		pin_per_row_range = pin_per_row_range,
+		symbol_name_format = 'Conn_02x{num_pins_per_row:02d}_Counter_Clockwise',
+		top_pin_number = [1, lambda num_pin_per_row: 2*num_pin_per_row],
+		pin_number_generator = [lambda old_number: old_number + 1, lambda old_number: old_number -1],
+		description = 'Generic connector, double row, 02x{num_pins_per_row:02d}, counter clockwise pin numbering scheme (similar to DIP packge numbering)',
+		keywords = 'connector',
+		datasheet = '', # generic symbol, no datasheet
+		default_footprint = '', # generic symbol, no default footprint
+		footprint_filter = filter_dual_row,
+		graphic_type = 0, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
+        mirror = False
+	),
+	'dualrow_top-bottom' : CONNECTOR(
+		num_rows = 2,
+		pin_per_row_range = pin_per_row_range,
+		symbol_name_format = 'Conn_02x{num_pins_per_row:02d}_Top_Bottom',
+		top_pin_number = [1, lambda num_pin_per_row: num_pin_per_row + 1],
+		pin_number_generator = [lambda old_number: old_number + 1, lambda old_number: old_number +1],
+		description = 'Generic connector, double row, 02x{num_pins_per_row:02d}, top/bottom pin numbering scheme (row 1: 1...pins_per_row, row2: pins_per_row+1 ... num_pins)',
+		keywords = 'connector',
+		datasheet = '', # generic symbol, no datasheet
+		default_footprint = '', # generic symbol, no default footprint
+		footprint_filter = filter_dual_row,
+		graphic_type = 0, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
+        mirror = False
+	),
+	'conn_02xPP_row-letter-first' : CONNECTOR(
+		num_rows = 2,
+		pin_per_row_range = pin_per_row_range,
+		symbol_name_format = 'Conn_02x{num_pins_per_row:02d}_Row_Letter_First',
+		top_pin_number = ['a1', lambda num_pin_per_row: 'b1'],
+		pin_number_generator = [num_gen_row_letter_first, num_gen_row_letter_first],
+		description = 'Generic connector, double row, 02x{num_pins_per_row:02d}, row letter first pin numbering scheme (pin number consists of a letter for the row and a number for the pin index in this row. a1, ..., aN; b1, ..., bN)',
+		keywords = 'connector',
+		datasheet = '', # generic symbol, no datasheet
+		default_footprint = '', # generic symbol, no default footprint
+		footprint_filter = filter_dual_row,
+		graphic_type = 0, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
+        mirror = False
+	),
+	'conn_02xPP_row-letter-last' : CONNECTOR(
+		num_rows = 2,
+		pin_per_row_range = pin_per_row_range,
+		symbol_name_format = 'Conn_02x{num_pins_per_row:02d}_Row_Letter_Last',
+		top_pin_number = ['1a', lambda num_pin_per_row: '1b'],
+		pin_number_generator = [num_gen_row_letter_last, num_gen_row_letter_last],
+		description = 'Generic connector, double row, 02x{num_pins_per_row:02d}, row letter last pin numbering scheme (pin number consists of a letter for the row and a number for the pin index in this row. 1a, ..., Na; 1b, ..., Nb))',
+		keywords = 'connector',
+		datasheet = '', # generic symbol, no datasheet
+		default_footprint = '', # generic symbol, no default footprint
+		footprint_filter = filter_dual_row,
+		graphic_type = 0, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
+        mirror = False
+	)
 }
 
 def innerArtwork(type=0):
@@ -202,8 +225,9 @@ def innerArtwork(type=0):
             line_width = inner_graphics_line_width
             ))
     if type == 3:
+        center =  Point({'x': body_width_per_row//2, 'y':0})
         artwork.append(DrawingCircle(
-            at = Point({'x': inner_graphic_width/2, 'y':0}),
+            at = center,
             radius = inner_graphic_screw_radius,
             line_width = inner_graphics_line_width
             ))
@@ -211,7 +235,7 @@ def innerArtwork(type=0):
         p_slit_1 = Point({
             'x':inner_graphic_screw_slit_width//2,
             'y':int(sqrt(inner_graphic_screw_radius**2 - (inner_graphic_screw_slit_width/2)**2))
-            }).translate({'x': inner_graphic_width/2, 'y':0})
+            }).translate({'x': center.x, 'y':0})
         line1 = DrawingPolyline(
             points = [p_slit_1, p_slit_1.mirrorVertical(apply_on_copy = True)],
             line_width = inner_graphics_line_width
@@ -221,7 +245,7 @@ def innerArtwork(type=0):
             distance={'x':-inner_graphic_screw_slit_width, 'y':0},
             apply_on_copy = True
             ))
-        artwork.rotate(angle = 45, origin = {'x': inner_graphic_width/2, 'y':0})
+        artwork.rotate(angle = 45, origin = center)
         #artwork.rotate(angle = 45)
     return artwork
 
@@ -230,7 +254,14 @@ def generateSingleSymbol(generator, series_params, num_pins_per_row):
     symbol_name = series_params.symbol_name_format.format(num_pins_per_row=num_pins_per_row)
     current_symbol = generator.addSymbol(
         symbol_name, footprint_filter = series_params.footprint_filter,
-        pin_name_visibility = Symbol.PinMarkerVisibility.INVISIBLE)
+        pin_name_visibility = Symbol.PinMarkerVisibility.INVISIBLE,
+        dcm_options = {
+        'description':series_params.description,
+        'keywords':series_params.keywords,
+        'datasheet':series_params.datasheet
+        })
+
+
 
     ########################## reference points ################################
     top_left_pin_position = Point({
@@ -249,7 +280,7 @@ def generateSingleSymbol(generator, series_params, num_pins_per_row):
         'y': pin_spacing_y/2
         }, apply_on_copy = True, new_grid = None)
 
-    body_width = pin_spacing_y * num_pins_per_row
+    body_width = pin_spacing_y * series_params.num_rows
     body_bottom_right_corner = body_top_left_corner.translate({
         'x': body_width,
         'y': -pin_spacing_y * num_pins_per_row
@@ -264,15 +295,59 @@ def generateSingleSymbol(generator, series_params, num_pins_per_row):
     current_symbol.setValue(at = value_pos, fontsize = ref_fontsize)
 
     ############################ artwork #################################
-    artwork = current_symbol.drawing
+    drawing = current_symbol.drawing
 
-    artwork.append(DrawingRectangle(
+    drawing.append(DrawingRectangle(
         start=body_top_left_corner, end=body_bottom_right_corner,
         line_width = body_outline_line_width, fill = body_fill))
 
-    inner_artwork = innerArtwork(series_params.graphic_type)
-    artwork.append(inner_artwork)
+    repeated_drawing = [innerArtwork(series_params.graphic_type)]
 
+    if series_params.num_rows == 2:
+        repeated_drawing.append(repeated_drawing[0]\
+            .mirrorHorizontal(apply_on_copy = True)\
+            .translate({'x':body_bottom_right_corner.x,'y':top_right_pin_position.y}))
+    repeated_drawing[0].translate({'x':body_top_left_corner.x,'y':top_left_pin_position.y})
+
+    pin_number_0 = series_params.top_pin_number[0]
+    pin_name_0 = pinname_update_function(None, pin_number_0)
+    repeated_drawing[0].append(DrawingPin(
+        at=top_left_pin_position,
+        number = pin_number_0, name = pin_name_0,
+        pin_lenght = pin_lenght,
+        orientation = DrawingPin.PinOrientation.RIGHT
+        ))
+
+    if series_params.num_rows == 2:
+        pin_number_1 = series_params.top_pin_number[1](num_pins_per_row)
+        pin_name_1 = pinname_update_function(None, pin_number_1)
+        repeated_drawing[1].append(DrawingPin(
+            at = top_right_pin_position,
+            number = pin_number_1, name = pin_name_1,
+            pin_lenght = pin_lenght,
+            orientation = DrawingPin.PinOrientation.LEFT
+            ))
+
+
+    drawing.append(DrawingArray(
+        original = repeated_drawing[0],
+        distance = {'x':0, 'y':-pin_spacing_y},
+        number_of_instances = num_pins_per_row,
+        pinnumber_update_function = series_params.pin_number_generator[0],
+        pinname_update_function = pinname_update_function
+        ))
+
+    if series_params.num_rows == 2:
+        drawing.append(DrawingArray(
+            original = repeated_drawing[1],
+            distance = {'x':0, 'y':-pin_spacing_y},
+            number_of_instances = num_pins_per_row,
+            pinnumber_update_function = series_params.pin_number_generator[1],
+            pinname_update_function = pinname_update_function
+            ))
+
+    if series_params.mirror:
+        drawing.mirrorHorizontal()
 
 if __name__ == '__main__':
     generator = SymbolGenerator('conn_new')
