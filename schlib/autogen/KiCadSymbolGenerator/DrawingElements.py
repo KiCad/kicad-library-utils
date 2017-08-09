@@ -1,7 +1,25 @@
+# KiCadSymbolGenerator ia part of the kicad-library-utils script collection.
+# It is free software: you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# KiCadSymbolGenerator is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with kicad-library-utils. If not, see < http://www.gnu.org/licenses/ >.
+#
+# (C) 2017 by Rene Poeschl
+
+# Library format description
 # https://www.compuphase.com/electronics/LibraryFileFormats.pdf
 
 from enum import Enum
-from Point import Point
+from KiCadSymbolGenerator.Point import Point
+from copy import deepcopy
 
 class ElementFill(Enum):
     NO_FILL = 'N'
@@ -10,6 +28,7 @@ class ElementFill(Enum):
 
     def __str__(self):
         return self.value
+
 
 class DrawingPin:
     class PinOrientation(Enum):
@@ -106,11 +125,16 @@ class DrawingPin:
             el_type = self.el_type, shape = self.__pinShapeRender()
         )
 
-    def translate(self, distance):
-        self.at.translate(distance)
+    def translate(self, distance, apply_on_copy = False):
+        obj = self if not apply_on_copy else deepcopy(self)
+        obj.at.translate(distance)
+        return obj
 
-    def rotate(self, angle, origin = {'x':0, 'y':0}, rotate_pin_orientation = False):
-        self.at.rotate(angle = angle, origin = origin)
+    def rotate(self, angle, origin = {'x':0, 'y':0}, rotate_pin_orientation = False,
+            apply_on_copy = False):
+        obj = self if not apply_on_copy else deepcopy(self)
+
+        obj.at.rotate(angle = angle, origin = origin)
         if rotate_pin_orientation:
             raise NotImplementedError('Rotating the pin orientation is not yet implemented')
             #ToDo: Implement
@@ -118,20 +142,27 @@ class DrawingPin:
             # needed around it. (can only be rotaded in steps of 90 degree)
             # determine new pin orientation and translate end point such that base point is
             # still at the same place.
+        return obj
 
-    def mirrorHorizontal(self):
-        if self.orientation is DrawingPin.PinOrientation.LEFT:
-            self.orientation = DrawingPin.PinOrientation.RIGHT
-        elif self.orientation is DrawingPin.PinOrientation.RIGHT:
-            self.orientation = DrawingPin.PinOrientation.LEFT
-        self.at.mirrorHorizontal()
+    def mirrorHorizontal(self, apply_on_copy = False):
+        obj = self if not apply_on_copy else deepcopy(self)
 
-    def mirrorVertical(self):
-        if self.orientation is DrawingPin.PinOrientation.UP:
-            self.orientation = DrawingPin.PinOrientation.DOWN
-        elif self.orientation is DrawingPin.PinOrientation.DOWN:
-            self.orientation = DrawingPin.PinOrientation.UP
-        self.at.mirrorVertical()
+        if obj.orientation is DrawingPin.PinOrientation.LEFT:
+            obj.orientation = DrawingPin.PinOrientation.RIGHT
+        elif obj.orientation is DrawingPin.PinOrientation.RIGHT:
+            obj.orientation = DrawingPin.PinOrientation.LEFT
+        obj.at.mirrorHorizontal()
+        return obj
+
+    def mirrorVertical(self, apply_on_copy = False):
+        obj = self if not apply_on_copy else deepcopy(self)
+
+        if obj.orientation is DrawingPin.PinOrientation.UP:
+            obj.orientation = DrawingPin.PinOrientation.DOWN
+        elif obj.orientation is DrawingPin.PinOrientation.DOWN:
+            obj.orientation = DrawingPin.PinOrientation.UP
+        obj.at.mirrorVertical()
+        return obj
 
 class DrawingRectangle:
     def __init__(self, start, end, **kwargs):
@@ -155,23 +186,32 @@ class DrawingRectangle:
             line_width = self.line_width, fill = self.fill
         )
 
-    def translate(self, distance):
-        print("rectangle_translate {:s}\n".format(str(distance)))
-        print(str(self))
-        self.start.translate(distance)
-        self.end.translate(distance)
-        print(str(self))
+    def translate(self, distance, apply_on_copy = False):
+        obj = self if not apply_on_copy else deepcopy(self)
 
-    def rotate(self, angle, origin = {'x':0, 'y':0}):
+        obj.start.translate(distance)
+        obj.end.translate(distance)
+        return obj
+
+    def rotate(self, angle, origin = {'x':0, 'y':0}, apply_on_copy = False):
+        # obj = self if not apply_on_copy else deepcopy(self)
+
         raise NotImplementedError('Rotating the rectangles is not yet implemented. Use polyline instead.')
+        # return obj
 
-    def mirrorVertical(self, distance):
-        self.start.mirrorVertical(distance)
-        self.end.mirrorVertical(distance)
+    def mirrorVertical(self, distance, apply_on_copy = False):
+        obj = self if not apply_on_copy else deepcopy(self)
 
-    def mirrorHorizontal(self, distance):
-        self.start.mirrorHorizontal(distance)
-        self.end.mirrorHorizontal(distance)
+        obj.start.mirrorVertical(distance)
+        obj.end.mirrorVertical(distance)
+        return obj
+
+    def mirrorHorizontal(self, distance, apply_on_copy = False):
+        obj = self if not apply_on_copy else deepcopy(self)
+
+        obj.start.mirrorHorizontal(distance)
+        obj.end.mirrorHorizontal(distance)
+        return obj
 
 class DrawingPolyline:
     def __init__(self, points, **kwargs):
@@ -200,21 +240,33 @@ class DrawingPolyline:
             fill = self.fill
         )
 
-    def translate(self, distance):
-        for point in self.points:
+    def translate(self, distance, apply_on_copy = False):
+        obj = self if not apply_on_copy else deepcopy(self)
+
+        for point in obj.points:
             point.translate(distance)
+        return obj
 
-    def rotate(self, angle, origin = {'x':0, 'y':0}):
-        for point in self.points:
+    def rotate(self, angle, origin = {'x':0, 'y':0}, apply_on_copy = False):
+        obj = self if not apply_on_copy else deepcopy(self)
+
+        for point in obj.points:
             point.rotate(angle, origin)
+        return obj
 
-    def mirrorHorizontal(self):
-        for point in self.points:
+    def mirrorHorizontal(self, apply_on_copy = False):
+        obj = self if not apply_on_copy else deepcopy(self)
+
+        for point in obj.points:
             point.mirrorHorizontal()
+        return obj
 
-    def mirrorVertical(self):
-        for point in self.points:
+    def mirrorVertical(self, apply_on_copy = False):
+        obj = self if not apply_on_copy else deepcopy(self)
+
+        for point in obj.points:
             point.mirrorVertical()
+        return obj
 
 class DrawingArc:
     def __init__(self, at, radius, angle_start, angle_end, **kwargs):
@@ -245,19 +297,31 @@ class DrawingArc:
             p_start = start, p_end = end
         )
 
-    def translate(self, distance):
-        self.start.translate(distance)
-        self.end.translate(distance)
-        self.at.translate(distance)
+    def translate(self, distance, apply_on_copy = False):
+        obj = self if not apply_on_copy else deepcopy(self)
 
-    def rotate(self, angle, origin = {'x':0, 'y':0}):
+        obj.start.translate(distance)
+        obj.end.translate(distance)
+        obj.at.translate(distance)
+        return obj
+
+    def rotate(self, angle, origin = {'x':0, 'y':0}, apply_on_copy = False):
+        # obj = self if not apply_on_copy else deepcopy(self)
+
         raise NotImplementedError('Rotating arcs is not yet implementd')
+        # return obj
 
-    def mirrorHorizontal(self):
-        raise NotImplementedError('Mirroring arcs is not yet implementd')
+    def mirrorHorizontal(self, apply_on_copy = False):
+        # obj = self if not apply_on_copy else deepcopy(self)
 
-    def mirrorVertical(self):
         raise NotImplementedError('Mirroring arcs is not yet implementd')
+        # return obj
+
+    def mirrorVertical(self, apply_on_copy = False):
+        # obj = self if not apply_on_copy else deepcopy(self)
+
+        raise NotImplementedError('Mirroring arcs is not yet implementd')
+        # return obj
 
 class DrawingCircle:
     def __init__(self, at, radius, **kwargs):
@@ -282,17 +346,29 @@ class DrawingCircle:
             fill = self.fill
         )
 
-    def translate(self, distance):
-        self.at.translate(distance)
+    def translate(self, distance, apply_on_copy = False):
+        obj = self if not apply_on_copy else deepcopy(self)
 
-    def rotate(self, angle, origin = {'x':0, 'y':0}):
-        self.at.rotate(angle, origin)
+        obj.at.translate(distance)
+        return obj
 
-    def mirrorHorizontal(self):
-        self.at.mirrorHorizontal()
+    def rotate(self, angle, origin = {'x':0, 'y':0}, apply_on_copy = False):
+        obj = self if not apply_on_copy else deepcopy(self)
 
-    def mirrorVertical(self):
-        self.at.mirrorVertical()
+        obj.at.rotate(angle, origin)
+        return obj
+
+    def mirrorHorizontal(self, apply_on_copy = False):
+        obj = self if not apply_on_copy else deepcopy(self)
+
+        obj.at.mirrorHorizontal()
+        return obj
+
+    def mirrorVertical(self, apply_on_copy = False):
+        obj = self if not apply_on_copy else deepcopy(self)
+
+        obj.at.mirrorVertical()
+        return obj
 
 class Drawing:
     def __init__(self):
@@ -365,14 +441,26 @@ class Drawing:
             fp = getattr(element, function)
             fp(**kwargs)
 
-    def translate(self, distance):
-        self.mapOnAll('translate', distance=distance)
+    def translate(self, distance, apply_on_copy = False):
+        obj = self if not apply_on_copy else deepcopy(self)
 
-    def rotate(self, angle, origin = {'x':0, 'y':0}):
-        self.mapOnAll('rotate', angle = angle, origin = origin)
+        obj.mapOnAll('translate', distance=distance)
+        return obj
 
-    def mirrorHorizontal(self):
-        self.mapOnAll('mirrorHorizontal')
+    def rotate(self, angle, origin = {'x':0, 'y':0}, apply_on_copy = False):
+        obj = self if not apply_on_copy else deepcopy(self)
 
-    def mirrorVertical(self):
-        self.mapOnAll('mirrorVertical')
+        obj.mapOnAll('rotate', angle = angle, origin = origin)
+        return obj
+
+    def mirrorHorizontal(self, apply_on_copy = False):
+        obj = self if not apply_on_copy else deepcopy(self)
+
+        obj.mapOnAll('mirrorHorizontal')
+        return obj
+
+    def mirrorVertical(self, apply_on_copy = False):
+        obj = self if not apply_on_copy else deepcopy(self)
+
+        obj.mapOnAll('mirrorVertical')
+        return obj

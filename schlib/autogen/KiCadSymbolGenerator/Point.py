@@ -1,4 +1,21 @@
+# KiCadSymbolGenerator ia part of the kicad-library-utils script collection.
+# It is free software: you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# KiCadSymbolGenerator is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with kicad-library-utils. If not, see < http://www.gnu.org/licenses/ >.
+#
+# (C) 2017 by Rene Poeschl
+
 import math
+from copy import copy
 
 class Point():
     def __init__(self, coordinates=None, y=None, grid = None, distance = None, angle = None):
@@ -30,28 +47,40 @@ class Point():
         if grid is not None:
             self.roundToGrid()
 
-    def rotate(self, angle, origin={'x':0, 'y':0}):
+    def rotate(self, angle, origin={'x':0, 'y':0}, apply_on_copy = False):
+        obj = self if not apply_on_copy else copy(self)
+
         op = Point(origin)
 
         angle = math.radians(angle)
 
-        self.x = op.x + math.cos(angle) * (self.x - op.x) - math.sin(angle) * (self.y - op.y)
-        self.y = op.y + math.sin(angle) * (self.x - op.x) + math.cos(angle) * (self.y - op.y)
+        obj.x = op.x + math.cos(angle) * (obj.x - op.x) - math.sin(angle) * (obj.y - op.y)
+        obj.y = op.y + math.sin(angle) * (obj.x - op.x) + math.cos(angle) * (obj.y - op.y)
+        return obj
 
 
-    def translate(self, distance):
+    def translate(self, distance, apply_on_copy = False):
+        obj = self if not apply_on_copy else copy(self)
+
         dist = Point(distance)
-        self.x += dist.x
-        self.y += dist.y
+        obj.x += dist.x
+        obj.y += dist.y
+        return obj
 
 
-    def mirrorHorizontal(self):
-        self.x = -self.x
+    def mirrorHorizontal(self, apply_on_copy = False):
+        obj = self if not apply_on_copy else copy(self)
 
-    def mirrorVertical(self):
-        self.y = -self.y
+        obj.x = -obj.x
+        return obj
 
-    def roundCoordinateToGrid(value, base):
+    def mirrorVertical(self, apply_on_copy = False):
+        obj = self if not apply_on_copy else copy(self)
+
+        obj.y = -obj.y
+        return obj
+
+    def roundCoordinateToGrid(value, base, apply_on_copy = False):
     	if value >= 0:
     		return math.floor(value/base) * base
     	return math.ceil(value/base) * base
