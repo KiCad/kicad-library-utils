@@ -21,15 +21,15 @@ class Point():
     def __init__(self, coordinates=None, y=None, grid = None, distance = None, angle = None):
         if distance is not None and angle is not None:
             angle = math.radians(angle)
-            self.x = int(distance*math.cos(angle))
-            self.y = int(distance*math.sin(angle))
+            self.x = int(round(distance*math.cos(angle)))
+            self.y = int(round(distance*math.sin(angle)))
         elif coordinates is None:
             self.x = 0
             self.y = 0
         elif type(coordinates) in [int, float]:
             if y is not None:
-                self.x = coordinates
-                self.y = y
+                self.x = int(coordinates)
+                self.y = int(y)
             else:
                 raise TypeError('you have to give x and y coordinates')
 
@@ -38,8 +38,8 @@ class Point():
             self.y = coordinates.y
 
         elif type(coordinates) is dict:
-            self.x = float(coordinates.get('x', 0))
-            self.y = float(coordinates.get('y', 0))
+            self.x = int(coordinates.get('x', 0))
+            self.y = int(coordinates.get('y', 0))
         else:
             TypeError('unsuported type, Must be dict, point or coordinates given as number')
 
@@ -47,38 +47,52 @@ class Point():
         if grid is not None:
             self.roundToGrid()
 
-    def rotate(self, angle, origin={'x':0, 'y':0}, apply_on_copy = False):
-        obj = self if not apply_on_copy else copy(self)
+    def rotate(self, angle, origin={'x':0, 'y':0}, **kwargs):
+        point = self if not kwargs.get('apply_on_copy', False) else copy(self)
+        point.grid = kwargs.get('new_grid', point.grid)
 
         op = Point(origin)
 
         angle = math.radians(angle)
 
-        obj.x = op.x + math.cos(angle) * (obj.x - op.x) - math.sin(angle) * (obj.y - op.y)
-        obj.y = op.y + math.sin(angle) * (obj.x - op.x) + math.cos(angle) * (obj.y - op.y)
-        return obj
+        temp = int(op.x + math.cos(angle) * (point.x - op.x) - math.sin(angle) * (point.y - op.y))
+        point.y = int(op.y + math.sin(angle) * (point.x - op.x) + math.cos(angle) * (point.y - op.y))
+        point.x = temp
+
+        if point.grid is not None:
+            point.roundToGrid()
+        return point
 
 
-    def translate(self, distance, apply_on_copy = False):
-        obj = self if not apply_on_copy else copy(self)
+    def translate(self, distance, **kwargs):
+        point = self if not kwargs.get('apply_on_copy', False) else copy(self)
+        point.grid = kwargs.get('new_grid', point.grid)
 
         dist = Point(distance)
-        obj.x += dist.x
-        obj.y += dist.y
-        return obj
+        point.x += dist.x
+        point.y += dist.y
+        if point.grid is not None:
+            point.roundToGrid()
+        return point
 
 
-    def mirrorHorizontal(self, apply_on_copy = False):
-        obj = self if not apply_on_copy else copy(self)
+    def mirrorHorizontal(self, **kwargs):
+        point = self if not kwargs.get('apply_on_copy', False) else copy(self)
+        point.grid = kwargs.get('new_grid', point.grid)
 
-        obj.x = -obj.x
-        return obj
+        point.x = -point.x
+        if point.grid is not None:
+            point.roundToGrid()
+        return point
 
-    def mirrorVertical(self, apply_on_copy = False):
-        obj = self if not apply_on_copy else copy(self)
+    def mirrorVertical(self, **kwargs):
+        point = self if not kwargs.get('apply_on_copy', False) else copy(self)
+        point.grid = kwargs.get('new_grid', point.grid)
 
-        obj.y = -obj.y
-        return obj
+        point.y = -point.y
+        if point.grid is not None:
+            point.roundToGrid()
+        return point
 
     def roundCoordinateToGrid(value, base, apply_on_copy = False):
     	if value >= 0:

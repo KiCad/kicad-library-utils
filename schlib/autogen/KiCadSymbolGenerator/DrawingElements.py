@@ -108,6 +108,11 @@ class DrawingPin:
         else:
             raise TypeError('orientation needs to be of type PinOrientation')
 
+    def updatePinNumber(pinnumber_update_function=lambda old_number:old_number+1,
+            pinname_update_function = lambda old_name, new_number: new_number):
+        self.num = pinnumber_update_function(self.num)
+        self.name = pinname_update_function(self.name, self.num)
+
     def __pinShapeRender(self):
         if self.visiblility is DrawingPin.PinVisibility.INVISIBLE or self.style is not DrawingPin.PinStyle.SHAPE_LINE:
             return ' {visiblility:s}{style:s}'.format(
@@ -233,11 +238,11 @@ class DrawingPolyline:
 
     def __str__(self):
         # P count part dmg pen X Y ... fill
-        return 'P {count:d} {unit_idx:d} {deMorgan_idx:d} {points:s} {fill:s}\n'.format(
+        return 'P {count:d} {unit_idx:d} {deMorgan_idx:d} {line_width} {points:s} {fill:s}\n'.format(
             count = len(self.points),
             unit_idx = self.unit_idx, deMorgan_idx = self.deMorgan_idx,
             points = ' '.join(map(str, self.points)),
-            fill = self.fill
+            fill = self.fill, line_width = self.line_width
         )
 
     def translate(self, distance, apply_on_copy = False):
@@ -269,11 +274,32 @@ class DrawingPolyline:
         return obj
 
 class DrawingArc:
+    def __normalizeAngle(angle):
+        angle = angle % 3600
+        if angle > 1800:
+            return angle - 3600
+        if angle <= -1800:
+            return 3600 + angle
+        return angle
+
+    def __ensureUniqueDrawing(self):
+        if abs(self.angle_start - self.angle_end) == 1800:
+            if self.angle_start > 0:
+                self.angle_start -= 1
+            else:
+                self.angle_start += 1
+
+            if self.angle_end > 0:
+                self.angle_end -= 1
+            else:
+                self.angle_end += 1
+
     def __init__(self, at, radius, angle_start, angle_end, **kwargs):
         self.at = Point(at)
         self.radius = int(radius)
-        self.angle_start = int(angle_start)
-        self.angle_end = int(angle_end)
+        self.angle_start = DrawingArc.__normalizeAngle(int(angle_start))
+        self.angle_end = DrawingArc.__normalizeAngle(int(angle_end))
+        self.__ensureUniqueDrawing()
 
         self.unit_idx = int(kwargs.get('unit_idx', 1))
         self.deMorgan_idx = int(kwargs.get('deMorgan_idx', 1))
@@ -287,21 +313,19 @@ class DrawingArc:
 
     def __str__(self):
         # A X Y radius start end part dmg pen fill Xstart Ystart Xend Yend
-        start = Point(distance = self.radius, angle = self.angle_start/10)
-        end = Point(distance = self.radius, angle = self.angle_end/10)
+        start = Point(distance = self.radius, angle = self.angle_start/10).translate(self.at)
+        end = Point(distance = self.radius, angle = self.angle_end/10).translate(self.at)
         return 'A {cp:s} {r:d} {angle_start:d} {angle_end:d} {unit_idx:d} {deMorgan_idx:d} {line_width:d} {fill:s} {p_start:s} {p_end:s}\n'.format(
             cp = self.at, r = self.radius,
             angle_start = self.angle_start, angle_end = self.angle_end,
             unit_idx = self.unit_idx, deMorgan_idx = self.deMorgan_idx,
-            fill = self.fill,
+            fill = self.fill, line_width = self.line_width,
             p_start = start, p_end = end
         )
 
     def translate(self, distance, apply_on_copy = False):
         obj = self if not apply_on_copy else deepcopy(self)
 
-        obj.start.translate(distance)
-        obj.end.translate(distance)
         obj.at.translate(distance)
         return obj
 
@@ -311,17 +335,22 @@ class DrawingArc:
         raise NotImplementedError('Rotating arcs is not yet implementd')
         # return obj
 
-    def mirrorHorizontal(self, apply_on_copy = False):
-        # obj = self if not apply_on_copy else deepcopy(self)
+    def __mirrorAngleHorizontal(angle):
+        if angle >= 0:
+            return 1800 - angle
+        return -1800 - angle
 
-        raise NotImplementedError('Mirroring arcs is not yet implementd')
-        # return obj
+    def mirrorHorizontal(self, apply_on_copy = False):
+        obj = self if not apply_on_copy else deepcopy(self)
+        obj.angle_start = DrawingArc.__mirrorAngleHorizontal(obj.angle_start)
+        obj.angle_end = DrawingArc.__mirrorAngleHorizontal(obj.angle_end)
+        return obj
 
     def mirrorVertical(self, apply_on_copy = False):
-        # obj = self if not apply_on_copy else deepcopy(self)
-
-        raise NotImplementedError('Mirroring arcs is not yet implementd')
-        # return obj
+        obj = self if not apply_on_copy else deepcopy(self)
+        obj.angle_start *= -1
+        obj.angle_end *= -1
+        return obj
 
 class DrawingCircle:
     def __init__(self, at, radius, **kwargs):
@@ -343,7 +372,7 @@ class DrawingCircle:
         return 'C {cp:s} {r:d} {unit_idx:d} {deMorgan_idx:d} {line_width:d} {fill:s}\n'.format(
             cp = self.at, r = self.radius,
             unit_idx = self.unit_idx, deMorgan_idx = self.deMorgan_idx,
-            fill = self.fill
+            fill = self.fill, line_width = self.line_width
         )
 
     def translate(self, distance, apply_on_copy = False):
@@ -406,7 +435,7 @@ class Drawing:
         elif isinstance(obj, DrawingCircle):
             self.circle.append(obj)
         elif isinstance(obj, Drawing):
-            __appendDrawing(obj)
+            self.__appendDrawing(obj)
         else:
             TypeError('trying to append an illegal type to Drawing. Maybe something is not yet implemented.')
 
@@ -464,3 +493,20 @@ class Drawing:
 
         obj.mapOnAll('mirrorVertical')
         return obj
+
+    def updatePinNumber(pinnumber_update_function=lambda x:x+1,
+            pinname_update_function = lambda old_name, new_number: new_number):
+        for pin in self.pins:
+            pin.updatePinNumber(pinnumber_update_function, pinname_update_function)
+
+
+class DrawingArray(Drawing):
+    def __init__(self, original, distance, number_of_instances,
+        pinnumber_update_function=lambda x:x+1,
+        pinname_update_function = lambda old_name, new_number: new_number):
+        Drawing.__init__(self)
+        for i in range(number_of_instances):
+            self.append(deepcopy(original))
+            original.translate(distance)
+            if isinstance(original, Drawing) or isinstance(original, DrawingPin):
+                original.updatePinNumber(pinnumber_update_function, pinname_update_function)
