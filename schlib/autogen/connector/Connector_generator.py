@@ -8,9 +8,11 @@ from KiCadSymbolGenerator import *
 
 from collections import namedtuple
 from math import sqrt
+import re, fnmatch
 
 ################################  Parameters ##################################
-pin_per_row_range = [1,2,5,10]
+pin_per_row_range = range(1,41)
+pin_per_row_range_screw = range(1,21)
 
 reference_designator = 'J'
 
@@ -61,7 +63,7 @@ num_gen_row_letter_last = lambda old_number: str(int(old_number[:-1])+1) + old_n
 connector_params = {
 	'single_row_screw' : CONNECTOR(
 		num_rows = 1,
-		pin_per_row_range = pin_per_row_range,
+		pin_per_row_range = pin_per_row_range_screw,
 		symbol_name_format = 'Screw_Terminal_01x{num_pins_per_row:02d}',
 		top_pin_number = [1],
         pin_number_generator = [lambda old_number: old_number + 1],
@@ -90,7 +92,7 @@ connector_params = {
 	'single_row_male' : CONNECTOR(
 		num_rows = 1,
 		pin_per_row_range = pin_per_row_range,
-		symbol_name_format = 'Conn_Male_01x{num_pins_per_row:02d}',
+		symbol_name_format = 'Conn_01x{num_pins_per_row:02d}_Male',
 		top_pin_number = [1],
         pin_number_generator = [lambda old_number: old_number + 1],
 		description = 'Generic connector, single row, 01x{num_pins_per_row:02d}',
@@ -104,7 +106,7 @@ connector_params = {
 	'single_row_female' : CONNECTOR(
 		num_rows = 1,
 		pin_per_row_range = pin_per_row_range,
-		symbol_name_format = 'Conn_Female_01x{num_pins_per_row:02d}',
+		symbol_name_format = 'Conn_01x{num_pins_per_row:02d}_Female',
 		top_pin_number = [1],
         pin_number_generator = [lambda old_number: old_number + 1],
 		description = 'Generic connector, single row, 01x{num_pins_per_row:02d}',
@@ -115,7 +117,7 @@ connector_params = {
 		graphic_type = 2, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
         mirror = False
 	),
-	'dualrow_odd-even' : CONNECTOR(
+	'dual_row_odd-even' : CONNECTOR(
 		num_rows = 2,
 		pin_per_row_range = pin_per_row_range,
 		symbol_name_format = 'Conn_02x{num_pins_per_row:02d}_Odd_Even',
@@ -129,7 +131,7 @@ connector_params = {
 		graphic_type = 0, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
         mirror = False
 	),
-	'dualrow_counter-clockwise' : CONNECTOR(
+	'dual_row_counter-clockwise' : CONNECTOR(
 		num_rows = 2,
 		pin_per_row_range = pin_per_row_range,
 		symbol_name_format = 'Conn_02x{num_pins_per_row:02d}_Counter_Clockwise',
@@ -143,7 +145,7 @@ connector_params = {
 		graphic_type = 0, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
         mirror = False
 	),
-	'dualrow_top-bottom' : CONNECTOR(
+	'dual_row_top-bottom' : CONNECTOR(
 		num_rows = 2,
 		pin_per_row_range = pin_per_row_range,
 		symbol_name_format = 'Conn_02x{num_pins_per_row:02d}_Top_Bottom',
@@ -157,7 +159,7 @@ connector_params = {
 		graphic_type = 0, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
         mirror = False
 	),
-	'conn_02xPP_row-letter-first' : CONNECTOR(
+	'dual_row_letter-first' : CONNECTOR(
 		num_rows = 2,
 		pin_per_row_range = pin_per_row_range,
 		symbol_name_format = 'Conn_02x{num_pins_per_row:02d}_Row_Letter_First',
@@ -171,7 +173,7 @@ connector_params = {
 		graphic_type = 0, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
         mirror = False
 	),
-	'conn_02xPP_row-letter-last' : CONNECTOR(
+	'dual_row_letter-last' : CONNECTOR(
 		num_rows = 2,
 		pin_per_row_range = pin_per_row_range,
 		symbol_name_format = 'Conn_02x{num_pins_per_row:02d}_Row_Letter_Last',
@@ -256,7 +258,7 @@ def generateSingleSymbol(generator, series_params, num_pins_per_row):
         symbol_name, footprint_filter = series_params.footprint_filter,
         pin_name_visibility = Symbol.PinMarkerVisibility.INVISIBLE,
         dcm_options = {
-        'description':series_params.description,
+        'description':series_params.description.format(num_pins_per_row = num_pins_per_row),
         'keywords':series_params.keywords,
         'datasheet':series_params.datasheet
         })
@@ -350,8 +352,23 @@ def generateSingleSymbol(generator, series_params, num_pins_per_row):
         drawing.mirrorHorizontal()
 
 if __name__ == '__main__':
-    generator = SymbolGenerator('conn_new')
-    for series_name,series_params in connector_params.items():
-        for num_pins_per_row in series_params.pin_per_row_range:
-            generateSingleSymbol(generator, series_params, num_pins_per_row)
-    generator.writeFiles()
+	modelfilter = ""
+	libname = 'conn_new'
+	for arg in sys.argv[1:]:
+		if arg.startswith("sf="):
+			modelfilter = arg[len("sf="):]
+		if arg.startswith("o="):
+			libname = arg[len("o="):]
+
+	if len(modelfilter) == 0:
+		modelfilter = "*"
+
+	model_filter_regobj=re.compile(fnmatch.translate(modelfilter))
+
+	generator = SymbolGenerator(libname)
+	for series_name, series_params in connector_params.items():
+		if model_filter_regobj.match(series_name):
+			for num_pins_per_row in series_params.pin_per_row_range:
+				generateSingleSymbol(generator, series_params, num_pins_per_row)
+
+	generator.writeFiles()

@@ -317,7 +317,7 @@ class SymbolGenerator:
     def __init__(self, lib_name = 'new_lib', output_path = './'):
         self.lib_name = lib_name
         self.output_path = output_path
-        self.symbols = {}
+        self.symbols = collections.OrderedDict()
         self.used_names_in_lib = uniqueNameManager()
 
     def addSymbol(self, symbol_name, **kwargs):
@@ -337,7 +337,7 @@ class SymbolGenerator:
         lib_file.write("EESchema-LIBRARY Version 2.3\n#encoding utf-8\n")
         dcm_file =open(dcm_file_path, "w")
         dcm_file.write('EESchema-DOCLIB  Version 2.0\n')
-        for symbol_name, symbol in self.symbols.items():
+        for symbol_name, symbol in sorted(self.symbols.items()):
             lib_file.write(symbol.generateLibContent())
             dcm_file.write(symbol.generateDcmContent())
 
