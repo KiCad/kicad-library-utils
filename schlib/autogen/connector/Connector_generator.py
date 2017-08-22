@@ -12,6 +12,7 @@ import re, fnmatch
 
 ################################  Parameters ##################################
 pin_per_row_range = range(1,41)
+pin_per_row_range_dual = range(2,41) #for some dual row connectors all numbering schemes generate the same symbol for the 1 pin per row variant.
 pin_per_row_range_screw = range(1,21)
 
 reference_designator = 'J'
@@ -69,7 +70,7 @@ connector_params = {
         pin_number_generator = [lambda old_number: old_number + 1],
 		description = 'Generic screw terminal, single row, 01x{num_pins_per_row:02d}',
 		keywords = 'screw terminal',
-		datasheet = '', # generic symbol, no datasheet
+		datasheet = '~', # generic symbol, no datasheet, ~ to make travis happy
 		default_footprint = '', # generic symbol, no default footprint
 		footprint_filter = filter_terminal_block,
 		graphic_type = 3, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
@@ -83,7 +84,7 @@ connector_params = {
         pin_number_generator = [lambda old_number: old_number + 1],
 		description = 'Generic connector, single row, 01x{num_pins_per_row:02d}',
 		keywords = 'connector',
-		datasheet = '', # generic symbol, no datasheet
+		datasheet = '~', # generic symbol, no datasheet, ~ to make travis happy
 		default_footprint = '', # generic symbol, no default footprint
 		footprint_filter = filter_single_row,
 		graphic_type = 0, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
@@ -97,7 +98,7 @@ connector_params = {
         pin_number_generator = [lambda old_number: old_number + 1],
 		description = 'Generic connector, single row, 01x{num_pins_per_row:02d}',
 		keywords = 'connector',
-		datasheet = '', # generic symbol, no datasheet
+		datasheet = '~', # generic symbol, no datasheet, ~ to make travis happy
 		default_footprint = '', # generic symbol, no default footprint
 		footprint_filter = filter_single_row,
 		graphic_type = 1, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
@@ -111,7 +112,7 @@ connector_params = {
         pin_number_generator = [lambda old_number: old_number + 1],
 		description = 'Generic connector, single row, 01x{num_pins_per_row:02d}',
 		keywords = 'connector',
-		datasheet = '', # generic symbol, no datasheet
+		datasheet = '~', # generic symbol, no datasheet, ~ to make travis happy
 		default_footprint = '', # generic symbol, no default footprint
 		footprint_filter = filter_single_row,
 		graphic_type = 2, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
@@ -119,13 +120,13 @@ connector_params = {
 	),
 	'dual_row_odd-even' : CONNECTOR(
 		num_rows = 2,
-		pin_per_row_range = pin_per_row_range,
+		pin_per_row_range = pin_per_row_range_dual,
 		symbol_name_format = 'Conn_02x{num_pins_per_row:02d}_Odd_Even',
         top_pin_number = [1, lambda num_pin_per_row: 2],
 		pin_number_generator = [lambda old_number: old_number + 2, lambda old_number: old_number + 2],
 		description = 'Generic connector, double row, 02x{num_pins_per_row:02d}, odd/even pin numbering scheme (row 1 odd numbers, row 2 even numbers)',
 		keywords = 'connector',
-		datasheet = '', # generic symbol, no datasheet
+		datasheet = '~', # generic symbol, no datasheet, ~ to make travis happy
 		default_footprint = '', # generic symbol, no default footprint
 		footprint_filter = filter_dual_row,
 		graphic_type = 0, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
@@ -133,13 +134,13 @@ connector_params = {
 	),
 	'dual_row_counter-clockwise' : CONNECTOR(
 		num_rows = 2,
-		pin_per_row_range = pin_per_row_range,
+		pin_per_row_range = pin_per_row_range_dual,
 		symbol_name_format = 'Conn_02x{num_pins_per_row:02d}_Counter_Clockwise',
 		top_pin_number = [1, lambda num_pin_per_row: 2*num_pin_per_row],
 		pin_number_generator = [lambda old_number: old_number + 1, lambda old_number: old_number -1],
 		description = 'Generic connector, double row, 02x{num_pins_per_row:02d}, counter clockwise pin numbering scheme (similar to DIP packge numbering)',
 		keywords = 'connector',
-		datasheet = '', # generic symbol, no datasheet
+		datasheet = '~', # generic symbol, no datasheet, ~ to make travis happy
 		default_footprint = '', # generic symbol, no default footprint
 		footprint_filter = filter_dual_row,
 		graphic_type = 0, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
@@ -147,13 +148,27 @@ connector_params = {
 	),
 	'dual_row_top-bottom' : CONNECTOR(
 		num_rows = 2,
-		pin_per_row_range = pin_per_row_range,
+		pin_per_row_range = pin_per_row_range_dual,
 		symbol_name_format = 'Conn_02x{num_pins_per_row:02d}_Top_Bottom',
 		top_pin_number = [1, lambda num_pin_per_row: num_pin_per_row + 1],
 		pin_number_generator = [lambda old_number: old_number + 1, lambda old_number: old_number +1],
 		description = 'Generic connector, double row, 02x{num_pins_per_row:02d}, top/bottom pin numbering scheme (row 1: 1...pins_per_row, row2: pins_per_row+1 ... num_pins)',
 		keywords = 'connector',
-		datasheet = '', # generic symbol, no datasheet
+		datasheet = '~', # generic symbol, no datasheet, ~ to make travis happy
+		default_footprint = '', # generic symbol, no default footprint
+		footprint_filter = filter_dual_row,
+		graphic_type = 0, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
+        mirror = False
+	),
+	'dual_row_02x01_numbered' : CONNECTOR(
+		num_rows = 2,
+		pin_per_row_range = [1],
+		symbol_name_format = 'Conn_02x{num_pins_per_row:02d}',
+		top_pin_number = [1, lambda num_pin_per_row: num_pin_per_row + 1],
+		pin_number_generator = [lambda old_number: old_number + 1, lambda old_number: old_number +1],
+		description = 'Generic connector, double row, 02x01, this symbol is compatible with counter-clockwise, top-bottom and odd-even numbering schemes.',
+		keywords = 'connector',
+		datasheet = '~', # generic symbol, no datasheet, ~ to make travis happy
 		default_footprint = '', # generic symbol, no default footprint
 		footprint_filter = filter_dual_row,
 		graphic_type = 0, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
@@ -167,7 +182,7 @@ connector_params = {
 		pin_number_generator = [num_gen_row_letter_first, num_gen_row_letter_first],
 		description = 'Generic connector, double row, 02x{num_pins_per_row:02d}, row letter first pin numbering scheme (pin number consists of a letter for the row and a number for the pin index in this row. a1, ..., aN; b1, ..., bN)',
 		keywords = 'connector',
-		datasheet = '', # generic symbol, no datasheet
+		datasheet = '~', # generic symbol, no datasheet, ~ to make travis happy
 		default_footprint = '', # generic symbol, no default footprint
 		footprint_filter = filter_dual_row,
 		graphic_type = 0, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
@@ -181,7 +196,7 @@ connector_params = {
 		pin_number_generator = [num_gen_row_letter_last, num_gen_row_letter_last],
 		description = 'Generic connector, double row, 02x{num_pins_per_row:02d}, row letter last pin numbering scheme (pin number consists of a letter for the row and a number for the pin index in this row. 1a, ..., Na; 1b, ..., Nb))',
 		keywords = 'connector',
-		datasheet = '', # generic symbol, no datasheet
+		datasheet = '~', # generic symbol, no datasheet, ~ to make travis happy
 		default_footprint = '', # generic symbol, no default footprint
 		footprint_filter = filter_dual_row,
 		graphic_type = 0, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
