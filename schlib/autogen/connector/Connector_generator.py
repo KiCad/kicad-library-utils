@@ -38,8 +38,8 @@ inner_graphic_screw_radius = 25
 inner_graphic_screw_slit_width = 10
 
 filter_terminal_block = ['Connector*Terminal*Block*:*']
-filter_single_row = ['Connector*:*']
-filter_dual_row = ['Connector*:*_02x*']
+filter_single_row = ['Connector*:*_??x*mm*', 'Connector*:*1x??x*mm*']
+filter_dual_row = ['Connector*:*2x??x*mm*', 'Connector*:*2x???Pitch*']
 
 pinname_update_function = lambda old_name, new_number: 'Pin_{}'.format(new_number)
 
