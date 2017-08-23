@@ -177,7 +177,7 @@ class DrawingRectangle:
         self.deMorgan_idx = int(kwargs.get('deMorgan_idx', 1))
         self.line_width = int(kwargs.get('line_width', 10))
 
-        fill = kwargs.get('fill', ElementFill.FILL_BACKGROUND)
+        fill = kwargs.get('fill', ElementFill.NO_FILL)
         if isinstance(fill, ElementFill):
             self.fill = fill
         else:
@@ -224,7 +224,7 @@ class DrawingPolyline:
         self.deMorgan_idx = int(kwargs.get('deMorgan_idx', 1))
         self.line_width = int(kwargs.get('line_width', 10))
 
-        fill = kwargs.get('fill', ElementFill.FILL_BACKGROUND)
+        fill = kwargs.get('fill', ElementFill.NO_FILL)
         if isinstance(fill, ElementFill):
             self.fill = fill
         else:
@@ -305,7 +305,7 @@ class DrawingArc:
         self.deMorgan_idx = int(kwargs.get('deMorgan_idx', 1))
         self.line_width = int(kwargs.get('line_width', 10))
 
-        fill = kwargs.get('fill', ElementFill.FILL_BACKGROUND)
+        fill = kwargs.get('fill', ElementFill.NO_FILL)
         if isinstance(fill, ElementFill):
             self.fill = fill
         else:
@@ -361,7 +361,7 @@ class DrawingCircle:
         self.deMorgan_idx = int(kwargs.get('deMorgan_idx', 1))
         self.line_width = int(kwargs.get('line_width', 10))
 
-        fill = kwargs.get('fill', ElementFill.FILL_BACKGROUND)
+        fill = kwargs.get('fill', ElementFill.NO_FILL)
         if isinstance(fill, ElementFill):
             self.fill = fill
         else:
@@ -399,41 +399,67 @@ class DrawingCircle:
         obj.at.mirrorVertical()
         return obj
 
+class DrawingText:
+    def __init__(self, at, radius, **kwargs):
+        raise NotImplementedError('Text is not yet implementd')
+
+    def __str__(self):
+        raise NotImplementedError('Text is not yet implementd')
+
+    def translate(self, distance, apply_on_copy = False):
+        raise NotImplementedError('Text is not yet implementd')
+
+    def rotate(self, angle, origin = {'x':0, 'y':0}, apply_on_copy = False):
+        raise NotImplementedError('Text is not yet implementd')
+
+    def mirrorHorizontal(self, apply_on_copy = False):
+        raise NotImplementedError('Text is not yet implementd')
+
+    def mirrorVertical(self, apply_on_copy = False):
+        raise NotImplementedError('Text is not yet implementd')
+
+
 class Drawing:
     def __init__(self):
+        self.arc = []
+        self.circle = []
+        self.text = []
         self.rectangle = []
         self.polyline = []
-        self.arc = []
         self.pins = []
-        self.circle = []
 
     def __appendDrawing(self, drawing):
+        for arc in drawing.arc:
+            self.arc.append(arc)
+
+        for circle in drawing.circle:
+            self.circle.append(circle)
+
+        for text in drawing.text:
+            self.text.append(text)
+
         for rectangle in drawing.rectangle:
             self.rectangle.append(rectangle)
 
         for polyline in drawing.polyline:
             self.polyline.append(polyline)
 
-        for arc in drawing.arc:
-            self.arc.append(arc)
-
         for pin in drawing.pins:
             self.pins.append(pin)
 
-        for circle in drawing.circle:
-            self.circle.append(circle)
-
     def append(self, obj):
-        if isinstance(obj, DrawingPin):
-            self.pins.append(obj)
+        if isinstance(obj, DrawingArc):
+            self.arc.append(obj)
+        elif isinstance(obj, DrawingCircle):
+            self.circle.append(obj)
+        elif isinstance(obj, DrawingText):
+            self.text.append(obj)
         elif isinstance(obj, DrawingRectangle):
             self.rectangle.append(obj)
         elif isinstance(obj, DrawingPolyline):
             self.polyline.append(obj)
-        elif isinstance(obj, DrawingArc):
-            self.arc.append(obj)
-        elif isinstance(obj, DrawingCircle):
-            self.circle.append(obj)
+        elif isinstance(obj, DrawingPin):
+            self.pins.append(obj)
         elif isinstance(obj, Drawing):
             self.__appendDrawing(obj)
         else:
@@ -441,11 +467,12 @@ class Drawing:
 
     def __str__(self):
         drawing = 'DRAW\n'
-        drawing += ''.join(map(str, self.arc))
-        drawing += ''.join(map(str, self.circle))
-        drawing += ''.join(map(str, self.rectangle))
-        drawing += ''.join(map(str, self.polyline))
-        drawing += ''.join(map(str, self.pins))
+        drawing += ''.join(sorted(map(str, self.arc)))
+        drawing += ''.join(sorted(map(str, self.circle)))
+        drawing += ''.join(sorted(map(str, self.text)))
+        drawing += ''.join(sorted(map(str, self.rectangle)))
+        drawing += ''.join(sorted(map(str, self.polyline)))
+        drawing += ''.join(sorted(map(str, self.pins)))
         drawing += 'ENDDRAW\n'
         return drawing
 
@@ -455,6 +482,10 @@ class Drawing:
             fp(**kwargs)
 
         for element in self.circle:
+            fp = getattr(element, function)
+            fp(**kwargs)
+
+        for element in self.text:
             fp = getattr(element, function)
             fp(**kwargs)
 
