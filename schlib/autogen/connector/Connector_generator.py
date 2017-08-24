@@ -37,6 +37,12 @@ inner_graphic_female_radius = 20
 inner_graphic_screw_radius = 25
 inner_graphic_screw_slit_width = 10
 
+filter_single_row_pin_header = ['Pin?Header?Straight?1X*', 'Pin?Header?Angled?1X*']
+filter_single_row_socket_strip = ['Socket?Strip?Straight?1X*', 'Socket?Strip?Angled?1X*']
+
+filter_dual_row_pin_header = ['Pin_Header_Straight_2X*', 'Pin_Header_Angled_2X*']
+filter_dual_row_socket_strip = ['Socket_Strip_Straight_2X*', 'Socket_Strip_Angled_2X*']
+
 filter_terminal_block = ['Connector*Terminal*Block*:*']
 filter_single_row = ['Connector*:*_??x*mm*', 'Connector*:*1x??x*mm*']
 filter_dual_row = ['Connector*:*2x??x*mm*', 'Connector*:*2x???Pitch*']
@@ -88,7 +94,8 @@ connector_params = {
 		keywords = 'connector',
 		datasheet = '~', # generic symbol, no datasheet, ~ to make travis happy
 		default_footprint = '', # generic symbol, no default footprint
-		footprint_filter = filter_single_row,
+		footprint_filter = filter_single_row +
+			filter_single_row_pin_header + filter_single_row_socket_strip,
 		graphic_type = 0, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
 		enclosing_rectangle = True,
 		mirror = False
@@ -103,7 +110,7 @@ connector_params = {
 		keywords = 'connector',
 		datasheet = '~', # generic symbol, no datasheet, ~ to make travis happy
 		default_footprint = '', # generic symbol, no default footprint
-		footprint_filter = filter_single_row,
+		footprint_filter = filter_single_row + filter_single_row_pin_header,
 		graphic_type = 1, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
 		enclosing_rectangle = False,
 		mirror = True
@@ -118,7 +125,7 @@ connector_params = {
 		keywords = 'connector',
 		datasheet = '~', # generic symbol, no datasheet, ~ to make travis happy
 		default_footprint = '', # generic symbol, no default footprint
-		footprint_filter = filter_single_row,
+		footprint_filter = filter_single_row + filter_single_row_socket_strip,
 		graphic_type = 2, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
 		enclosing_rectangle = False,
 		mirror = False
@@ -133,7 +140,8 @@ connector_params = {
 		keywords = 'connector',
 		datasheet = '~', # generic symbol, no datasheet, ~ to make travis happy
 		default_footprint = '', # generic symbol, no default footprint
-		footprint_filter = filter_dual_row,
+		footprint_filter = filter_dual_row +
+			filter_dual_row_pin_header + filter_dual_row_socket_strip,
 		graphic_type = 0, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
 		enclosing_rectangle = True,
 		mirror = False
@@ -178,7 +186,8 @@ connector_params = {
 		keywords = 'connector',
 		datasheet = '~', # generic symbol, no datasheet, ~ to make travis happy
 		default_footprint = '', # generic symbol, no default footprint
-		footprint_filter = filter_dual_row,
+		footprint_filter = filter_dual_row +
+			filter_dual_row_pin_header + filter_dual_row_socket_strip,
 		graphic_type = 0, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
 		enclosing_rectangle = True,
 		mirror = False
