@@ -406,6 +406,21 @@ class SchLib(object):
 
         return None
 
+
+    def getComponentCount(self, unique=False):
+        count = 0
+
+        for cmp in self.components:
+            count += 1
+
+            if unique:
+                continue
+
+            count += len(cmp.aliases)
+
+        return count
+
+
     def removeComponent(self, name):
         component = self.getComponentByName(name)
         for alias in component.aliases.keys():
