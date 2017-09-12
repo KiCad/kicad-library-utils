@@ -38,17 +38,17 @@ class Rule(KLCRule):
         warnings = []
     
         if not documentation:
-            errors.append("Missing all documentation fields (description, keywords, datasheet)")
+            errors.append("Missing all fields on 'Properties > Description' tab")
         elif (not documentation['description'] or
             not documentation['keywords'] or
             not documentation['datasheet']):
 
             if (not documentation['description']):
-                errors.append("Missing DESCRIPTION field")
+                errors.append("Missing DESCRIPTION field on 'Properties > Description' tab")
             if (not documentation['keywords']):
-                errors.append("Missing KEYWORDS field")
+                errors.append("Missing KEYWORDS field on 'Properties > Description' tab")
             if (not isGraphicOrPowerSymbol) and (not documentation['datasheet']):
-                errors.append("Missing DATASHEET field")
+                errors.append("Missing DOCUMENTATION FILE NAME field on 'Properties > Description' tab")
                 
                 if (documentation['description'] and
                     documentation['keywords']):
