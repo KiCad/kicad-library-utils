@@ -13,6 +13,7 @@ from schlib import *
 
 from print_color import *
 import re
+from rules import __all__ as all_rules
 from rules import *
 from rules.rule import KLCRule
 
@@ -40,27 +41,18 @@ if args.verbose:
     verbosity=args.verbose
 KLCRule.verbosity = verbosity
 
-#user can select various rules
-#in the format -r=3.1 or --rule=3.1,EC01,EC05
 if args.rule:
     selected_rules = args.rule.split(',')
 else:
     #ALL rules are used
     selected_rules = None
 
-# get all rules
-all_rules = []
-for f in dir():
-    if f.startswith('rule'):
-        #f is of the format rule3_1 (user may have speicified a rule like 3.1)
-        if (selected_rules == None) or (f[4:].replace("_",".") in selected_rules):
-            all_rules.append(globals()[f].Rule)
+rules = []
 
-# add all extra checking
-for f in dir():
-    if f.startswith('EC'):
-        if (selected_rules is None) or (f.lower() in [r.lower() for r in selected_rules]):
-            all_rules.append(globals()[f].Rule)
+for r in all_rules:
+    r_name = r.replace('_', '.')
+    if selected_rules == None or r_name in selected_rules:
+        rules.append(globals()[r].Rule)
 
 #grab list of libfiles (even on windows!)
 libfiles = []
@@ -112,7 +104,7 @@ for libfile in libfiles:
 
         first = True
 
-        for rule in all_rules:
+        for rule in rules:
             rule = rule(component)
             if (verbosity>2):
                 printer.white("checking rule "+rule.name)
