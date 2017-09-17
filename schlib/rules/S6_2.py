@@ -7,7 +7,7 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad lib files.
     """
     def __init__(self, component):
-        super(Rule, self).__init__(component, 'Default fields contain the correct information')
+        super(Rule, self).__init__(component, 'Component fields contain the correct information')
 
     def checkVisibility(self, field):
         return field['visibility'] == 'V'
