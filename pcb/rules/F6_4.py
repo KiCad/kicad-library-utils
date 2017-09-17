@@ -7,7 +7,7 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad_mod files.
     """
     def __init__(self, module, args):
-        super(Rule, self).__init__(module, args, 'THT pad layer requirements')
+        super(Rule, self).__init__(module, args, 'Pad requirements for THT footprints')
 
         self.required_layers = ["*.Cu","*.Mask"]
 

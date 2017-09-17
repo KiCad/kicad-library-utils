@@ -7,10 +7,10 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad_mod files.
     """
     def __init__(self, module, args):
-        super(Rule, self).__init__(module, args, 'SMD pad layer requirements')
+        super(Rule, self).__init__(module, args, 'Pad requirements for SMD footprints')
 
-        self.sides = ["F.", "B."]
         self.required_layers = ["Cu","Paste","Mask"]
+        self.sides = ["F.", "B."]
 
     def checkPads(self, pads):
 

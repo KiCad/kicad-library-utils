@@ -20,7 +20,7 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad_mod files.
     """
     def __init__(self, module, args):
-        super(Rule, self).__init__(module, args, "CrtYd layer contains component courtyard, 0.05mm line width on 0.01mm grid")
+        super(Rule, self).__init__(module, args, "Courtyard layer requirements")
 
     # Get the superposed boundary of pads and fab layer
     def getFootprintBounds(self):
