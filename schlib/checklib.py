@@ -8,7 +8,7 @@ common = os.path.abspath(os.path.join(sys.path[0], '..','common'))
 
 if not common in sys.path:
     sys.path.append(common)
-    
+
 from schlib import *
 
 from print_color import *
@@ -70,12 +70,10 @@ if len(all_rules)<=0:
     sys.exit(1)
 else:
     if (verbosity>2):
-        printer.regular("checking rules:")	
+        printer.regular("checking rules:")
         for rule in all_rules:
             printer.regular("  - "+str(rule))
-        printer.regular("")	
-
-
+        printer.regular("")
 
 for libfile in args.libfiles:
     libfiles += glob(libfile)
@@ -83,7 +81,7 @@ for libfile in args.libfiles:
 if len(libfiles) == 0:
     printer.red("File argument invalid: {f}".format(f=args.libfiles))
     sys.exit(1)
-    
+
 exit_code = 0
 
 for libfile in libfiles:
@@ -95,7 +93,7 @@ for libfile in libfiles:
         printer.purple('Library: %s' % libfile)
 
     for component in lib.components:
-        
+
         #simple match
         match = True
         if args.component:
@@ -113,22 +111,22 @@ for libfile in libfiles:
         n_violations = 0
 
         first = True
-    
+
         for rule in all_rules:
             rule = rule(component)
             if (verbosity>2):
-                printer.white("checking rule "+rule.name)	
-            
+                printer.white("checking rule "+rule.name)
+
             error = rule.check()
-            
+
             if rule.hasOutput():
                 if first:
                     printer.green("Checking symbol '{sym}':".format(sym=component.name))
                     first = False
-                    
+
                 printer.yellow("Violating " + rule.name, indentation=2)
                 rule.processOutput(printer, verbosity, args.silent)
-            
+
             # Specifically check for errors
             if error:
                 n_violations += 1
@@ -136,17 +134,17 @@ for libfile in libfiles:
                 if args.fix:
                     rule.fix()
                     rule.processOutput(printer, verbosity, args.silent)
-            
+
         # No messages?
         if first:
             if not args.silent:
                 printer.green("Checking symbol '{sym}' - No errors".format(sym=component.name))
-            
+
         # check the number of violations
         if n_violations > 0:
             exit_code += 1
 
     if args.fix:
         lib.save()
-		
+
 sys.exit(exit_code);

@@ -53,7 +53,7 @@ class KLCRuleBase(object):
         path = inspect.getfile(self.__class__)
         path = os.path.basename(path)
         path = "".join(path.split(".")[:-1])
-        return path
+        return path.replace('_', '.')
 
     def __init__(self, description):
         self.description = description
