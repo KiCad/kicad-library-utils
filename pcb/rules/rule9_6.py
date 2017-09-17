@@ -9,7 +9,7 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad_mod files.
     """
     def __init__(self, module, args):
-        super(Rule, self).__init__(module, args, 'Rule 9.6', 'Minimum annular ring')
+        super(Rule, self).__init__(module, args, 'Minimum annular ring')
 
     def checkPad(self, pad):
         if not 'size' in pad['drill']:

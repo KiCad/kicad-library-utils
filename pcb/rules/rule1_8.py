@@ -8,7 +8,7 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad lib files.
     """
     def __init__(self, module, args):
-        super(Rule, self).__init__(module, args, 'Rule 1.8 - Line endings', 'Library files must use Unix-style line endings (LF)')
+        super(Rule, self).__init__(module, args, 'Library files must use Unix-style line endings (LF)')
 
     def check(self):
 

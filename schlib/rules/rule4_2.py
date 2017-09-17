@@ -7,7 +7,7 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad lib files.
     """
     def __init__(self, component):
-        super(Rule, self).__init__(component, 'Rule 4.2 - Symbol visual style', 'Symbol visual style should follow standard aesthetic style')
+        super(Rule, self).__init__(component, 'Symbol visual style should follow standard aesthetic style')
 
     def check(self):
         """
@@ -15,11 +15,11 @@ class Rule(KLCRule):
         The following variables will be accessible after checking:
             * n_rectangles
         """
-        
+
         # no checks for power-symbols or graphical symbols:
         if self.component.isPowerSymbol() or self.component.isGraphicSymbol():
             return False
-        
+
         rectangle_need_fix = False
         # check if component has just one rectangle, if not, skip checking
         self.n_rectangles = len(self.component.draw['rectangles'])

@@ -9,7 +9,7 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad_mod files.
     """
     def __init__(self, module, args):
-        super(Rule, self).__init__(module, args, 'Rule 8.2', 'For surface-mount devices, footprint anchor is placed in the middle of the footprint (IPC-7351).')
+        super(Rule, self).__init__(module, args,'For surface-mount devices, footprint anchor is placed in the middle of the footprint (IPC-7351).')
 
     def check(self):
         """

@@ -49,19 +49,13 @@ class KLCRuleBase(object):
     verbosity = 0
 
     @property
-    def rule_name(self):
+    def name(self):
         path = inspect.getfile(self.__class__)
         path = os.path.basename(path)
         path = "".join(path.split(".")[:-1])
         return path
 
-    def __init__(self, name, description):
-        self.name = name
-        self.description = description
-        self.messageBuffer = []
-
-    def __init__(self, name, description):
-        self.name = name
+    def __init__(self, description):
         self.description = description
         self.messageBuffer=[]
 

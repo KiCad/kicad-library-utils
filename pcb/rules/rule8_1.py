@@ -9,7 +9,7 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad_mod files.
     """
     def __init__(self, module, args):
-        super(Rule, self).__init__(module, args, 'Rule 8.1', 'For surface-mount devices, placement type must be set to "Surface Mount"')
+        super(Rule, self).__init__(module, args, 'For surface-mount devices, placement type must be set to "Surface Mount"')
 
     def check(self):
         """
@@ -20,12 +20,12 @@ class Rule(KLCRule):
             * right_anchor
         """
         module = self.module
-        
+
         self.pth_count = len(module.filterPads('thru_hole'))
         self.smd_count = len(module.filterPads('smd'))
 
         error = False
-        
+
         if self.smd_count > 0 and module.attribute != 'smd':
             # Only SMD pads?
             if self.pth_count == 0:
@@ -36,7 +36,7 @@ class Rule(KLCRule):
                 self.warning("Surface Mount attribute not set")
                 self.warningExtra("Both THT and SMD pads were found")
                 self.warningExtra("Suggest setting 'Placement Type' to 'Surface Mount'")
-            
+
         return error
 
 

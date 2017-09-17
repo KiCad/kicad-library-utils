@@ -8,15 +8,15 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad lib files.
     """
     def __init__(self, component):
-        super(Rule, self).__init__(component, 'Rule 4.5 - Pin orientation', 'Wherever possible, pins should be arranged by function')
-        
+        super(Rule, self).__init__(component, 'Wherever possible, pins should be arranged by function')
+
     def checkGroundPins(self):
 
         # Includes negative power pins
         GND = ['^[ad]*g(rou)*nd$', '^[ad]*v(ss)$']
-        
+
         first = True
-        
+
         for pin in self.component.pins:
             name = str(pin['name'].lower())
             for gnd in GND:
@@ -27,14 +27,14 @@ class Rule(KLCRule):
                             first = False
                             self.warning("Ground and negative power pins should be placed at bottom of symbol")
                         self.warningExtra(pinString(pin))
-                           
+
     def checkPowerPins(self):
 
         # Positive power pins only
         PWR = ['^[ad]*v(aa|cc|dd|bat|in)$']
-    
+
         first = True
-        
+
         for pin in self.component.pins:
             name = str(pin['name'].lower())
             for pwr in PWR:
@@ -47,7 +47,7 @@ class Rule(KLCRule):
                         self.warningExtra(pinString(pin))
 
     def check(self):
-        
+
         self.checkGroundPins()
         self.checkPowerPins()
 
