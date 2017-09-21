@@ -30,6 +30,7 @@ parser.add_argument("-i", "--ignore", help="Select which libraries to ignore (re
 parser.add_argument("-d", "--deprecated", help="Include libraries marked as deprecated", action="store_true")
 parser.add_argument("-u", "--update", help="Update libraries from github (no new libs will be downloaded)", action="store_true")
 parser.add_argument("-t", "--test", help="Test run only - libraries will be listed but not downloadded", action="store_true")
+parser.add_argument("-s", "--shallow", help="Download only the latest version instead of the entire library history", action="store_true")
 
 args = parser.parse_args()
 
@@ -76,16 +77,20 @@ def RepoUrl(repo):
     return "{base}/{repo}".format(base=GITHUB_URL, repo=repo)
 
 # Git Clone a repository
-def CloneRepository(repo):
+def CloneRepository(repo, shallow=False):
 
     # Clone
     os.chdir(base_dir)
-    Call(['git', 'clone', RepoUrl(repo)])
+    command = ['git', 'clone']
+    if shallow:
+        command.append('--depth=1')
+    command.append(RepoUrl(repo))
+    Call(command)
 
     return True
 
 # Perform git update of the repository
-def UpdateRepository(repo):
+def UpdateRepository(repo, shallow=False):
     path = os.path.sep.join([base_dir, repo])
 
     path = r"" + path
@@ -97,7 +102,10 @@ def UpdateRepository(repo):
     print("Updating {lib}".format(lib=repo))
 
     os.chdir(path)
-    Call(['git', 'pull'])
+    command = ['git', 'pull']
+    if shallow:
+        command.append('--depth=1')
+    Call(command)
     os.chdir(base_dir)
 
 try:
@@ -140,7 +148,7 @@ for lib in libs:
 
     # If --update flag set, update library
     if args.update:
-        UpdateRepository(url)
+        UpdateRepository(url, shallow=args.shallow)
         continue
 
     # Ignore libraries marked as 'deprecated'
@@ -153,7 +161,7 @@ for lib in libs:
         print(url, "exists, skipping...")
         continue
 
-    CloneRepository(url)
+    CloneRepository(url, shallow=args.shallow)
 
 print("Done")
 sys.exit(0)
