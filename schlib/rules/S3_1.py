@@ -7,58 +7,52 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad lib files.
     """
     def __init__(self, component):
-        super(Rule, self).__init__(component, 'Field text requirements')
+        super(Rule, self).__init__(component, 'Origin is be centered on the middle of the symbol')
 
     def check(self):
+
         """
-        Proceeds the checking of the rule.
-        The following variables will be accessible after checking:
-            * violating_pins
-            * violating_fields
+        Calculate the 'bounds' of the symbol based on pin locations
         """
-        self.violating_fields = []
-        for field in self.component.fields:
-            text_size = int(field['text_size'])
-            if (text_size != 50):
-                self.violating_fields.append(field)
-                if("reference" in field.keys()):
-                    message=field["reference"][1:-1]
-                elif (len(field["name"])>2):
-                    message=field["name"][1:-1]
-                else:
-                    message="UNKNOWN"
-                message+=(" at posx {0} posy {1}".format(field["posx"],field["posy"]))
-                self.error(" - Field {0} size {1}".format(message,field["text_size"]) )
 
+        x_min = y_min = x_max = y_max = None
 
-        self.violating_pins = []
-        for pin in self.component.pins:
-            name_text_size = int(pin['name_text_size'])
-            num_text_size = int(pin['num_text_size'])
-            if (name_text_size != 50) or (num_text_size != 50):
-                self.violating_pins.append(pin)
-                self.error(' - Pin {0} ({1}), text size {2}, number size {3}'.format(pin['name'], pin['num'], pin['name_text_size'], pin['num_text_size']))
+        pins = self.component.pins
 
-        if (len(self.violating_fields) > 0 or
-            len(self.violating_pins) > 0):
-            return True
+        # No pins? Ignore check.
+        # This can be improved to include graphical items too...
+        if len(pins) == 0:
+            return False
+
+        for i, p in enumerate(pins):
+
+            x = int(p['posx'])
+            y = int(p['posy'])
+
+            if i == 0:
+                x_min = x_max = x
+                y_min = y_max = y
+            else:
+                x_min = min(x_min, x)
+                x_max = max(x_max, x)
+                y_min = min(y_min, y)
+                y_max = max(y_max, y)
+
+        # Center point average
+        x = (x_min + x_max) / 2
+        y = (y_min + y_max) / 2
+
+        # Right on the middle!
+        if x == 0 and y == 0:
+            return False
+        else:
+            self.warning("Symbol not centered on origin")
+            self.warningExtra("Center calculated @ ({x}, {y})".format(x=x, y=y))
 
         return False
 
     def fix(self):
-        """
-        Proceeds the fixing of the rule, if possible.
-        """
-        if len(self.violating_fields) > 0:
-            self.info("Fixing field text size")
-        for field in self.violating_fields:
-            field['text_size'] = '50'
 
-        if len(self.violating_pins) > 0:
-            self.info("Fixing pin text size")
-        for pin in self.violating_pins:
-            pin['name_text_size'] = '50'
-            pin['num_text_size'] = '50'
         self.recheck()
 
 

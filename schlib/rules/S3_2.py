@@ -7,39 +7,58 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad lib files.
     """
     def __init__(self, component):
-        super(Rule, self).__init__(component, 'Symbol visual style should follow standard aesthetic style')
+        super(Rule, self).__init__(component, 'Text fields must use common size of 50mils')
 
     def check(self):
         """
         Proceeds the checking of the rule.
         The following variables will be accessible after checking:
-            * n_rectangles
+            * violating_pins
+            * violating_fields
         """
+        self.violating_fields = []
+        for field in self.component.fields:
+            text_size = int(field['text_size'])
+            if (text_size != 50):
+                self.violating_fields.append(field)
+                if("reference" in field.keys()):
+                    message=field["reference"][1:-1]
+                elif (len(field["name"])>2):
+                    message=field["name"][1:-1]
+                else:
+                    message="UNKNOWN"
+                message+=(" at posx {0} posy {1}".format(field["posx"],field["posy"]))
+                self.error(" - Field {0} size {1}".format(message,field["text_size"]) )
 
-        # no checks for power-symbols or graphical symbols:
-        if self.component.isPowerSymbol() or self.component.isGraphicSymbol():
-            return False
 
-        rectangle_need_fix = False
-        # check if component has just one rectangle, if not, skip checking
-        self.n_rectangles = len(self.component.draw['rectangles'])
-        if self.n_rectangles != 1: return False
+        self.violating_pins = []
+        for pin in self.component.pins:
+            name_text_size = int(pin['name_text_size'])
+            num_text_size = int(pin['num_text_size'])
+            if (name_text_size != 50) or (num_text_size != 50):
+                self.violating_pins.append(pin)
+                self.error(' - Pin {0} ({1}), text size {2}, number size {3}'.format(pin['name'], pin['num'], pin['name_text_size'], pin['num_text_size']))
 
-        if (self.component.draw['rectangles'][0]['thickness'] != '10'):
-            self.error("Component line is thickness {0}mil, recommended is {1}mil".format(self.component.draw['rectangles'][0]['thickness'],10))
-            rectangle_need_fix = True
-        if (self.component.draw['rectangles'][0]['fill'] != 'f'):
-            self.error("Component background is filled with {0} color, recommended is filling with {1} color".format(backgroundFillToStr(self.component.draw['rectangles'][0]['fill']),backgroundFillToStr('f')))
-            rectangle_need_fix = True
+        if (len(self.violating_fields) > 0 or
+            len(self.violating_pins) > 0):
+            return True
 
-        return True if rectangle_need_fix else False
+        return False
 
     def fix(self):
         """
         Proceeds the fixing of the rule, if possible.
         """
-        self.info("Fixing...")
-        self.component.draw['rectangles'][0]['thickness'] = '10'
-        self.component.draw['rectangles'][0]['fill'] = 'f'
+        if len(self.violating_fields) > 0:
+            self.info("Fixing field text size")
+        for field in self.violating_fields:
+            field['text_size'] = '50'
 
+        if len(self.violating_pins) > 0:
+            self.info("Fixing pin text size")
+        for pin in self.violating_pins:
+            pin['name_text_size'] = '50'
+            pin['num_text_size'] = '50'
         self.recheck()
+
+
