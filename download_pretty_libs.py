@@ -6,11 +6,9 @@ from __future__ import print_function
 import argparse
 import sys
 import re
-import sys
 import os
 import subprocess
 import platform
-import zipfile
 
 # Github address information
 GITHUB_URL = "https://www.github.com/KiCad"
@@ -39,60 +37,62 @@ if args.path and os.path.exists(args.path) and os.path.isdir(args.path):
 else:
     base_dir = os.getcwd()
 
+
 def Fail(msg, result=-1):
     print(msg)
     sys.exit(result)
 
+
 # Run a system command, print output
 def Call(cmd):
-
     # Windows requires that commands are piped through cmd.exe
     if platform.platform().lower().count('windows') > 0:
         cmd = ["cmd", "/c"] + cmd
 
-    pipe = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    pipe = subprocess.Popen(cmd,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT)
 
     for line in iter(pipe.stdout.readline, b''):
         line = line.decode('utf-8')
         print(line.rstrip())
 
+
 # Download a file, with a simple progress bar
 def DownloadFile(url, save_file):
-
     def reporthook(bnum, bsize, tsize):
         progress = bnum * bsize
-        s = "Downloaded: n bytes" #% (progress,)
-        sys.stdout.write("\rDownloaded: {n} bytes{blank}".format(n=progress,blank=" "*(15-len(str(progress)))),)
-        #sys.stderr.write("\n")
+        sys.stdout.write("\rDownloaded: {n} bytes{blank}".format(
+            n=progress,
+            blank=" " * (15 - len(str(progress)))),)
         sys.stdout.flush()
 
     try:
-        result = urlrequest.urlretrieve(url, save_file, reporthook)
+        urlrequest.urlretrieve(url, save_file, reporthook)
         print("")
         return True
     except:
         return False
 
+
 def RepoUrl(repo):
     return "{base}/{repo}".format(base=GITHUB_URL, repo=repo)
 
+
 # Git Clone a repository
 def CloneRepository(repo, shallow=False):
-
-    # Clone
     os.chdir(base_dir)
     command = ['git', 'clone']
     if shallow:
         command.append('--depth=1')
     command.append(RepoUrl(repo))
     Call(command)
-
     return True
+
 
 # Perform git update of the repository
 def UpdateRepository(repo, shallow=False):
     path = os.path.sep.join([base_dir, repo])
-
     path = r"" + path
 
     # Skip repo directories that do not exist
@@ -107,6 +107,7 @@ def UpdateRepository(repo, shallow=False):
         command.append('--depth=1')
     Call(command)
     os.chdir(base_dir)
+
 
 try:
     # Download the footprint-library-table
@@ -161,7 +162,7 @@ for lib in libs:
         print(url, "exists, skipping...")
         continue
 
+    # Else clone the repo by default
     CloneRepository(url, shallow=args.shallow)
 
 print("Done")
-sys.exit(0)
