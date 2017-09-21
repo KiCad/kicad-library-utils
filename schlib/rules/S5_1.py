@@ -32,16 +32,17 @@ class Rule(KLCRule):
                 #footprint field should be set to invisible (if it has any text in it)
                 if fp['visibility'] == 'V':
                     fail = True
-                    self.error(fp_desc + "should be set to invisible.")
+                    self.error(fp_desc + "must be set to invisible.")
 
                 # Footprint field should be of the format "Footprint_Library:Footprint_Name"
                 if fp_name.count(":") is not 1 or fp_name.startswith(":") or fp_name.endswith(":"):
                     fail = True
-                    self.error(fp_desc + "should be of the format 'Library:Footprint'")
+                    self.error(fp_desc + "must be of the format '<Library>:<Footprint>")
 
                 # Footprint name cannot contain any illegal pathname characters
                 invalid = '\/*?"<>|[]\'@#~`'
                 for ii in invalid:
+                    fail = True
                     if ii in fp_name:
                         self.error(fp_desc + " contains illegal character '{c}'".format(c=ii))
 

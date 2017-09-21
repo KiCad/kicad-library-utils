@@ -7,7 +7,7 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad lib files.
     """
     def __init__(self, component):
-        super(Rule, self).__init__(component, 'Mismatching pins cannot be placed in the same location')
+        super(Rule, self).__init__(component, 'Rules for pin stacking')
         self.different_names=False
         self.NC_stacked=False
         self.different_types=False
@@ -94,7 +94,7 @@ class Rule(KLCRule):
                     if not pin['pin_type'].startswith('N'):
                         vis_pin_count += 1
 
-                    # NC pins should never be stacked
+                    # NC pins must never be stacked
                     if pin['electrical_type'] == 'N':
                         self.error("NC {pin} @ ({x},{y})is stacked on other pins".format(
                             pin = self.pinStr(pin),
