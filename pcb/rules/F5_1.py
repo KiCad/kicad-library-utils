@@ -27,8 +27,10 @@ class Rule(KLCRule):
         error = False
 
         if self.smd_count > 0 and module.attribute != 'smd':
+            if module.attribute == 'virtual':
+                self.warning("Footprint placement type set to 'virtual' - ensure this is correct!")
             # Only SMD pads?
-            if self.pth_count == 0:
+            elif self.pth_count == 0:
                 self.error("Surface Mount attribute not set")
                 self.errorExtra("For SMD footprints, 'Placement type' must be set to 'Surface mount'")
                 error = True

@@ -19,16 +19,27 @@ class Rule(KLCRule):
             * pin1_position
             * pin1_count
         """
+
+        # List of potential names for pad-1
+        names = ['1', 'A', 'A1', 'P1', 'PAD1']
+        pads = []
+
         module = self.module
+
+        num = ''
+
         # check if module is through-hole
         if module.attribute == 'pth':
-            pads = module.getPadsByNumber(1)
-            if len(pads) == 0:
-                pads = module.getPadsByNumber('A1')
+
+            for name in names:
+                pads = module.getPadsByNumber(name)
+                if len(pads) > 0:
+                    num = name
+                    break
 
             if len(pads) == 0:
-                self.error("Pad 1 not found in footprint")
-                return True
+                self.warning("Pad 1 not found in footprint!")
+                return False
 
             self.pin1_count = len(pads)
 
@@ -42,8 +53,14 @@ class Rule(KLCRule):
                 if pos['x'] == 0 and pos['y'] == 0:
                     return False
 
-            self.error("Pad 1 not located at origin")
-            self.errorExtra("Set origin to location of Pad 1")
+            # More than one pad-1? Only a warning...
+            if len(pads) > 1:
+                self.warning("Multiple Pins exist with number '{num}'".format(num=num))
+                self.warningExtra("None are located on origin")
+
+            else:
+                self.error("Pad '{num}' not located at origin".format(num=num))
+                self.errorExtra("Set origin to location of Pad '{num}'".format(num=num))
 
             return True
 

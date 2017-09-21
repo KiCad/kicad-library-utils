@@ -17,7 +17,7 @@ class Rule(KLCRule):
         error = False
 
         # Allowed model types
-        extensions = ["step","stp","wrl"]
+        extensions = ["step", "stp", "wrl"]
 
         model = model['file']
 
@@ -62,7 +62,7 @@ class Rule(KLCRule):
 
         if not isValidName(model_file):
             error = True
-            self.error("3D model path '{p}' contains invalid characters as per KLC 1.7".format(
+            self.error("3D model path '{p}' contains invalid characters as per KLC G1.1".format(
                 p = model_file))
 
         return error

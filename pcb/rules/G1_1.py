@@ -1,20 +1,20 @@
 # -*- coding: utf-8 -*-
 
 from rules.rule import *
-import string
+import platform
 
 class Rule(KLCRule):
     """
     Create the methods check and fix to use with the kicad lib files.
     """
-    def __init__(self, component):
-        super(Rule, self).__init__(component, 'Illegal characters in symbol name')
+    def __init__(self, module, args):
+        super(Rule, self).__init__(module, args, 'Illegal characters in footprint name')
 
     def check(self):
 
         allowed = string.digits + string.letters + "_-."
 
-        name = self.component.name.lower()
+        name = self.module.name.lower()
 
         illegal = ""
 
@@ -22,16 +22,11 @@ class Rule(KLCRule):
             if c in allowed:
                 continue
 
-            # Some symbols have a special character at the start
-            if i==0:
-                if c in ['~', '#']:
-                    continue
-
             # Illegal character found!
             illegal += c
 
         if len(illegal) > 0:
-            self.error("Symbol name must contain only legal characters")
+            self.error("Footprint name must contain only legal characters")
             self.errorExtra("Name '{n}' contains illegal characters '{i}'".format(n=self.component.name, i=illegal))
             return True
         else:
@@ -39,6 +34,8 @@ class Rule(KLCRule):
             return False
 
     def fix(self):
-        self.recheck()
-
-
+        """
+        Proceeds the fixing of the rule, if possible.
+        """
+        # Re-check line endings
+        self.check()

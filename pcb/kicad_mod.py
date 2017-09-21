@@ -650,7 +650,7 @@ class KicadMod(object):
     def getPadsByNumber(self, pad_number):
         pads = []
         for pad in self.pads:
-            if pad['number'] == pad_number:
+            if str(pad['number']).upper() == str(pad_number).upper():
                 pads.append(pad)
 
         return pads

@@ -62,9 +62,9 @@ class Rule(KLCRule):
                 self.wrong_layers.append(pad)
 
         if len(errors) > 0:
-            self.error("Some SMD pads have incorrect layer settings")
+            self.warnings("Some SMD pads have potentially incorrect layer settings")
             for msg in errors:
-                self.errorExtra(msg)
+                self.warningExtra(msg)
 
         return len(self.wrong_layers) > 0
 

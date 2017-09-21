@@ -27,8 +27,10 @@ class Rule(KLCRule):
         error = False
 
         if self.pth_count > 0 and module.attribute != 'pth':
+            if module.attribute == 'virtual':
+                self.warning("Footprint placement type set to 'virtual' - ensure this is correct!")
             # Only THT pads
-            if self.smd_count == 0:
+            elif self.smd_count == 0:
                 self.error("Through Hole attribute not set")
                 self.errorExtra("For THT footprints, 'Placement type' must be set to 'Through hole'")
                 error = True

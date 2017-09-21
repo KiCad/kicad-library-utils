@@ -21,11 +21,9 @@ class Rule(KLCRule):
             self.error("Module is locked!")
             err = True
         if module.autoplace_cost90 != 0:
-            self.error("Attribute autoplace_cost90 == {0} != 0!".format(module.autoplace_cost90))
-            err = True
+            self.warning("Attribute autoplace_cost90 == {0} != 0!".format(module.autoplace_cost90))
         if module.autoplace_cost180 != 0:
-            self.error("Attribute autoplace_cost180 == {0} != 0!".format(module.autoplace_cost180))
-            err = True
+            self.warning("Attribute autoplace_cost180 == {0} != 0!".format(module.autoplace_cost180))
 
         # Following is allowed (with warning) to conform to manufacturer specifications
         if module.clearance != 0:
