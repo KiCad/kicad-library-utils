@@ -30,17 +30,25 @@ class Rule(KLCRule):
                 v = val['value'],
                 n = mod.name))
 
+        fh = val['font']['height']
+        fw = val['font']['width']
+        ft = val['font']['thickness']
+
+        f_min = min(fh, fw)
+        f_max = max(fh, fw)
+
         # Check for presense of 'value'
         if val['layer'] not in ['F.Fab', 'B.Fab']:
             errors.append("Component value is on layer {lyr} but should be on F.Fab or B.Fab".format(lyr=val['layer']))
         if val['hide']:
             errors.append("Component value is hidden (should be set to visible)")
-        if val['font']['height'] != KLC_TEXT_SIZE:
-            errors.append("Value label has a height of {1}mm (expected: {0}mm)".format(KLC_TEXT_SIZE, val['font']['height']))
-        if val['font']['height'] != KLC_TEXT_SIZE:
-            errors.append("Value label has a width of {1}mm (expected: {0}mm)".format(KLC_TEXT_SIZE, val['font']['width']))
-        if val['font']['thickness'] != KLC_TEXT_THICKNESS:
-            errors.append("Value label has a thickness of {1}mm (expected: {0}mm)".format(KLC_TEXT_THICKNESS, val['font']['thickness']))
+
+        if f_min < KLC_TEXT_SIZE_MIN:
+            errors.append("Value label size ({s}mm) is below minimum allowed value of {a}mm".format(s=f_min, a=KLC_TEXT_SIZE_MIN))
+        if f_max > KLC_TEXT_SIZE_MAX:
+            errors.append("Value label size ({s}mm) is above maximum allowed value of {a}mm".format(s=f_max, a=KLC_TEXT_SIZE_MAX))
+        if ft < KLC_TEXT_THICKNESS_MIN or ft > KLC_TEXT_THICKNESS_MAX:
+            errors.append("Value label thickness ({t}mm) is outside allowed range of {a}mm - {b}mm".format(t=ft, a=KLC_TEXT_THICKNESS_MIN, b=KLC_TEXT_THICKNESS_MAX))
 
         if len(errors) > 0:
             self.error("Value Label Errors")
