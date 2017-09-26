@@ -58,7 +58,7 @@ class Rule(KLCRule):
             err = True
 
         if self.checkTags():
-            err = True 
+            err = True
 
         self.has_illegal_chars = False
         if not isValidName(module.name):
@@ -73,8 +73,8 @@ class Rule(KLCRule):
         """
         Proceeds the fixing of the rule, if possible.
         """
-        module = self.module
-        if self.check():
-            self.info("Setting footprint value to '{name}'".format(name = module.name))
-            module.name = os.path.splitext(os.path.basename(module.filename))[0]
-            module.value['value'] = module.name
+        self.info("Setting footprint value to '{name}'".format(name = self.module.name))
+        self.module.name = os.path.splitext(os.path.basename(self.module.filename))[0]
+        self.module.value['value'] = self.module.name
+
+        self.recheck()
