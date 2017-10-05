@@ -9,17 +9,28 @@ class Rule(KLCRule):
     def __init__(self, module, args):
         super(Rule, self).__init__(module, args, 'Pad requirements for SMD footprints')
 
-        self.required_layers = ["Cu","Paste","Mask"]
+        self.required_layers = ["Cu", "Paste", "Mask"]
         self.sides = ["F.", "B."]
 
     def checkPads(self, pads):
 
-        self.wrong_layers = []
-
-        errors = []
+        self.stencil_pads_with_number = []
+        missing_layer_errors = []
+        extra_layer_errors = []
 
         for pad in pads:
             layers = pad['layers']
+
+            """
+            A 'stencil' pad is used when a complex stencil shape is needed.
+            - Only on F.Paste or B.Paste (or both)
+            - Must not have a number (otherwise rats-nest is generated)
+            """
+
+            if all([lyr.endswith('.Paste') for lyr in layers]):
+                if not pad['number'] == '':
+                    self.stencil_pads_with_number.append(pad)
+                continue
 
             # For SMD parts, following layers required:
             # F.Cu
@@ -40,10 +51,9 @@ class Rule(KLCRule):
                         present = True
 
                 if not present:
-                    errors.append("Pad '{n}' missing layer '{lyr}'".format(
+                    missing_layer_errors.append("Pad '{n}' missing layer '{lyr}'".format(
                         n=pad['number'],
                         lyr=layer))
-                    err = True
 
             # Check for extra layers
             allowed = []
@@ -53,20 +63,29 @@ class Rule(KLCRule):
 
             for layer in layers:
                 if layer not in allowed:
-                    errors.append("Pad '{n}' has extra layer '{lyr}'".format(
+                    extra_layer_errors.append("Pad '{n}' has extra layer '{lyr}'".format(
                         n=pad['number'],
                         lyr=layer))
-                    err = True
+        err = False
 
-            if err:
-                self.wrong_layers.append(pad)
+        if len(self.stencil_pads_with_number) > 0:
+            err = True
+            self.error("Stencil pad(s) found with non-empty number")
+            for p in self.stencil_pads_with_number:
+                self.errorExtra("Pad '{n}' @ ({x}, {y})".format(n=p['number'], x=p['pos']['x'], y=p['pos']['y']))
 
-        if len(errors) > 0:
-            self.warnings("Some SMD pads have potentially incorrect layer settings")
-            for msg in errors:
-                self.warningExtra(msg)
+        if len(extra_layer_errors) > 0:
+            err = True
+            self.error("Pad(s) found with extra layers")
+            for e in extra_layer_errors:
+                self.errorExtra(e)
 
-        return len(self.wrong_layers) > 0
+        if len(missing_layer_errors) > 0:
+            self.warning("Pad(s) potentially missing layers")
+            for w in missing_layer_errors:
+                self.warningExtra(w)
+
+        return err
 
     def check(self):
         """
@@ -77,9 +96,7 @@ class Rule(KLCRule):
         """
         module = self.module
 
-        return any([
-            self.checkPads(module.filterPads("smd"))
-            ])
+        return self.checkPads(module.filterPads("smd"))
 
     def fix(self):
         """
@@ -87,12 +104,8 @@ class Rule(KLCRule):
         """
         module = self.module
 
-        for pad in module.filterPads('smd'):
-            self.info("Pad {n} - Setting required layers for SMD pad".format(n=pad['number']))
+        for pad in self.stencil_pads_with_number:
+            self.info("Removing number '{x}' for stencil pad".format(x=pad['number']))
+            pad['number'] = ''
 
-            # Guess pad layer (Front / Back)
-            back = any([x.startswith("B.") for x in pad['layers']])
-
-            prefix = 'B.' if back else 'F.'
-
-            pad['layers'] = [prefix + layer for layer in self.required_layers]
+        self.recheck()
