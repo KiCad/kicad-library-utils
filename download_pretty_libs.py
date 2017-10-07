@@ -6,14 +6,13 @@ from __future__ import print_function
 import argparse
 import sys
 import re
-import sys
 import os
 import subprocess
 import platform
-import zipfile
 
 # Github address information
 GITHUB_URL = "https://www.github.com/KiCad"
+GITHUB_URL_SSH = "git@github.com:KiCad"
 GITHUB_FP_LIB_TABLE = "https://raw.githubusercontent.com/KiCad/kicad-library/master/template/fp-lib-table.for-github"
 FP_LIB_TABLE_FILE = "fp-lib-table.txt"
 
@@ -30,6 +29,11 @@ parser.add_argument("-i", "--ignore", help="Select which libraries to ignore (re
 parser.add_argument("-d", "--deprecated", help="Include libraries marked as deprecated", action="store_true")
 parser.add_argument("-u", "--update", help="Update libraries from github (no new libs will be downloaded)", action="store_true")
 parser.add_argument("-t", "--test", help="Test run only - libraries will be listed but not downloadded", action="store_true")
+parser.add_argument("--shallow", help="Download only the latest version instead of the entire library history", action="store_true")
+parser.add_argument("--tag", help="Tag the current state of the libs", action="store")
+parser.add_argument("--push_tag", help="Push the tag to github. (ignored if --tag is not given.)", action="store_true")
+parser.add_argument("--checkout", help="Checkout a specific commit for all given repos. (Example a specific release tag)", action="store")
+parser.add_argument("--ssh", help="Use github ssh url for cloning libs", action="store_true")
 
 args = parser.parse_args()
 
@@ -38,56 +42,64 @@ if args.path and os.path.exists(args.path) and os.path.isdir(args.path):
 else:
     base_dir = os.getcwd()
 
+
 def Fail(msg, result=-1):
     print(msg)
     sys.exit(result)
 
+
 # Run a system command, print output
 def Call(cmd):
-
     # Windows requires that commands are piped through cmd.exe
     if platform.platform().lower().count('windows') > 0:
         cmd = ["cmd", "/c"] + cmd
 
-    pipe = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    pipe = subprocess.Popen(cmd,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT)
 
     for line in iter(pipe.stdout.readline, b''):
         line = line.decode('utf-8')
         print(line.rstrip())
 
+
 # Download a file, with a simple progress bar
 def DownloadFile(url, save_file):
-
     def reporthook(bnum, bsize, tsize):
         progress = bnum * bsize
-        s = "Downloaded: n bytes" #% (progress,)
-        sys.stdout.write("\rDownloaded: {n} bytes{blank}".format(n=progress,blank=" "*(15-len(str(progress)))),)
-        #sys.stderr.write("\n")
+        sys.stdout.write("\rDownloaded: {n} bytes{blank}".format(
+            n=progress,
+            blank=" " * (15 - len(str(progress)))),)
         sys.stdout.flush()
 
     try:
-        result = urlrequest.urlretrieve(url, save_file, reporthook)
+        urlrequest.urlretrieve(url, save_file, reporthook)
         print("")
         return True
     except:
         return False
 
+
 def RepoUrl(repo):
+    if args.ssh:
+        return "{base}/{repo}".format(base=GITHUB_URL_SSH, repo=repo)
     return "{base}/{repo}".format(base=GITHUB_URL, repo=repo)
 
+
 # Git Clone a repository
-def CloneRepository(repo):
-
-    # Clone
+def CloneRepository(repo, shallow=False):
     os.chdir(base_dir)
-    Call(['git', 'clone', RepoUrl(repo)])
-
+    command = ['git', 'clone']
+    if shallow:
+        command.append('--depth=1')
+    command.append(RepoUrl(repo))
+    Call(command)
     return True
 
-# Perform git update of the repository
-def UpdateRepository(repo):
-    path = os.path.sep.join([base_dir, repo])
 
+# Perform git update of the repository
+def UpdateRepository(repo, shallow=False):
+    path = os.path.sep.join([base_dir, repo])
     path = r"" + path
 
     # Skip repo directories that do not exist
@@ -97,8 +109,49 @@ def UpdateRepository(repo):
     print("Updating {lib}".format(lib=repo))
 
     os.chdir(path)
-    Call(['git', 'pull'])
+    command = ['git', 'pull']
+    if shallow:
+        command.append('--depth=1')
+    Call(command)
     os.chdir(base_dir)
+
+
+# Perform git tag of the repository
+def TagRepository(repo, tag):
+    path = os.path.sep.join([base_dir, repo])
+
+    path = r"" + path
+
+    # Skip repo directories that do not exist
+    if not os.path.exists(path):
+        return
+
+    print("Taging {lib} with {tag}".format(lib=repo, tag=tag))
+
+    os.chdir(path)
+    Call(['git', 'tag', tag])
+    if args.push_tag:
+        print("Push tag {tag} to remote for {lib}".format(lib=repo, tag=tag))
+        Call(['git', 'push', 'origin', tag])
+    os.chdir(base_dir)
+
+
+# Perform git checkout of the repository
+def CheckoutRepository(repo, commit_id):
+    path = os.path.sep.join([base_dir, repo])
+
+    path = r"" + path
+
+    # Skip repo directories that do not exist
+    if not os.path.exists(path):
+        return
+
+    print("Taging {lib}".format(lib=repo))
+
+    os.chdir(path)
+    Call(['git', 'checkout', commit_id])
+    os.chdir(base_dir)
+
 
 try:
     # Download the footprint-library-table
@@ -140,7 +193,17 @@ for lib in libs:
 
     # If --update flag set, update library
     if args.update:
-        UpdateRepository(url)
+        UpdateRepository(url, shallow=args.shallow)
+        continue
+
+    # If --checkout flag set, checkout library to the given commit
+    if args.checkout:
+        CheckoutRepository(url, args.checkout)
+        continue
+
+    # If --tag flag set, tag library with the given tag
+    if args.tag:
+        TagRepository(url, args.tag)
         continue
 
     # Ignore libraries marked as 'deprecated'
@@ -153,7 +216,7 @@ for lib in libs:
         print(url, "exists, skipping...")
         continue
 
-    CloneRepository(url)
+    # Else clone the repo by default
+    CloneRepository(url, shallow=args.shallow)
 
 print("Done")
-sys.exit(0)
