@@ -37,14 +37,22 @@ class Rule(KLCRule):
                 # Footprint field should be of the format "Footprint_Library:Footprint_Name"
                 if fp_name.count(":") is not 1 or fp_name.startswith(":") or fp_name.endswith(":"):
                     fail = True
-                    self.error(fp_desc + "must be of the format '<Library>:<Footprint>")
+                    self.error(fp_desc + "must be of the format '<Library>:<Footprint>'")
 
                 # Footprint name cannot contain any illegal pathname characters
-                invalid = '\/*?"<>|[]\'@#~`'
-                for ii in invalid:
-                    fail = True
-                    if ii in fp_name:
-                        self.error(fp_desc + " contains illegal character '{c}'".format(c=ii))
+                else:
+                    fp_split = fp_name.split(":")
+
+                    fp_dir = fp_split[0]
+                    fp_path = fp_split[1]
+
+                    if not isValidName(fp_dir):
+                        self.error("Footprint library '{f}' contains illegal characters".format(f=fp_dir))
+                        fail = True
+
+                    if not isValidName(fp_path):
+                        self.error("Footprint name '{f}' contains illegal characters".format(f=fp_path))
+                        fail = True
 
         return fail
 
