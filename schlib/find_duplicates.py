@@ -10,7 +10,7 @@ This file looks for components that are duplicated within a library
 """
 
 import argparse
-import sys
+import sys, os
 
 common = os.path.abspath(os.path.join(sys.path[0], '..','common'))
 
@@ -19,7 +19,6 @@ if not common in sys.path:
 
 from schlib import *
 from print_color import *
-import os
 
 #enable windows wildcards
 from glob import glob
