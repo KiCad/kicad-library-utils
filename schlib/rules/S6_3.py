@@ -54,8 +54,24 @@ class Rule(KLCRule):
                     documentation['keywords']):
                     self.only_datasheet_missing = True
 
-        elif name.lower() in documentation['description'].lower():
+        # Symbol name should not appear in the description
+        desc = documentation.get('description', '')
+        if desc and name.lower() in desc.lower():
             warnings.append("Symbol name should not be included in description")
+
+        # Datasheet field should look like a a datasheet
+        ds = documentation.get('datasheet', '')
+
+        if ds and len(ds) > 2:
+            link = False
+            links = ['http', 'www', 'ftp']
+            if any([ds.startswith(i) for i in links]):
+                link = True
+            elif ds.endswith('.pdf') or '.htm' in ds:
+                link = True
+
+            if not link:
+                warnings.append("Datasheet entry '{ds}' does not look like a URL".format(ds=ds))
 
         if len(errors) > 0 or len(warnings) > 0:
             msg = "{cmp} {name} has metadata errors:".format(
