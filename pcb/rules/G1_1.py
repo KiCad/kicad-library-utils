@@ -14,7 +14,7 @@ class Rule(KLCRule):
 
         allowed = string.digits + string.letters + "_-."
 
-        name = self.module.name.lower()
+        name = str(self.module.name).lower()
 
         illegal = ""
 
@@ -27,7 +27,7 @@ class Rule(KLCRule):
 
         if len(illegal) > 0:
             self.error("Footprint name must contain only legal characters")
-            self.errorExtra("Name '{n}' contains illegal characters '{i}'".format(n=self.component.name, i=illegal))
+            self.errorExtra("Name '{n}' contains illegal characters '{i}'".format(n=self.module.name, i=illegal))
             return True
         else:
             # No errors!
