@@ -9,7 +9,7 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad_mod files.
     """
     def __init__(self, module, args):
-        super(Rule, self).__init__(module, args, 'For surface-mount devices, placement type must be set to "Surface Mount"')
+        super(Rule, self).__init__(module, args, 'For through-hole devices, placement type must be set to "Through Hole"')
 
     def check(self):
         """
@@ -26,18 +26,15 @@ class Rule(KLCRule):
 
         error = False
 
-        if self.smd_count > 0 and module.attribute != 'smd':
+        if self.pth_count > 0 and module.attribute != 'pth':
             if module.attribute == 'virtual':
                 self.warning("Footprint placement type set to 'virtual' - ensure this is correct!")
-            # Only SMD pads?
-            elif self.pth_count == 0:
-                self.error("Surface Mount attribute not set")
-                self.errorExtra("For SMD footprints, 'Placement type' must be set to 'Surface mount'")
+            # Only THT pads
+            elif self.smd_count == 0:
+                self.error("Through Hole attribute not set")
+                self.errorExtra("For THT footprints, 'Placement type' must be set to 'Through hole'")
                 error = True
-            else:
-                self.warning("Surface Mount attribute not set")
-                self.warningExtra("Both THT and SMD pads were found")
-                self.warningExtra("Suggest setting 'Placement Type' to 'Surface Mount'")
+            # A mix of THT and SMD pads - probably a SMD footprint
 
         return error
 
@@ -48,5 +45,5 @@ class Rule(KLCRule):
         """
         module = self.module
         if self.check():
-            self.info("Set 'surface mount' attribute")
-            module.attribute = 'smd'
+            self.info("Setting placement type to 'Through hole'")
+            module.attribute = 'pth'

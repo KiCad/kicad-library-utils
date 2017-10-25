@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import division
+
 from rules.rule import *
 
 class Rule(KLCRule):
@@ -7,70 +9,47 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad_mod files.
     """
     def __init__(self, module, args):
-        super(Rule, self).__init__(module, args, 'For through-hole components, footprint anchor is set on pad 1')
-
-        self.pin1_position = []
-        self.pin1_count = 0
+        super(Rule, self).__init__(module, args,'For surface-mount devices, footprint anchor is placed in the middle of the footprint (IPC-7351).')
 
     def check(self):
         """
         Proceeds the checking of the rule.
         The following variables will be accessible after checking:
-            * pin1_position
-            * pin1_count
+            * pads_bounds
+            * pads_distance
+            * right_anchor
         """
-
-        # List of potential names for pad-1
-        names = ['1', 'A', 'A1', 'P1', 'PAD1']
-        pads = []
-
         module = self.module
+        if module.attribute != 'smd':
+            # Ignore non-smd parts
+            return False
 
-        num = ''
+        center = module.padMiddlePosition()
 
-        # check if module is through-hole
-        if module.attribute == 'pth':
+        err = False
 
-            for name in names:
-                pads = module.getPadsByNumber(name)
-                if len(pads) > 0:
-                    num = name
-                    break
+        THRESHOLD = 0.001
+        x = center['x']
+        y = center['y']
 
-            if len(pads) == 0:
-                self.warning("Pad 1 not found in footprint!")
-                return False
+        if abs(x) > THRESHOLD or abs(y) > THRESHOLD:
+            self.error("Footprint anchor is not located at center of footprint")
+            self.errorExtra("Footprint center calculated as ({x},{y})mm".format(
+                x = round(center['x'], 5),
+                y = round(center['y'], 5)))
 
-            self.pin1_count = len(pads)
+            err = True
 
-            for pad in pads:
-                pos = pad['pos']
-
-                if len(self.pin1_position) == 0:
-                    self.pin1_position = [pos['x'], pos['y']]
-
-                # Pad is located at origin
-                if pos['x'] == 0 and pos['y'] == 0:
-                    return False
-
-            # More than one pad-1? Only a warning...
-            if len(pads) > 1:
-                self.warning("Multiple Pins exist with number '{num}'".format(num=num))
-                self.warningExtra("None are located on origin")
-
-            else:
-                self.error("Pad '{num}' not located at origin".format(num=num))
-                self.errorExtra("Set origin to location of Pad '{num}'".format(num=num))
-
-            return True
-
-        return False
+        return err
 
     def fix(self):
         """
         Proceeds the fixing of the rule, if possible.
         """
         module = self.module
-        if self.check() and len(self.pin1_position)>0:
-            self.info("Moved anchor position to Pin-1")
-            module.setAnchor(self.pin1_position)
+        if self.check():
+            self.info("Footprint anchor fixed")
+
+            center = module.padMiddlePosition()
+
+            module.setAnchor([center['x'], center['y']])
