@@ -11,20 +11,25 @@ class Rule(KLCRule):
 
     def checkPad(self, pad):
 
+        if 'drill' not in pad:
+            self.error("Pad {p} is missing 'drill' parameter".format(p=pad['number']))
+            return True
+
         drill = pad['drill']
+
+        if 'size' not in drill:
+            self.error("Drill specification is missing 'size' parameter for pad {p}".format(p=pad['number']))
+            return True
+
         size = min(drill['size']['x'], drill['size']['y'])
 
         err = False
 
-        if size < 0.15:
-            self.error("Pad {n} min. drill size ({d}mm) is below minimum (0.15mm)".format(
+        if size < 0.20:
+            self.error("Pad {n} min. drill size ({d}mm) is below minimum (0.20mm)".format(
                 n = pad['number'],
                 d = size))
             err = True
-        elif size < 0.20:
-            self.warning("Pad {n} min. drill size ({d}mm) is below recommended (0.20mm)".format(
-                n = pad['number'],
-                d = size))
 
         return err
 
