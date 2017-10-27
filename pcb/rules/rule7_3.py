@@ -12,34 +12,34 @@ class Rule(KLCRule):
     """
     def __init__(self, module, args):
         super(Rule, self).__init__(module, args, 'Rule 7.3', "Silkscreen requirements")
-        
+
     def checkReference(self):
         """
         Check that the RefDes is included on the silkscreen layer,
         and has the correct dimensions (etc)
         """
-        
+
         module = self.module
 
         ref = module.reference
-        
+
         font = ref['font']
-        
+
         errors = []
-        
+
         # Check correct value of reference field
         if not ref['reference'] == 'REF**':
             errors.append("Reference text is '{v}', expected: 'REF**'".format(
                 v = ref['reference']))
-        
+
         # Check correct layer for reference
         if ref['layer'] not in ['F.SilkS', 'B.SilkS']:
             errors.append("Reference label is on layer '{0}', but should be on layer F.SilkS or B.SilkS!".format(ref['layer']))
-            
+
         # Check that reference is not hidden
         if ref['hide']:
             errors.append("Reference label is hidden (must be set to visible)")
-            
+
         # Check reference size
         if not font['width'] == font['height']:
             errors.append("Reference label font aspect ratio should be 1:1")
@@ -49,33 +49,33 @@ class Rule(KLCRule):
             errors.append("Reference label has a width of {1}mm (expected: {0}mm).\n".format(KLC_TEXT_SIZE,font['width']))
         if font['thickness'] != KLC_TEXT_THICKNESS:
             errors.append("Reference label has a thickness of {1}mm (expected: {0}mm).\n".format(KLC_TEXT_THICKNESS,font['thickness']))
-            
+
         self.refDesError = len(errors) > 0
-        
+
         if len(errors) > 0:
             self.error("Reference label errors:")
             for err in errors:
                 self.errorExtra(err)
-        
+
     """
     Check that all silkscreen lines are of the correct width
     """
     def checkSilkscreenWidth(self):
         # check the width
         self.bad_width = []
-        
+
         for graph in (self.f_silk + self.b_silk):
             if graph['width'] not in KLC_SILK_WIDTH_ALLOWED:
                 self.bad_width.append(graph)
-             
-    """ 
+
+    """
     Check if any of the silkscreen intersects
     with pads, etc
     """
     def checkIntersections(self):
-    
+
         module = self.module
-    
+
         for graph in (self.f_silk + self.b_silk):
             if 'angle' in graph:
                 #TODO
@@ -124,17 +124,17 @@ class Rule(KLCRule):
                     if 'offset' in pad['drill']:
                         if 'x' in pad['drill']['offset']:
                             padOffset = complex(pad['drill']['offset']['x'], pad['drill']['offset']['y'])
-                            
+
                     edgesPad = {}
                     edgesPad[0] = complex(pad['size']['x'] / 2.0, pad['size']['y'] / 2.0) + padComplex + padOffset
                     edgesPad[1] = complex(-pad['size']['x'] / 2.0, -pad['size']['y'] / 2.0) + padComplex + padOffset
                     edgesPad[2] = complex(pad['size']['x'] / 2.0, -pad['size']['y'] / 2.0) + padComplex + padOffset
                     edgesPad[3] = complex(-pad['size']['x'] / 2.0, pad['size']['y'] / 2.0) + padComplex + padOffset
-                    
+
                     vectorR = cmath.rect(1, cmath.pi / 180 * pad['pos']['orientation'])
                     for i in range(4):
                         edgesPad[i] = (edgesPad[i] - padComplex) * vectorR + padComplex
-                        
+
                     startComplex = complex(graph['start']['x'], graph['start']['y'])
                     endComplex = complex(graph['end']['x'], graph['end']['y'])
                     if endComplex.imag > startComplex.imag:
@@ -148,12 +148,12 @@ class Rule(KLCRule):
                         for i in range(4):
                             edgesPad[i] = edgesPad[i] - endComplex
                     length = abs(vector)
-                    
+
                     vectorR = cmath.rect(1, -cmath.phase(vector))
                     padComplex = padComplex * vectorR
                     for i in range(4):
                             edgesPad[i] = edgesPad[i] * vectorR
-                    
+
                     if 'circle' in pad['shape']:
                         distance = cmath.sqrt((pad['size']['x'] / 2.0) ** 2 - (padComplex.imag) ** 2).real
                         padMinX = padComplex.real - distance
@@ -218,7 +218,7 @@ class Rule(KLCRule):
             self.error("Some silkscreen lines have incorrect width: Allowed = {allowed}(mm))".format(allowed=KLC_SILK_WIDTH_ALLOWED))
             for g in self.bad_width:
                 self.errorExtra(graphItemString(g, layer=True, width=True))
-        
+
         # Display message if silkscreen was found intersecting with pad
         if self.intersections:
             self.error("Some Silkscreen lines intersects with pads")
@@ -230,7 +230,7 @@ class Rule(KLCRule):
                         x = ints['pad']['pos']['x'],
                         y = ints['pad']['pos']['y']))
                     pad_nums.append(ints['pad']['number'])
-                        
+
         # Return True if any of the checks returned an error
         return any([len(self.bad_width) > 0,
                     len(self.intersections) > 0,
@@ -243,10 +243,10 @@ class Rule(KLCRule):
         """
         from copy import deepcopy
         module = self.module
-        
+
         if self.check():
             if self.refDesError:
-                ref = self.module.ref
+                ref = self.module.reference
                 if self.checkReference():
                     ref['value'] = 'REF**'
                     ref['layer'] = 'F.SilkS'

@@ -91,7 +91,11 @@ class Documentation(object):
         if not filename: filename = self.filename
 
         to_write=self.header
-        for name,doc in self.components.items():
+
+        # Ensure that items are written in alphabetical order
+        items = sorted(self.components.items(), key = lambda item: item[0])
+
+        for name,doc in items:
             to_write.append('#\n')#just spacer (no even in dcm format specification, but used everywhere)
             to_write.append(self.line_keys['start']+name+'\n')
             for key in doc.keys():
@@ -406,6 +410,21 @@ class SchLib(object):
 
         return None
 
+
+    def getComponentCount(self, unique=False):
+        count = 0
+
+        for cmp in self.components:
+            count += 1
+
+            if unique:
+                continue
+
+            count += len(cmp.aliases)
+
+        return count
+
+
     def removeComponent(self, name):
         component = self.getComponentByName(name)
         for alias in component.aliases.keys():
@@ -428,12 +447,14 @@ class SchLib(object):
 
         self.documentation.save(self.libToDcmFilename(filename))
 
-
         # insert the header
         to_write = self.header
 
+        # Ensure that the components are sorted by name!
+        components = sorted(self.components, key = lambda cmp: cmp.name)
+
         # insert the components
-        for component in self.components:
+        for component in components:
             # append the component comments
             to_write += component.comments
 
