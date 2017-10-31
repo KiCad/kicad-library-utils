@@ -119,6 +119,11 @@ class Rule(KLCRule):
                             self.intersections.append({'pad':pad, 'graph':graph})
             else:
                 for pad in module.pads:
+
+                    # Skip checks on NPTH and Connect holes
+                    if pad['type'] in ['np_thru_hole', 'connect']:
+                        continue
+
                     padComplex = complex(pad['pos']['x'], pad['pos']['y'])
                     padOffset = 0 + 0j
                     if 'offset' in pad['drill']:
