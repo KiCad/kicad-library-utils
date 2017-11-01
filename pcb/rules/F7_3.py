@@ -39,7 +39,7 @@ class Rule(KLCRule):
         if other_pads_rectangular:
             self.warning("Only pad 1 should be rectangular")
 
-        return True
+        return False
 
     def fix(self):
         """

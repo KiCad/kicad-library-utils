@@ -108,7 +108,6 @@ for filename in files:
             rule.processOutput(printer, args.verbose, args.silent)
 
         if error:
-            print("Violating " + rule.name + "(probably)")
             n_violations += 1
 
             if args.fix:
@@ -123,7 +122,6 @@ for filename in files:
     # increment the number of violations
     if n_violations > 0:
         exit_code += 1
-        print("Incrementing exit_code")
 
     if args.fix or args.rotate!=0:
         module.save()
