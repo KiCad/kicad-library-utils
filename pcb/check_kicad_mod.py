@@ -108,6 +108,7 @@ for filename in files:
             rule.processOutput(printer, args.verbose, args.silent)
 
         if error:
+            print("Violating " + error.name)
             n_violations += 1
 
             if args.fix:
