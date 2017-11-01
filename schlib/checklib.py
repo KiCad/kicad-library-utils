@@ -8,11 +8,12 @@ common = os.path.abspath(os.path.join(sys.path[0], '..','common'))
 
 if not common in sys.path:
     sys.path.append(common)
-    
+
 from schlib import *
 
 from print_color import *
 import re
+from rules import __all__ as all_rules
 from rules import *
 from rules.rule import KLCRule
 
@@ -40,27 +41,18 @@ if args.verbose:
     verbosity=args.verbose
 KLCRule.verbosity = verbosity
 
-#user can select various rules
-#in the format -r=3.1 or --rule=3.1,EC01,EC05
 if args.rule:
     selected_rules = args.rule.split(',')
 else:
     #ALL rules are used
     selected_rules = None
 
-# get all rules
-all_rules = []
-for f in dir():
-    if f.startswith('rule'):
-        #f is of the format rule3_1 (user may have speicified a rule like 3.1)
-        if (selected_rules == None) or (f[4:].replace("_",".") in selected_rules):
-            all_rules.append(globals()[f].Rule)
+rules = []
 
-# add all extra checking
-for f in dir():
-    if f.startswith('EC'):
-        if (selected_rules is None) or (f.lower() in [r.lower() for r in selected_rules]):
-            all_rules.append(globals()[f].Rule)
+for r in all_rules:
+    r_name = r.replace('_', '.')
+    if selected_rules == None or r_name in selected_rules:
+        rules.append(globals()[r].Rule)
 
 #grab list of libfiles (even on windows!)
 libfiles = []
@@ -70,12 +62,10 @@ if len(all_rules)<=0:
     sys.exit(1)
 else:
     if (verbosity>2):
-        printer.regular("checking rules:")	
+        printer.regular("checking rules:")
         for rule in all_rules:
             printer.regular("  - "+str(rule))
-        printer.regular("")	
-
-
+        printer.regular("")
 
 for libfile in args.libfiles:
     libfiles += glob(libfile)
@@ -83,7 +73,7 @@ for libfile in args.libfiles:
 if len(libfiles) == 0:
     printer.red("File argument invalid: {f}".format(f=args.libfiles))
     sys.exit(1)
-    
+
 exit_code = 0
 
 for libfile in libfiles:
@@ -95,7 +85,7 @@ for libfile in libfiles:
         printer.purple('Library: %s' % libfile)
 
     for component in lib.components:
-        
+
         #simple match
         match = True
         if args.component:
@@ -113,22 +103,22 @@ for libfile in libfiles:
         n_violations = 0
 
         first = True
-    
-        for rule in all_rules:
+
+        for rule in rules:
             rule = rule(component)
             if (verbosity>2):
-                printer.white("checking rule "+rule.name)	
-            
+                printer.white("checking rule "+rule.name)
+
             error = rule.check()
-            
+
             if rule.hasOutput():
                 if first:
                     printer.green("Checking symbol '{sym}':".format(sym=component.name))
                     first = False
-                    
+
                 printer.yellow("Violating " + rule.name, indentation=2)
                 rule.processOutput(printer, verbosity, args.silent)
-            
+
             # Specifically check for errors
             if error:
                 n_violations += 1
@@ -136,17 +126,17 @@ for libfile in libfiles:
                 if args.fix:
                     rule.fix()
                     rule.processOutput(printer, verbosity, args.silent)
-            
+
         # No messages?
         if first:
             if not args.silent:
                 printer.green("Checking symbol '{sym}' - No errors".format(sym=component.name))
-            
+
         # check the number of violations
         if n_violations > 0:
             exit_code += 1
 
     if args.fix:
         lib.save()
-		
+
 sys.exit(exit_code);

@@ -7,7 +7,7 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad lib files.
     """
     def __init__(self, component):
-        super(Rule, self).__init__(component, 'Rule 4.9 - Default fields', 'Default fields contain the correct information')
+        super(Rule, self).__init__(component, 'Component fields contain the correct information')
 
     def checkVisibility(self, field):
         return field['visibility'] == 'V'
@@ -34,7 +34,7 @@ class Rule(KLCRule):
             if self.checkVisibility(ref):
                 self.error("Ref(erence) field must be INVISIBLE in graphic symbols or power-symbols")
                 fail = True
-        
+
         return fail
 
     def checkValue(self):

@@ -10,14 +10,14 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad_mod files.
     """
     def __init__(self, module, args):
-        super(Rule, self).__init__(module, args, 'Rule 10.4', '3D model reference')
+        super(Rule, self).__init__(module, args, '3D model reference')
 
     def checkModel(self, model):
 
         error = False
 
         # Allowed model types
-        extensions = ["step","stp","wrl"]
+        extensions = ["step", "stp", "wrl"]
 
         model = model['file']
 
@@ -62,7 +62,7 @@ class Rule(KLCRule):
 
         if not isValidName(model_file):
             error = True
-            self.error("3D model path '{p}' contains invalid characters as per KLC 1.7".format(
+            self.error("3D model path '{p}' contains invalid characters as per KLC G1.1".format(
                 p = model_file))
 
         return error

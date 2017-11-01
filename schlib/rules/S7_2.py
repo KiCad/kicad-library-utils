@@ -8,16 +8,16 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad lib files.
     """
     def __init__(self, component):
-        super(Rule, self).__init__(component, 'Rule 4.14 - Graphical symbols', 'Graphical symbols follow some special rules/KLC-exceptions')
+        super(Rule, self).__init__(component, 'Graphical symbols follow some special rules/KLC-exceptions')
         self.fixTooManyPins=False
         self.fixNoFootprint=False
 
-    
+
     def check(self):
         """
         Proceeds the checking of the rule.
         """
-        
+
         fail=False
         if self.component.isGraphicSymbol():
             # no pins in raphical symbol
@@ -35,8 +35,8 @@ class Rule(KLCRule):
                 self.error("Graphical symbols have no footprint filters")
                 fail=True
                 self.fixNoFootprint=True
-            
-        
+
+
         return fail
 
     def fix(self):

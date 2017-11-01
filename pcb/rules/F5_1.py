@@ -11,7 +11,7 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad_mod files.
     """
     def __init__(self, module, args):
-        super(Rule, self).__init__(module, args, 'Rule 7.3', "Silkscreen requirements")
+        super(Rule, self).__init__(module, args, "Silkscreen layer requirements")
 
     def checkReference(self):
         """
@@ -119,79 +119,83 @@ class Rule(KLCRule):
                             self.intersections.append({'pad':pad, 'graph':graph})
             else:
                 for pad in module.pads:
-                    if (pad['type'] not in ['np_thru_hole','connect']):
-                        padComplex = complex(pad['pos']['x'], pad['pos']['y'])
-                        padOffset = 0 + 0j
-                        if 'offset' in pad['drill']:
-                            if 'x' in pad['drill']['offset']:
-                                padOffset = complex(pad['drill']['offset']['x'], pad['drill']['offset']['y'])
 
-                        edgesPad = {}
-                        edgesPad[0] = complex(pad['size']['x'] / 2.0, pad['size']['y'] / 2.0) + padComplex + padOffset
-                        edgesPad[1] = complex(-pad['size']['x'] / 2.0, -pad['size']['y'] / 2.0) + padComplex + padOffset
-                        edgesPad[2] = complex(pad['size']['x'] / 2.0, -pad['size']['y'] / 2.0) + padComplex + padOffset
-                        edgesPad[3] = complex(-pad['size']['x'] / 2.0, pad['size']['y'] / 2.0) + padComplex + padOffset
+                    # Skip checks on NPTH and Connect holes
+                    if pad['type'] in ['np_thru_hole', 'connect']:
+                        continue
 
-                        vectorR = cmath.rect(1, cmath.pi / 180 * pad['pos']['orientation'])
+                    padComplex = complex(pad['pos']['x'], pad['pos']['y'])
+                    padOffset = 0 + 0j
+                    if 'offset' in pad['drill']:
+                        if 'x' in pad['drill']['offset']:
+                            padOffset = complex(pad['drill']['offset']['x'], pad['drill']['offset']['y'])
+
+                    edgesPad = {}
+                    edgesPad[0] = complex(pad['size']['x'] / 2.0, pad['size']['y'] / 2.0) + padComplex + padOffset
+                    edgesPad[1] = complex(-pad['size']['x'] / 2.0, -pad['size']['y'] / 2.0) + padComplex + padOffset
+                    edgesPad[2] = complex(pad['size']['x'] / 2.0, -pad['size']['y'] / 2.0) + padComplex + padOffset
+                    edgesPad[3] = complex(-pad['size']['x'] / 2.0, pad['size']['y'] / 2.0) + padComplex + padOffset
+
+                    vectorR = cmath.rect(1, cmath.pi / 180 * pad['pos']['orientation'])
+                    for i in range(4):
+                        edgesPad[i] = (edgesPad[i] - padComplex) * vectorR + padComplex
+
+                    startComplex = complex(graph['start']['x'], graph['start']['y'])
+                    endComplex = complex(graph['end']['x'], graph['end']['y'])
+                    if endComplex.imag > startComplex.imag:
+                        vector = endComplex - startComplex
+                        padComplex = padComplex - startComplex
                         for i in range(4):
-                            edgesPad[i] = (edgesPad[i] - padComplex) * vectorR + padComplex
+                            edgesPad[i] = edgesPad[i] - startComplex
+                    else:
+                        vector = startComplex - endComplex
+                        padComplex = padComplex - endComplex
+                        for i in range(4):
+                            edgesPad[i] = edgesPad[i] - endComplex
+                    length = abs(vector)
 
-                        startComplex = complex(graph['start']['x'], graph['start']['y'])
-                        endComplex = complex(graph['end']['x'], graph['end']['y'])
-                        if endComplex.imag > startComplex.imag:
-                            vector = endComplex - startComplex
-                            padComplex = padComplex - startComplex
-                            for i in range(4):
-                                edgesPad[i] = edgesPad[i] - startComplex
+                    vectorR = cmath.rect(1, -cmath.phase(vector))
+                    padComplex = padComplex * vectorR
+                    for i in range(4):
+                            edgesPad[i] = edgesPad[i] * vectorR
+
+                    if 'circle' in pad['shape']:
+                        distance = cmath.sqrt((pad['size']['x'] / 2.0) ** 2 - (padComplex.imag) ** 2).real
+                        padMinX = padComplex.real - distance
+                        padMaxX = padComplex.real + distance
+                    else:
+                        edges = [[0,3],[0,2],[2,1],[1,3]] #lines of the rectangle pads
+                        x0 = [] #vector of value the x to y=0
+                        for edge in edges:
+                            x1 = edgesPad[edge[0]].real
+                            x2 = edgesPad[edge[1]].real
+                            y1 = edgesPad[edge[0]].imag
+                            y2 = edgesPad[edge[1]].imag
+                            if y1 != y2:
+                                x = -y1 / (y2 - y1) * (x2 - x1) + x1
+                                if x < max(x1, x2) and x > min(x1, x2):
+                                    x0.append(x)
+                        if x0:
+                            padMinX = min(x0)
+                            padMaxX = max(x0)
                         else:
-                            vector = startComplex - endComplex
-                            padComplex = padComplex - endComplex
-                            for i in range(4):
-                                edgesPad[i] = edgesPad[i] - endComplex
-                        length = abs(vector)
-
-                        vectorR = cmath.rect(1, -cmath.phase(vector))
-                        padComplex = padComplex * vectorR
-                        for i in range(4):
-                                edgesPad[i] = edgesPad[i] * vectorR
-
+                            continue
+                    if ((padMinX < length and padMinX > 0) or
+                        (padMaxX < length and padMaxX > 0) or
+                        (padMaxX > length and padMinX < 0)) :
                         if 'circle' in pad['shape']:
-                            distance = cmath.sqrt((pad['size']['x'] / 2.0) ** 2 - (padComplex.imag) ** 2).real
-                            padMinX = padComplex.real - distance
-                            padMaxX = padComplex.real + distance
+                            distance = pad['size']['x'] / 2.0
+                            padMin = padComplex.imag - distance
+                            padMax = padComplex.imag + distance
                         else:
-                            edges = [[0,3],[0,2],[2,1],[1,3]] #lines of the rectangle pads
-                            x0 = [] #vector of value the x to y=0
-                            for edge in edges:
-                                x1 = edgesPad[edge[0]].real
-                                x2 = edgesPad[edge[1]].real
-                                y1 = edgesPad[edge[0]].imag
-                                y2 = edgesPad[edge[1]].imag
-                                if y1 != y2:
-                                    x = -y1 / (y2 - y1) * (x2 - x1) + x1
-                                    if x < max(x1, x2) and x > min(x1, x2):
-                                        x0.append(x)
-                            if x0:
-                                padMinX = min(x0)
-                                padMaxX = max(x0)
-                            else:
-                                continue
-                        if ((padMinX < length and padMinX > 0) or
-                            (padMaxX < length and padMaxX > 0) or
-                            (padMaxX > length and padMinX < 0)) :
-                            if 'circle' in pad['shape']:
-                                distance = pad['size']['x'] / 2.0
-                                padMin = padComplex.imag - distance
-                                padMax = padComplex.imag + distance
-                            else:
-                                padMin = min(edgesPad[0].imag, edgesPad[1].imag, edgesPad[2].imag, edgesPad[3].imag)
-                                padMax = max(edgesPad[0].imag, edgesPad[1].imag, edgesPad[2].imag, edgesPad[3].imag)
-                            try:
-                                differentSign = padMax / padMin
-                            except:
-                                differentSign = padMin / padMax
-                            if (differentSign < 0) or (abs(padMax) < 0.075) or (abs(padMin) < 0.075):
-                                self.intersections.append({'pad':pad, 'graph':graph})
+                            padMin = min(edgesPad[0].imag, edgesPad[1].imag, edgesPad[2].imag, edgesPad[3].imag)
+                            padMax = max(edgesPad[0].imag, edgesPad[1].imag, edgesPad[2].imag, edgesPad[3].imag)
+                        try:
+                            differentSign = padMax / padMin
+                        except:
+                            differentSign = padMin / padMax
+                        if (differentSign < 0) or (abs(padMax) < 0.075) or (abs(padMin) < 0.075):
+                            self.intersections.append({'pad':pad, 'graph':graph})
 
     def check(self):
         """

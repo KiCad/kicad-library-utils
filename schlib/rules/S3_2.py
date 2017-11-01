@@ -7,7 +7,7 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad lib files.
     """
     def __init__(self, component):
-        super(Rule, self).__init__(component, 'Rule 4.8 - Field text size', 'Field text uses a common size of 50mils.')
+        super(Rule, self).__init__(component, 'Text fields should use common size of 50mils')
 
     def check(self):
         """
@@ -30,14 +30,23 @@ class Rule(KLCRule):
                 message+=(" at posx {0} posy {1}".format(field["posx"],field["posy"]))
                 self.error(" - Field {0} size {1}".format(message,field["text_size"]) )
 
-
         self.violating_pins = []
+
+        """
+        Pin number MUST be 50mils
+        Pin name must be between 20mils and 50mils
+        Pin name should be 50mils
+        """
+
         for pin in self.component.pins:
             name_text_size = int(pin['name_text_size'])
             num_text_size = int(pin['num_text_size'])
-            if (name_text_size != 50) or (num_text_size != 50):
+
+            if (name_text_size < 20) or (name_text_size > 50) or (num_text_size != 50):
                 self.violating_pins.append(pin)
                 self.error(' - Pin {0} ({1}), text size {2}, number size {3}'.format(pin['name'], pin['num'], pin['name_text_size'], pin['num_text_size']))
+            elif name_text_size != 50:
+                self.warning("Pin name text size should be 50mils")
 
         if (len(self.violating_fields) > 0 or
             len(self.violating_pins) > 0):

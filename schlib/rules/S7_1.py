@@ -8,19 +8,19 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad lib files.
     """
     def __init__(self, component):
-        super(Rule, self).__init__(component, 'Rule 4.13 - Power-flag symbols', 'Power-flag symbols follow some special rules/KLC-exceptions')
+        super(Rule, self).__init__(component, 'Power-flag symbols follow some special rules/KLC-exceptions')
         self.makePinINVISIBLE=False
         self.makePinPowerInput=False
         self.fixTooManyPins=False
         self.fixPinSignalName=False
         self.fixNoFootprint=False
 
-    
+
     def check(self):
         """
         Proceeds the checking of the rule.
         """
-        
+
         fail=False
         if self.component.isPossiblyPowerSymbol():
             if (len(self.component.pins) != 1):
@@ -50,7 +50,7 @@ class Rule(KLCRule):
                     self.error("Graphical symbols have no footprint filters")
                     fail=True
                     self.fixNoFootprint=True
-        
+
         return fail
 
     def fix(self):

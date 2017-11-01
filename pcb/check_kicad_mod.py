@@ -13,6 +13,7 @@ if not common in sys.path:
 from kicad_mod import *
 
 from print_color import *
+from rules import __all__ as all_rules
 from rules import *
 from rules.rule import KLCRule
 
@@ -43,15 +44,12 @@ if args.rule:
 else:
     selected_rules = None
 
-# get all rules
-all_rules = []
-for f in dir():
-    if f.startswith('rule'):
-        if selected_rules == None or (f[4:].replace("_",".") in selected_rules):
-            all_rules.append(globals()[f].Rule)
-    elif f.startswith('EC'):
-        if selected_rules == None or f in selected_rules:
-            all_rules.append(globals()[f].Rule)
+rules = []
+
+for r in all_rules:
+    r_name = r.replace('_', '.')
+    if selected_rules == None or r_name in selected_rules:
+        rules.append(globals()[r].Rule)
 
 files = []
 
@@ -96,8 +94,7 @@ for filename in files:
 
     first = True
 
-    for rule in all_rules:
-
+    for rule in rules:
         rule = rule(module,args)
 
         error = rule.check()

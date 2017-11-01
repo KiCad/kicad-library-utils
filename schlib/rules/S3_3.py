@@ -7,7 +7,7 @@ class Rule(KLCRule):
     Create the methods check and fix to use with the kicad lib files.
     """
     def __init__(self, component):
-        super(Rule, self).__init__(component, 'Rule 4.2 - Symbol visual style', 'Symbol visual style should follow standard aesthetic style')
+        super(Rule, self).__init__(component, 'Symbol outline and fill requirements')
 
     def check(self):
         """
@@ -15,11 +15,11 @@ class Rule(KLCRule):
         The following variables will be accessible after checking:
             * n_rectangles
         """
-        
+
         # no checks for power-symbols or graphical symbols:
         if self.component.isPowerSymbol() or self.component.isGraphicSymbol():
             return False
-        
+
         rectangle_need_fix = False
         # check if component has just one rectangle, if not, skip checking
         self.n_rectangles = len(self.component.draw['rectangles'])
@@ -29,7 +29,7 @@ class Rule(KLCRule):
             self.error("Component line is thickness {0}mil, recommended is {1}mil".format(self.component.draw['rectangles'][0]['thickness'],10))
             rectangle_need_fix = True
         if (self.component.draw['rectangles'][0]['fill'] != 'f'):
-            self.error("Component background is filled with {0} color, recommended is filling with {1} color".format(backgroundFillToStr(self.component.draw['rectangles'][0]['fill']),backgroundFillToStr('f')))
+            self.warning("Component background is filled with {0} color, recommended is filling with {1} color".format(backgroundFillToStr(self.component.draw['rectangles'][0]['fill']),backgroundFillToStr('f')))
             rectangle_need_fix = True
 
         return True if rectangle_need_fix else False

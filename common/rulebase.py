@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import inspect, os
+
 # Static functions
 def isValidName(name, checkForGraphicSymbol=False, checkForPowerSymbol=False):
         name = str(name).lower()
@@ -8,24 +10,24 @@ def isValidName(name, checkForGraphicSymbol=False, checkForPowerSymbol=False):
             # first character may be '~' in some cases
             if (checkForPowerSymbol or checkForGraphicSymbol) and firstChar and c=='~':
                 continue
-            
+
             firstChar=False
             # Numeric characters check
             if c.isalnum():
                 continue
-                
+
             # Alpha characters (simple set only)
             if c >= 'a' and c <= 'z':
                 continue
-                
+
             if c in ['_', '-', '.']:
                 continue
-            
+
             if checkForPowerSymbol and (c in ['+']):
                 continue
-            
+
             return False
-                
+
         return True
 
 class Verbosity:
@@ -45,39 +47,40 @@ class KLCRuleBase(object):
     """
 
     verbosity = 0
-    
-    def __init__(self, name, description):
-        self.name = name
-        self.description = description
-        self.messageBuffer = []
 
-    def __init__(self, name, description):
-        self.name = name
+    @property
+    def name(self):
+        path = inspect.getfile(self.__class__)
+        path = os.path.basename(path)
+        path = "".join(path.split(".")[:-1])
+        return path.replace('_', '.')
+
+    def __init__(self, description):
         self.description = description
-        self.messageBuffer=[]  
+        self.messageBuffer=[]
 
     #adds message into buffer only if such level of verbosity is wanted
     def verboseOut(self, msgVerbosity, severity, message):
         self.messageBuffer.append([message,msgVerbosity,severity])
-        
+
     def warning(self, msg):
         self.verboseOut(Verbosity.NORMAL, Severity.WARNING, msg)
 
     def warningExtra(self, msg):
         self.verboseOut(Verbosity.HIGH, Severity.WARNING, " - " + msg)
-        
+
     def error(self, msg):
         self.verboseOut(Verbosity.NORMAL, Severity.ERROR, msg)
-        
+
     def errorExtra(self, msg):
         self.verboseOut(Verbosity.HIGH, Severity.ERROR, " - " + msg)
-        
+
     def info(self, msg):
         self.verboseOut(Verbosity.NONE, Severity.INFO, "> " + msg)
-        
+
     def success(self, msg):
         self.verboseOut(Verbosity.NORMAL, Severity.SUCCESS, msg)
-        
+
     def check(self, component):
         raise NotImplementedError('The check method must be implemented')
 
@@ -89,12 +92,12 @@ class KLCRuleBase(object):
             self.error("Could not be fixed")
         else:
             self.success("Everything fixed")
-            
+
     def hasOutput(self):
         return len(self.messageBuffer) > 0
-            
+
     def processOutput(self, printer, verbosity=Verbosity.NONE, silent=False):
-    
+
         if not verbosity:
             verbosity = 0
         else:
@@ -106,12 +109,12 @@ class KLCRuleBase(object):
 
         if verbosity > 0:
             printer.light_blue(self.description, indentation=4, max_width=100)
-    
+
         for message in self.messageBuffer:
             v = message[1] # Verbosity
             s = message[2] # Severity
             msg = message[0]
-            
+
             if v <= verbosity:
                 if s == 0:
                     printer.gray(msg, indentation = 4)
@@ -123,7 +126,7 @@ class KLCRuleBase(object):
                     printer.green(msg, indentation = 4)
                 else:
                     printer.red("unknown severity: " + msg, indentation=4)
-                    
+
         # Clear message buffer
         self.messageBuffer = []
         return True
