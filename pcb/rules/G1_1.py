@@ -12,7 +12,7 @@ class Rule(KLCRule):
 
     def check(self):
 
-        allowed = string.digits + string.letters + "_-."
+        allowed = string.digits + string.ascii_letters + "_-."
 
         name = str(self.module.name).lower()
 
