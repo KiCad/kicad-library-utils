@@ -120,7 +120,7 @@ for f in footprints:
             tmp_name = new_name
         else:
             tmp_name = fp_name
-            
+
         new_name = tmp_name.replace(args.remove, '')
 
     # Renaming not required. Move on to next footprint
@@ -130,7 +130,7 @@ for f in footprints:
 
 
     elif args.verbose:
-        print(fp_name, '->', new_name
+        print(fp_name, '->', new_name)
 
     output = ""
 
