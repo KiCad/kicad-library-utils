@@ -48,6 +48,7 @@ parser = argparse.ArgumentParser(description="Rename footprint files according t
 parser.add_argument('footprints', nargs='+', help="Footprint files (.kicad_mod) to be renamed")
 parser.add_argument('--simple', help='Path to simple text replacement file (JSON data)', action='store')
 parser.add_argument('--regex', help='Path to regex file (JSON data)', action='store')
+parser.add_argument('--remove', help='String to remove from the filename')
 parser.add_argument('-r', '--real', help="Perform renaming actions. By default, script performs a dry-run and will not rename any files", action='store_true')
 parser.add_argument('-v', '--verbose', help="Print extra debugging information", action='count')
 
@@ -113,6 +114,15 @@ for f in footprints:
                 replacement = json_data[pattern]
                 new_name = fp_name.replace(pattern, replacement)
 
+    # Remove text from name
+    if args.remove:
+        if new_name:
+            tmp_name = new_name
+        else:
+            tmp_name = fp_name
+            
+        new_name = tmp_name.replace(args.remove, '')
+
     # Renaming not required. Move on to next footprint
     if not new_name:
         if args.verbose:
@@ -120,7 +130,7 @@ for f in footprints:
 
 
     elif args.verbose:
-        print(fp_name, '->', new_name)
+        print(fp_name, '->', new_name
 
     output = ""
 
