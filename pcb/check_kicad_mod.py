@@ -107,7 +107,13 @@ for filename in files:
             printer.yellow("Violating " + rule.name, indentation=2)
             rule.processOutput(printer, args.verbose, args.silent)
 
-        if error:
+        if args.fixmore and rule.needsFixMore:
+            if error:
+                n_violations += 1
+            rule.fixmore()
+            rule.fix()
+            rule.processOutput(printer, args.verbose, args.silent)
+        elif error:
             n_violations += 1
 
             if args.fix:

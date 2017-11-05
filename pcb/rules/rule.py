@@ -87,6 +87,16 @@ class KLCRule(KLCRuleBase):
     
         self.module = module
         self.args = args
+        self.needsFixMore=False
 
         # Illegal chars
         self.illegal_chars = ['*', '?', ':', '/', '\\', '[', ']', ';', '|', '=', ',']
+
+    def fix(self):
+        self.info("fix not supported")
+        return
+        
+    def fixmore(self):
+        if self.needsFixMore:
+            self.info("fixmore not supported")
+        return
