@@ -49,9 +49,12 @@ parser.add_argument('footprints', nargs='+', help="Footprint files (.kicad_mod) 
 parser.add_argument('--simple', help='Path to simple text replacement file (JSON data)', action='store')
 parser.add_argument('--regex', help='Path to regex file (JSON data)', action='store')
 parser.add_argument('-r', '--real', help="Perform renaming actions. By default, script performs a dry-run and will not rename any files", action='store_true')
-parser.add_argument('-v', '--verbose', help="Print extra debugging information", action='store_true')
+parser.add_argument('-v', '--verbose', help="Print extra debugging information", action='count')
 
 args = parser.parse_args()
+
+if not args.verbose:
+    args.verbose = 0
 
 if not args.regex and not args.simple:
     print("Error: No data file supplied")
@@ -83,6 +86,9 @@ for f in footprints:
     fp_path = os.path.abspath(f)
     fp_name = os.path.basename(f).replace('.kicad_mod', '')
 
+    fp_parent_dir = os.path.split(os.path.dirname(fp_path))[-1]
+    model_parent_dir = fp_parent_dir.replace('.pretty', '.3dshapes')
+
     fp_dir = os.path.abspath(os.path.dirname(f))
 
     new_name = None
@@ -93,6 +99,10 @@ for f in footprints:
             if match:
                 replacement = json_data[pattern]
                 new_name = match.expand(replacement)
+
+                g = match.groups()
+
+                # Override replacement?
 
                 # Break at first match
                 break
@@ -105,12 +115,14 @@ for f in footprints:
 
     # Renaming not required. Move on to next footprint
     if not new_name:
-        continue
+        if args.verbose:
+            print("Will not rename '{fp}'".format(fp=fp_name))
+
+
+    elif args.verbose:
+        print(fp_name, '->', new_name)
 
     output = ""
-
-    if args.verbose:
-        print(fp_name, '->', new_name)
 
     with open(fp_path, 'r') as fp_file:
         found_tstamp = False
@@ -128,11 +140,29 @@ for f in footprints:
                     line = re.sub(r"\(tedit \w*\)", "(tedit " + tstamp + ")", line)
 
             # Simple text substitution
-            line = line.replace(fp_name, new_name)
+            if new_name:
+                line = line.replace(fp_name, new_name)
+
+            # Ensure the parent directory is correct
+            match = re.search(r"\(model (?:\${KISYS3DMOD}\/)([^\/]+)\/", line)
+
+            if match:
+                pd = match.groups()[0]
+                ki = '${KISYS3DMOD}'
+
+                if not ki in line:
+                    line = line.replace(pd, ki + '/' + pd)
+                    if args.verbose > 1:
+                        print("Adding " + ki + " prefix")
+
+                if not pd == model_parent_dir:
+                    if args.verbose > 1:
+                        print("Fixing 3D model directory:", pd, '->', model_parent_dir)
+                    line = line.replace(pd, model_parent_dir)
 
             output += line
 
-        if args.real:
+        if args.real and new_name:
             new_file = os.path.join(fp_dir, new_name + ".kicad_mod")
 
             # Write new file
