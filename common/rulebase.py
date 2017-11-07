@@ -20,10 +20,7 @@ def isValidName(name, checkForGraphicSymbol=False, checkForPowerSymbol=False):
             if c >= 'a' and c <= 'z':
                 continue
 
-            if c in ['_', '-', '.']:
-                continue
-
-            if checkForPowerSymbol and (c in ['+']):
+            if c in ['_', '-', '.', '+', ',']:
                 continue
 
             return False
