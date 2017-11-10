@@ -16,6 +16,7 @@ from print_color import *
 from rules import __all__ as all_rules
 from rules import *
 from rules.rule import KLCRule
+from rulebase import logError
 
 # enable windows wildcards
 from glob import glob
@@ -30,6 +31,7 @@ parser.add_argument('--nocolor', help='does not use colors to show the output', 
 parser.add_argument('-v', '--verbose', help='Enable verbose output. -v shows brief information, -vv shows complete information', action='count')
 parser.add_argument('-s', '--silent', help='skip output for symbols passing all checks', action='store_true')
 parser.add_argument('-e', '--errors', help='Do not suppress fatal parsing errors', action='store_true')
+parser.add_argument('-l', '--log', help="Path to JSON file to log error information")
 
 args = parser.parse_args()
 if args.fixmore:
@@ -70,6 +72,8 @@ for filename in files:
         printer.red('File is not a .kicad_mod : %s' % filename)
         continue
 
+    lib_name = os.path.dirname(filename).split(os.path.sep)[-1].replace('.pretty', '')
+
     if args.errors:
         module = KicadMod(filename)
     else:
@@ -109,6 +113,9 @@ for filename in files:
 
         if error:
             n_violations += 1
+
+            if args.log:
+                logError(args.log, rule.name, lib_name, module.name)
 
             if args.fix:
                 rule.fix()

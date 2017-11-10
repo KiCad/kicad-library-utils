@@ -1,6 +1,45 @@
 # -*- coding: utf-8 -*-
 
 import inspect, os
+import json
+
+def logError(log_file, rule_name, lib_name, item_name, warning=False):
+    """
+    Log KLC error output to a json file.
+    The JSON file will contain a cumulative dict
+    of the errors and the library items that do not comply.
+    """
+
+    if not log_file.endswith('.json'):
+        log_file += '.json'
+
+    if os.path.exists(log_file) and os.path.isfile(log_file):
+        with open(log_file, 'r') as json_file:
+            try:
+                log_data = json.loads(json_file.read())
+            except:
+                print("Found bad JSON data - clearing")
+                log_data = {}
+
+    else:
+        log_data = {}
+
+    key = 'warnings' if warning else 'errors'
+
+    if not key in log_data:
+        log_data[key] = {}
+
+    log_entry = {'library': lib_name, 'item': item_name}
+
+    if not rule_name in log_data[key]:
+        log_data[key][rule_name] = []
+
+    log_data[key][rule_name].append(log_entry)
+
+    # Write the log data back to file
+    with open(log_file, 'w') as json_file:
+        op = json.dumps(log_data, indent=4, sort_keys=True, separators=(',', ':'))
+        json_file.write(op)
 
 # Static functions
 def isValidName(name, checkForGraphicSymbol=False, checkForPowerSymbol=False):
