@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from rules.rule import *
-import platform
+import re
 
 class Rule(KLCRule):
     """
@@ -9,29 +9,19 @@ class Rule(KLCRule):
     """
     def __init__(self, module, args):
         super(Rule, self).__init__(module, args, 'Illegal characters in footprint name')
+        # Set of allowed chars. Some characters need to be escaped.
+        allowed_chars = "a-zA-Z0-9_\-\.,\+"
+        self.pattern = re.compile('^['+allowed_chars+']+$')
+        self.forbidden = re.compile('([^'+allowed_chars+'])+')
 
     def check(self):
-
-        allowed = string.digits + string.ascii_letters + "_-.+,"
-
         name = str(self.module.name).lower()
-
-        illegal = ""
-
-        for i, c in enumerate(name):
-            if c in allowed:
-                continue
-
-            # Illegal character found!
-            illegal += c
-
-        if len(illegal) > 0:
+        if not self.pattern.match(name):
             self.error("Footprint name must contain only legal characters")
-            self.errorExtra("Name '{n}' contains illegal characters '{i}'".format(n=self.module.name, i=illegal))
-            return True
-        else:
-            # No errors!
+            ilegal = re.findall(self.forbidden, name)
+            self.errorExtra("Illegal character(s) '{c}' found".format(c="', '".join(ilegal)))
             return False
+        return True
 
     def fix(self):
         """
