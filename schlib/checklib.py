@@ -16,6 +16,7 @@ import re
 from rules import __all__ as all_rules
 from rules import *
 from rules.rule import KLCRule
+from rulebase import logError
 
 #enable windows wildcards
 from glob import glob
@@ -29,6 +30,7 @@ parser.add_argument('--fix', help='fix the violations if possible', action='stor
 parser.add_argument('--nocolor', help='does not use colors to show the output', action='store_true')
 parser.add_argument('-v', '--verbose', help='Enable verbose output. -v shows brief information, -vv shows complete information', action='count')
 parser.add_argument('-s', '--silent', help='skip output for symbols passing all checks', action='store_true')
+parser.add_argument('-l', '--log', help='Path to JSON file to log error information')
 
 args = parser.parse_args()
 
@@ -78,6 +80,10 @@ exit_code = 0
 
 for libfile in libfiles:
     lib = SchLib(libfile)
+
+    # Remove .lib from end of name
+    lib_name = os.path.basename(libfile)[:-4]
+
     n_components = 0
 
     # Print library name
@@ -122,6 +128,9 @@ for libfile in libfiles:
             # Specifically check for errors
             if error:
                 n_violations += 1
+
+                if args.log:
+                    logError(args.log, rule.name, lib_name, component.name)
 
                 if args.fix:
                     rule.fix()
