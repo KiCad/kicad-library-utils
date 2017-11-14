@@ -31,16 +31,17 @@ parser.add_argument('--nocolor', help='does not use colors to show the output', 
 parser.add_argument('-v', '--verbose', help='Enable verbose output. -v shows brief information, -vv shows complete information', action='count')
 parser.add_argument('-s', '--silent', help='skip output for symbols passing all checks', action='store_true')
 parser.add_argument('-l', '--log', help='Path to JSON file to log error information')
+parser.add_argument('-w', '--nowarnings', help='Hide warnings (only show errors)', action='store_true')
 
 args = parser.parse_args()
 
 printer = PrintColor(use_color = not args.nocolor)
 
-# set verbosity globally
-verbosity=0
+# Set verbosity globally
+verbosity = 0
 if args.verbose:
-    # hack to care for not given -v
-    verbosity=args.verbose
+    verbosity = args.verbose
+
 KLCRule.verbosity = verbosity
 
 if args.rule:
@@ -112,10 +113,13 @@ for libfile in libfiles:
 
         for rule in rules:
             rule = rule(component)
-            if (verbosity>2):
-                printer.white("checking rule "+rule.name)
+            if verbosity > 2:
+                printer.white("checking rule" + rule.name)
 
-            error = rule.check()
+            rule.check()
+
+            if args.nowarnings and not rule.hasErrors():
+                continue
 
             if rule.hasOutput():
                 if first:
@@ -126,8 +130,8 @@ for libfile in libfiles:
                 rule.processOutput(printer, verbosity, args.silent)
 
             # Specifically check for errors
-            if error:
-                n_violations += 1
+            if rule.hasErrors():
+                n_violations += rule.errorCount
 
                 if args.log:
                     logError(args.log, rule.name, lib_name, component.name)
@@ -135,6 +139,7 @@ for libfile in libfiles:
                 if args.fix:
                     rule.fix()
                     rule.processOutput(printer, verbosity, args.silent)
+                    rule.recheck()
 
         # No messages?
         if first:
