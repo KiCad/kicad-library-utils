@@ -130,7 +130,7 @@ for filename in files:
     if n_violations > 0:
         exit_code += 1
 
-    if args.fix or args.rotate!=0:
+    if (args.fix and n_violations > 0) or args.rotate!=0:
         module.save()
 
 if args.fix:
