@@ -145,7 +145,7 @@ for libfile in libfiles:
         if n_violations > 0:
             exit_code += 1
 
-    if args.fix:
+    if args.fix and n_violations > 0:
         lib.save()
 
 sys.exit(exit_code);
