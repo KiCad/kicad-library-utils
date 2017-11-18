@@ -166,25 +166,29 @@ try:
                 else:
                     fplib, fpname = footprint.split(":")
 
+                skip_replace = False
+
                 # If the footprint lib is not found
                 if not fplib in footprint_libs:
                     # Try to find a replacement name for the footprint lib
                     if fplib in replacements['library']:
-                        fplib = replacements['library'][fplib]
+                        newlib = replacements['library'][fplib]
 
-                # If a replacement was not found, ask user for an alternative
-                if fplib and not fplib in footprint_libs:
-                    if args.verbose:
-                        print("No match found for library '{lib}'".format(lib=fplib))
-
-                    if args.interactive:
-                        newlib = raw_input("Enter new name for library '{lib}' (leave blank to skip): ".format(lib=fplib))
-
-                        replacements['library'][fplib] = newlib
-
-                        print('lib', fplib, '->', newlib)
+                        # Empty means skip
                         if newlib:
                             fplib = newlib
+
+                    else:
+                        if args.verbose:
+                            print("No match found for library '{lib}'".format(lib=fplib))
+                        if args.interactive:
+                            newlib = raw_input("Enter new name for library '{lib}' (leave blank to skip): ".format(lib=fplib))
+
+                            replacements['library'][fplib] = newlib
+
+                            print('lib', fplib, '->', newlib)
+                            if newlib:
+                                fplib = newlib
 
                 output.append(line)
 
