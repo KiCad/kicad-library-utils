@@ -27,6 +27,11 @@ A replacement file can be supplied, in JSON format:
     // Provide footprint libraries for footprints that have none specified
     "prefix" : {
         "SOIC-8" : "Package_SOIC",
+    },
+
+    // Simple text replacement to perform on footprint names
+    "replace" : {
+        "_Pitch" : "_P"
     }
 }
 
@@ -65,8 +70,10 @@ if args.replace:
 else:
     replacements = {}
 
+KEYS = ['library', 'footprint', 'prefix', "replace"]
+
 # Ensure correct keys
-for key in ['library', 'footprint', 'prefix']:
+for key in KEYS:
     if not key in replacements:
         replacements[key] = {}
 
@@ -141,7 +148,7 @@ try:
                                     fp=fpname))
                         # No default library found for this footprint, ask user?
                         else:
-                            if args.verbose:
+                            if args.verbose > 1:
                                 print("No library specified for footprint '{fp}'".format(fp=footprint))
                             if args.interactive:
                                 newlib = raw_input("Enter library for footprint '{fp}' (leave blank to skip): ".format(fp=footprint))
@@ -152,7 +159,7 @@ try:
                                 if newlib:
                                     fplib = newlib
                     else:
-                        if args.verbose:
+                        if args.verbose > 1:
                             print("No library specified for footprint '{fp}'".format(fp=footprint))
                             output.append(line)
                             continue
@@ -169,7 +176,7 @@ try:
                 skip_replace = False
 
                 # If the footprint lib is not found
-                if not fplib in footprint_libs:
+                if fplib and not fplib in footprint_libs:
                     # Try to find a replacement name for the footprint lib
                     if fplib in replacements['library']:
                         newlib = replacements['library'][fplib]
@@ -186,14 +193,69 @@ try:
 
                             replacements['library'][fplib] = newlib
 
-                            print('lib', fplib, '->', newlib)
                             if newlib:
                                 fplib = newlib
+
+                # We now have the 'best guess' for the footprint library
+                # Now try to fix the footprint name
+                if fplib in footprint_libs:
+                    # Found the correct library!!
+                    footprint_lib = footprint_libs[fplib]
+
+                    # Footprint name does not exist in the library
+                    if not fpname in footprint_lib:
+
+                        # Try to replace the fpname
+                        if fpname in replacements['footprint']:
+                            newname = replacements['footprint'][fpname]
+
+                            # Blank means it has been skipped
+                            if newname:
+                                fpname = newname
+
+                        # Still nothing? Try to augment the name
+                        if not fpname in footprint_lib:
+                            for a in replacements['replace']:
+                                b = replacements['replace'][a]
+                                fpname = fpname.replace(a, b)
+
+                        # Has the footprint still not been found?
+                        if not fpname in footprint_lib:
+                            if args.verbose:
+                                print("Footprint '{f}' not found in library '{l}'".format(f=fpname, l=fplib))
+
+                            if args.interactive:
+                                newname = raw_input("Enter new name for footprint '{fp}' (leave blank to skip): ".format(fp=fpname))
+
+                                replacements['footprint'][fpname] = newname
+
+                                # Only override if not blank
+                                if newname:
+                                    fpname = newname
+
+                # Create the new name!
+                if fplib and fpname:
+                    newname = fplib + ":" + fpname
+                else:
+                    newname = fpname
+
+                if args.verbose > 1:
+                    print(footprint,"->",newname)
+
+                line = re.sub(FP, 'F2 "{fp}"'.format(fp=newname), line)
 
                 output.append(line)
 
 except KeyboardInterrupt:
     print("User interupted process")
+
+# Remove blank keys from JSON data before saving!
+for key in KEYS:
+    keys = replacements[key].keys()
+
+    for k in keys:
+        if not replacements[key][k]:
+            del replacements[key][k]
 
 # Save the JSON data if there has been changes from user
 if args.interactive and args.replace:
