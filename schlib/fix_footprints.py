@@ -120,7 +120,7 @@ try:
                     output.append(line)
                     continue
 
-                footprint = result.groups()[0]
+                footprint = result.groups()[0].strip()
 
                 if len(footprint) <= 1:
                     output.append(line)
@@ -172,6 +172,8 @@ try:
 
                 else:
                     fplib, fpname = footprint.split(":")
+                    fplib = fplib.strip()
+                    fpname = fpname.strip()
 
                 skip_replace = False
 

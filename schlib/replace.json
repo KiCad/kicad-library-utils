@@ -1,14 +1,23 @@
 {
     "footprint":{
+        "AKM_CQ-7":"AKM_CQ_7",
+        "AKM_CQ-7S":"AKM_CQ_7S",
+        "DIP20_W7.62mm":"DIP-20_W7.62",
+        "D_SMA_Standard":"D_SMA",
+        "MELF_Standard":"D_MELF",
+        "MiniMELF_Standard":"D_MiniMELF",
+        "Relay_SPST-NO_OMRON-G5Q":"Relay_SPST_OMRON-G5Q",
         "SMA_Standard":"D_SMA",
         "SMB_Standard":"D_SMB",
         "SMC_Standard":"D_SMC",
         "SOD-123":"D_SOD-123",
         "SOD-323":"D_SOD-323",
+        "SOIC-20_7.5x12.8mm_P1.27mm":"SOIC-20W_7.5x12.8mm_P1.27mm",
         "SOIC-8_3.4x4.9mm_P1.27mm":"SOIC-8_3.9x4.9mm_P1.27m",
         "SOIC-8_3.9x4.9mm_Pitch1.27mm":"SOIC-8_3.9x4.9mm_P1.27mm",
+        "SOT-353":"SOT-353_SC-70-5",
         "SOT-363":"SOT-363_SC-70-6",
-        "TQFP-64_1EP_10x10mm_P0.5mm":"TQFP-64-1EP_10x10mm_P0.5mm"
+        "TO-220_Vertical":"TO-220-3_Vertical"
     },
     "library":{
         "Buttons_Switches_SMD":"Button_Switch_SMD",
@@ -51,6 +60,10 @@
     },
     "prefix":{},
     "replace":{
+        "SOIC-18_":"SOIC-18W_",
+        "SOIC-20_":"SOIC-20W_",
+        "SOIC-24_":"SOIC-24W_",
+        "SOIC-28_":"SOIC-28W_",
         "_Pitch":"_P",
         "_d":"_D",
         "_w":"_W"
