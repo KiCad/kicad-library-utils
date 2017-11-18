@@ -21,7 +21,7 @@ from rulebase import logError
 # enable windows wildcards
 from glob import glob
 
-parser = argparse.ArgumentParser(description='Checks KiCad footprint files (.kicad_mod) against KiCad Library Convention (KLC v2.0) rules. You can find the KLC at https://github.com/KiCad/kicad-library/wiki/Kicad-Library-Convention')
+parser = argparse.ArgumentParser(description='Checks KiCad footprint files (.kicad_mod) against KiCad Library Convention (KLC) rules. You can find the KLC at http://kicad-pcb.org/libraries/klc/')
 parser.add_argument('kicad_mod_files', nargs='+')
 parser.add_argument('--fix', help='fix the violations if possible', action='store_true')
 parser.add_argument('--fixmore', help='fix additional violations, not covered by --fix (e.g. rectangular courtyards), implies --fix!', action='store_true')
