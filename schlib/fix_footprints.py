@@ -100,90 +100,98 @@ for lib in args.pretty:
 # regex looking for associated footprint
 FP = '^F2 "([^"]*)"'
 
-for lib in symbol_libs:
+try:
+    for lib in symbol_libs:
 
-    output = []
+        output = []
 
-    with open(lib, 'r') as lib_file:
-        for line in lib_file:
-            result = re.search(FP, line)
+        with open(lib, 'r') as lib_file:
+            for line in lib_file:
+                result = re.search(FP, line)
 
-            if not result:
-                output.append(line)
-                continue
-
-            footprint = result.groups()[0]
-
-            if len(footprint) <= 1:
-                output.append(line)
-                continue
-
-            # Break footprint into library and name components
-            fplib = ""
-            fpname = ""
-
-            colon_count = footprint.count(':')
-
-            # Associated footprint is not in the correct format.
-            # Skip empty libs
-            if colon_count == 0:
-                fpname = footprint
-
-                if args.missing:
-                    # Can we find a prefix for this footprint name?
-                    if fpname in replacements['prefix']:
-                        fplib = replacements['prefix'][fpname]
-
-                        if args.verbose:
-                            print("Prefixing library '{lib}' to '{fp}'".format(
-                                lib=fplib,
-                                fp=fpname))
-                    # No default library found for this footprint, ask user?
-                    else:
-                        if args.verbose:
-                            print("No library specified for footprint '{fp}'".format(fp=footprint))
-                        if args.interactive:
-                            fplib = raw_input("Enter library for footprint '{fp}' (leave blank to skip): ".format(fp=footprint))
-
-                            # Keep track of this for next time
-                            if len(fplib) > 0:
-                                replacements['prefix'][footprint] = fplib
-                else:
-                    if args.verbose:
-                        print("No library specified for footprint '{fp}'".format(fp=footprint))
-                        output.append(line)
-                        continue
-
-            elif colon_count > 1:
-                if args.verbose:
-                    print("Too many ':' characters in '{fp}'".format(fp=footprint))
+                if not result:
                     output.append(line)
                     continue
 
-            else:
-                fplib, fpname = footprint.split(":")
+                footprint = result.groups()[0]
 
-            # If the footprint lib is not found
-            if not fplib in footprint_libs:
-                # Try to find a replacement name for the footprint lib
-                if fplib in replacements['library']:
-                    fplib = replacements['library'][fplib]
+                if len(footprint) <= 1:
+                    output.append(line)
+                    continue
 
-            # If a replacement was not found, ask user for an alternative
-            if fplib and not fplib in footprint_libs:
-                if args.verbose:
-                    print("No match found for library '{lib}'".format(lib=fplib))
+                # Break footprint into library and name components
+                fplib = ""
+                fpname = ""
 
-                if args.interactive:
-                    newlib = raw_input("Enter new name for library '{lib}' (leave blank to skip): ".format(lib=fplib))
+                colon_count = footprint.count(':')
 
-                    if newlib:
+                # Associated footprint is not in the correct format.
+                # Skip empty libs
+                if colon_count == 0:
+                    fpname = footprint
+
+                    if args.missing:
+                        # Can we find a prefix for this footprint name?
+                        if fpname in replacements['prefix']:
+                            fplib = replacements['prefix'][fpname]
+
+                            if args.verbose:
+                                print("Prefixing library '{lib}' to '{fp}'".format(
+                                    lib=fplib,
+                                    fp=fpname))
+                        # No default library found for this footprint, ask user?
+                        else:
+                            if args.verbose:
+                                print("No library specified for footprint '{fp}'".format(fp=footprint))
+                            if args.interactive:
+                                newlib = raw_input("Enter library for footprint '{fp}' (leave blank to skip): ".format(fp=footprint))
+
+                                # Keep track of this for next time
+                                replacements['prefix'][fplib] = newlib
+
+                                if newlib:
+                                    fplib = newlib
+                    else:
+                        if args.verbose:
+                            print("No library specified for footprint '{fp}'".format(fp=footprint))
+                            output.append(line)
+                            continue
+
+                elif colon_count > 1:
+                    if args.verbose:
+                        print("Too many ':' characters in '{fp}'".format(fp=footprint))
+                        output.append(line)
+                        continue
+
+                else:
+                    fplib, fpname = footprint.split(":")
+
+                # If the footprint lib is not found
+                if not fplib in footprint_libs:
+                    # Try to find a replacement name for the footprint lib
+                    if fplib in replacements['library']:
+                        fplib = replacements['library'][fplib]
+
+                # If a replacement was not found, ask user for an alternative
+                if fplib and not fplib in footprint_libs:
+                    if args.verbose:
+                        print("No match found for library '{lib}'".format(lib=fplib))
+
+                    if args.interactive:
+                        newlib = raw_input("Enter new name for library '{lib}' (leave blank to skip): ".format(lib=fplib))
+
                         replacements['library'][fplib] = newlib
-                        fplib = newlib
 
-            output.append(line)
+                        print('lib', fplib, '->', newlib)
+                        if newlib:
+                            fplib = newlib
+
+                output.append(line)
+
+except KeyboardInterrupt:
+    print("User interupted process")
 
 # Save the JSON data if there has been changes from user
 if args.interactive and args.replace:
-    with open(args.replace) as json_file:
+    with open(args.replace, 'w') as json_file:
         json_file.write(json.dumps(replacements, indent=4, sort_keys=True, separators=(',', ':')))
