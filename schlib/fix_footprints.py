@@ -248,6 +248,11 @@ try:
 
                 output.append(line)
 
+        if args.fix:
+            with open(lib, 'w') as lib_file:
+                for line in output:
+                    lib_file.write(line)
+
 except KeyboardInterrupt:
     print("User interupted process")
 
