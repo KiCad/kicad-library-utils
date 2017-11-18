@@ -1,0 +1,42 @@
+{
+    "library" : {
+        "Displays_7-Segment" : "Display_7Segment",
+        "Displays" : "Display",
+        "Housings_SSOP" : "Package_SSOP",
+        "Housings_CSP" : "Package_CSP",
+        "SSOP_Packages" : "Package_SSOP",
+        "Housings_BGA" : "Package_BGA",
+        "Housings_SON" : "Package_SON",
+        "Housings_LGA" : "Package_LGA",
+        "Housings_DIP" : "Package_DIP",
+        "Housings_DFN_QFN" : "Package_DFN_QFN",
+        "Housings_SOIC" : "Package_SOIC",
+        "Housings_QFP" : "Package_QFP",
+        "TO_SOT_Packages_SMD" : "Package_TO_SOT_SMD",
+        "TO_SOT_Packages_THT" : "Package_TO_SOT_THT",
+        "TO_SOT_Housings_SMD" : "Package_TO_SOT_SMD",
+        "TO_SOT_Housings_THT" : "Package_TO_SOT_THT",
+        "Transformers_THT" : "Transformer_THT",
+        "Transformers_SMD" : "Transformer_SMD",
+        "Valves" : "Valve",
+        "Capacitors_SMD" : "Capacitor_SMD",
+        "Capacitors_THT" : "Capacitor_THT",
+        "Diodes_SMD" : "Diode_SMD",
+        "Diodes_THT" : "Diode_THT",
+        "Relays_SMD" : "Relay_SMD",
+        "Relays_THT" : "Relay_THT",
+        "Resistors_SMD" : "Resistor_SMD",
+        "Resistors_THT" : "Resistor_THT",
+        "Buttons_Switches_SMD" : "Button_Switch_SMD",
+        "Buttons_Switches_THT" : "Button_Switch_THT",
+        "Hall-Effect_Transducers_LEM" : "Sensor_Current"
+    },
+
+    "footprint" : {
+
+    },
+
+    "prefix" : {
+
+    }
+}
