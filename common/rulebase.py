@@ -94,18 +94,43 @@ class KLCRuleBase(object):
     def __init__(self, description):
         self.description = description
         self.messageBuffer=[]
+        self.resetErrorCount()
+        self.resetWarningCount()
+
+
+    def resetErrorCount(self):
+        self.error_count = 0
+
+    def resetWarningCount(self):
+        self.warning_count = 0
+
+    @property
+    def errorCount(self):
+        return self.error_count
+
+    def hasErrors(self):
+        return self.error_count > 0
+
+    def warningCount(self):
+        return self.warning_count
+
+    @property
+    def hasWarnings(self):
+        return self.warning_count > 0
 
     #adds message into buffer only if such level of verbosity is wanted
     def verboseOut(self, msgVerbosity, severity, message):
         self.messageBuffer.append([message,msgVerbosity,severity])
 
     def warning(self, msg):
+        self.warning_count += 1
         self.verboseOut(Verbosity.NORMAL, Severity.WARNING, msg)
 
     def warningExtra(self, msg):
         self.verboseOut(Verbosity.HIGH, Severity.WARNING, " - " + msg)
 
     def error(self, msg):
+        self.error_count += 1
         self.verboseOut(Verbosity.NORMAL, Severity.ERROR, msg)
 
     def errorExtra(self, msg):
@@ -124,8 +149,14 @@ class KLCRuleBase(object):
         raise NotImplementedError('The fix method must be implemented')
 
     def recheck(self):
-        if self.check():
-            self.error("Could not be fixed")
+
+        self.resetErrorCount()
+        self.resetWarningCount()
+
+        self.check()
+
+        if self.hasErrors():
+            self.error("Could not fix all errors")
         else:
             self.success("Everything fixed")
 

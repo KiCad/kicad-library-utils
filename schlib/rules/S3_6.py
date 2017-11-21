@@ -18,8 +18,8 @@ class Rule(KLCRule):
             self.errorExtra("Pin offset ({o}) must not be above 50mils".format(o=offset))
             return True
         elif offset < 20:
-            self.error("Pin offset ouside allowed range")
-            self.errorExtra("Pin offset ({o}) must not be below 20mils".format(o=offset))
+            self.warning("Pin offset ouside allowed range")
+            self.warningExtra("Pin offset ({o}) should not be below 20mils".format(o=offset))
             return True
 
         return False
