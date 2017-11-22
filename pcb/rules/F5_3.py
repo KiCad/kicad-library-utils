@@ -37,7 +37,6 @@ class Rule(KLCRule):
             if geo.valid:
                 print("using drawing from layer", layer)
                 break
-            else:
 
         # Add two bounding boxes together
         padBounds.addBoundingBox(geo)
