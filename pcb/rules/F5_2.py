@@ -59,8 +59,9 @@ class Rule(KLCRule):
 
     def checkMissingLines(self):
         if len(self.f_fabrication_all) + len(self.b_fabrication_all) == 0:
-            self.error("No drawings found on fabrication layer")
-            return True
+            if self.module.attribute != 'virtual':
+                self.error("No drawings found on fabrication layer")
+                return True
 
         return False
 
@@ -85,7 +86,7 @@ class Rule(KLCRule):
 
         ref = self.getSecondRef()
 
-        if not ref:
+        if not ref and self.module.attribute != 'virtual':
             self.error("Second Reference Designator missing")
             self.errorExtra("Add RefDes to F.Fab layer with '%R'")
             return True
