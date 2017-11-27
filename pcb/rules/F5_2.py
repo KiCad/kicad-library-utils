@@ -25,7 +25,7 @@ class Rule(KLCRule):
         errors = []
         
         # Value is missing entirely
-        if not value:
+        if not val:
             self.error("Missing 'value' field")
             return True
 
