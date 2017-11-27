@@ -29,13 +29,15 @@ def ExitError( msg ):
 
 parser = argparse.ArgumentParser(description="Compare two .lib files to determine which symbols have changed")
 
-parser.add_argument("--new", help="New (updated) .lib file")
-parser.add_argument("--old", help="Old (original) .lib file for comparison")
+parser.add_argument("--new", help="New (updated) .lib file(s)")
+parser.add_argument("--old", help="Old (original) .lib file(s) for comparison")
 parser.add_argument("-v", "--verbose", help="Enable extra verbose output", action="store_true")
 parser.add_argument("--check", help="Perform KLC check on updated/added components", action='store_true')
 parser.add_argument("--nocolor", help="Does not use colors to show the output", action='store_true')
 
-args = parser.parse_args()
+parser.add_argument('extra', help='Extra arguments will be passed to the checklib script', nargs=argparse.REMAINDER)
+
+args,extra = parser.parse_known_args()
 
 if not args.new:
     ExitError("New file not supplied")
@@ -54,7 +56,11 @@ def KLCCheck(component):
                 cmp = component,
                 nocolor = "--nocolor" if args.nocolor else ""
                 )
-
+                
+    # Pass extra arguments to checklib script
+    if len(extra) > 0:
+        call += ' '.join([str(e) for e in extra])
+        
     return os.system(call)
 
 printer = PrintColor(use_color = not args.nocolor)
