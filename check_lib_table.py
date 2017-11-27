@@ -68,6 +68,21 @@ class LibTable:
 
         errors = 0
 
+        # Check for entries that are incorrectly formatted
+        for entry in self.entries:
+            nickname = entry['name']
+            uri = entry['uri']
+
+            if '\\' in uri:
+                print("Found '\\' character in entry '{nick}' - Path separators must be '/'".format(nick=nickname))
+                errors += 1
+
+            uri_last = '.'.join(uri.split('/')[-1].split('.')[:-1])
+
+            if not uri_last == nickname:
+                print("Nickname '{n}' does not match path '{p}'".format(n=nickname, p=uri))
+                errors += 1
+
         lib_table_names = [entry['name'] for entry in self.entries]
 
         # Check for libraries that are in the lib_table but should not be
@@ -75,6 +90,10 @@ class LibTable:
             if not name in lib_names:
                 errors += 1
                 print("- Extra library '{l}' found in library table".format(l=name))
+
+            if lib_table_names.count(name) > 1:
+                errors += 1
+                print("- Library '{l}' is duplicated in table".format(l=name))
 
         # Check for libraries that are not in the lib_table but should be
         for name in lib_names:
