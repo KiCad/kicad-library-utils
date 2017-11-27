@@ -63,13 +63,11 @@ def get_entire_lib_match(lib_name):
     Otherwise, return None
     """
 
-    lib_name = lib_name.lower()
-
     for pattern in PATTERNS:
         if not is_entire_lib(pattern):
             continue
 
-        if get_lib_name(pattern) == lib_name:
+        if get_lib_name(pattern).lower() == lib_name.lower():
 
             op = get_output_lib(pattern)
 
