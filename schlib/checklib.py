@@ -117,6 +117,8 @@ for libfile in libfiles:
 
             if args.footprints:
                 rule.footprints_dir = args.footprints
+            else:
+                rule.footprints_dir = None
 
             if verbosity > 2:
                 printer.white("checking rule" + rule.name)
