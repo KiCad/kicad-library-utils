@@ -158,6 +158,9 @@ class Component(object):
             s.quotes = '"'
             line = list(s)
 
+            if len(line) == 0:
+                continue
+
             if line[0] in self._KEYS:
                 key_list = self._KEYS[line[0]]
                 values = line[1:] + ['' for n in range(len(key_list) - len(line[1:]))]
