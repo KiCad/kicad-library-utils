@@ -54,6 +54,24 @@ class Rule(KLCRule):
                         self.error("Footprint name '{f}' contains illegal characters".format(f=fp_path))
                         fail = True
 
+                    # Check that the footprint exists!
+                    if not fail:
+                        if self.footprints_dir and os.path.exists(self.footprints_dir) and os.path.isdir(self.footprints_dir):
+
+                            fp_libs = [x.replace('.pretty', '') for x in os.listdir(self.footprints_dir) if x.endswith('.pretty')]
+
+                            if not fp_dir in fp_libs:
+                                self.error('Specified footprint library does not exist')
+                                self.errorExtra("Footprint library '{l}' was not found".format(l=fp_dir))
+                            else:
+                                fp_dir = os.path.join(self.footprints_dir, fp_dir + ".pretty")
+                                fp_file = os.path.join(fp_dir, fp_path + '.kicad_mod')
+
+                                if not os.path.exists(fp_file):
+                                    self.warning("Specified footprint does not exist")
+                                    self.warningExtra("Footprint file {l}:{f} was not found".format(l=fp_dir, f=fp_path))
+
+
         return fail
 
     def fix(self):

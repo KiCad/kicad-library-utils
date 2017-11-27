@@ -32,6 +32,7 @@ parser.add_argument('-v', '--verbose', help='Enable verbose output. -v shows bri
 parser.add_argument('-s', '--silent', help='skip output for symbols passing all checks', action='store_true')
 parser.add_argument('-l', '--log', help='Path to JSON file to log error information')
 parser.add_argument('-w', '--nowarnings', help='Hide warnings (only show errors)', action='store_true')
+parser.add_argument('--footprints', help='Path to footprint libraries (.pretty dirs). Specify with e.g. "~/kicad/footprints/"')
 
 args = parser.parse_args()
 
@@ -113,6 +114,10 @@ for libfile in libfiles:
 
         for rule in rules:
             rule = rule(component)
+
+            if args.footprints:
+                rule.footprints_dir = args.footprints
+
             if verbosity > 2:
                 printer.white("checking rule" + rule.name)
 
