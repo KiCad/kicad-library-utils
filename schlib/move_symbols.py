@@ -152,6 +152,17 @@ for lib in args.libs:
 # Output libraries
 output_libs = {}
 
+# Find any libraries in the output directory
+if os.path.exists(args.dest) and os.path.isdir(args.dest):
+    op_libs = [x for x in os.listdir(args.dest) if x.endswith('.lib')]
+
+    for op_lib in op_libs:
+        lib_name = op_lib.split(os.path.sep)[-1].replace('.lib', '')
+        lib = schlib.SchLib(op_lib)
+
+        output_libs[lib_name] = lib
+        print("Found existing library - '{l}'".format(l=lib_name))
+
 allocated_symbols = 0
 unallocated_symbols = []
 overallocated_symbols = []
