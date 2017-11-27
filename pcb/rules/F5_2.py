@@ -21,8 +21,13 @@ class Rule(KLCRule):
         mod = self.module
 
         val = mod.value
-
+        
         errors = []
+        
+        # Value is missing entirely
+        if not value:
+            self.error("Missing 'value' field")
+            return True
 
         if not val['value'] == mod.name:
             errors.append("Value text should match footprint name:")
@@ -86,10 +91,14 @@ class Rule(KLCRule):
 
         ref = self.getSecondRef()
 
-        if not ref and self.module.attribute != 'virtual':
-            self.error("Second Reference Designator missing")
-            self.errorExtra("Add RefDes to F.Fab layer with '%R'")
-            return True
+        # No second ref provided? That is ok for virtual footprints
+        if not ref:
+            if self.module.attribute != 'virtual':
+                self.error("Second Reference Designator missing")
+                self.errorExtra("Add RefDes to F.Fab layer with '%R'")
+                return True
+            else:
+                return False
 
         # Check that ref exists
         if ref['layer'] not in ['F.Fab', 'B.Fab']:
