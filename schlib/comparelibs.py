@@ -36,8 +36,6 @@ parser.add_argument("-v", "--verbose", help="Enable extra verbose output", actio
 parser.add_argument("--check", help="Perform KLC check on updated/added components", action='store_true')
 parser.add_argument("--nocolor", help="Does not use colors to show the output", action='store_true')
 
-parser.add_argument('extra', help='Extra arguments will be passed to the checklib script', nargs=argparse.REMAINDER)
-
 args,extra = parser.parse_known_args()
 
 if not args.new:
