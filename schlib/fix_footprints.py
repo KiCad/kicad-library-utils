@@ -159,10 +159,8 @@ try:
                                 if newlib:
                                     fplib = newlib
                     else:
-                        if args.verbose > 1:
-                            print("No library specified for footprint '{fp}'".format(fp=footprint))
-                            output.append(line)
-                            continue
+                        output.append(line)
+                        continue
 
                 elif colon_count > 1:
                     if args.verbose:
