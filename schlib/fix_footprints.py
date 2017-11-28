@@ -240,7 +240,8 @@ try:
                     newname = fpname
 
                 if args.verbose > 1:
-                    print(footprint,"->",newname)
+                    if not footprint == newname:
+                        print(footprint, "->", newname)
 
                 line = re.sub(FP, 'F2 "{fp}"'.format(fp=newname), line)
 
