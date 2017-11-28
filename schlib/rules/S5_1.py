@@ -64,12 +64,12 @@ class Rule(KLCRule):
                                 self.error('Specified footprint library does not exist')
                                 self.errorExtra("Footprint library '{l}' was not found".format(l=fp_dir))
                             else:
-                                fp_dir = os.path.join(self.footprints_dir, fp_dir + ".pretty")
-                                fp_file = os.path.join(fp_dir, fp_path + '.kicad_mod')
+                                pretty_dir = os.path.join(self.footprints_dir, fp_dir + ".pretty")
+                                fp_file = os.path.join(pretty_dir, fp_path + '.kicad_mod')
 
                                 if not os.path.exists(fp_file):
-                                    self.warning("Specified footprint does not exist")
-                                    self.warningExtra("Footprint file {l}:{f} was not found".format(l=fp_dir, f=fp_path))
+                                    self.error("Specified footprint does not exist")
+                                    self.errorExtra("Footprint file {l}:{f} was not found".format(l=fp_dir, f=fp_path))
 
 
         return fail
