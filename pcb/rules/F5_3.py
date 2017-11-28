@@ -29,12 +29,13 @@ class Rule(KLCRule):
         padBounds = module.overpadsBounds()
 
         # Try getting bounds from these layers, in order
-        layers = ['F.Fab', 'B.Fab', 'F.Silk', 'B.Silk']
+        layers = ['F.Fab', 'B.Fab', 'F.SilkS', 'B.SilkS']
 
         # Accept first valid layer
         for layer in layers:
             geo = module.geometricBoundingBox(layer)
             if geo.valid:
+                print("using drawing from layer", layer)
                 break
 
         # Add two bounding boxes together

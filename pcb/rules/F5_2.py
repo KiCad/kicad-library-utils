@@ -21,8 +21,13 @@ class Rule(KLCRule):
         mod = self.module
 
         val = mod.value
-
+        
         errors = []
+        
+        # Value is missing entirely
+        if not val:
+            self.error("Missing 'value' field")
+            return True
 
         if not val['value'] == mod.name:
             errors.append("Value text should match footprint name:")
@@ -59,8 +64,9 @@ class Rule(KLCRule):
 
     def checkMissingLines(self):
         if len(self.f_fabrication_all) + len(self.b_fabrication_all) == 0:
-            self.error("No drawings found on fabrication layer")
-            return True
+            if self.module.attribute != 'virtual':
+                self.error("No drawings found on fabrication layer")
+                return True
 
         return False
 
@@ -85,10 +91,14 @@ class Rule(KLCRule):
 
         ref = self.getSecondRef()
 
+        # No second ref provided? That is ok for virtual footprints
         if not ref:
-            self.error("Second Reference Designator missing")
-            self.errorExtra("Add RefDes to F.Fab layer with '%R'")
-            return True
+            if self.module.attribute != 'virtual':
+                self.error("Second Reference Designator missing")
+                self.errorExtra("Add RefDes to F.Fab layer with '%R'")
+                return True
+            else:
+                return False
 
         # Check that ref exists
         if ref['layer'] not in ['F.Fab', 'B.Fab']:
