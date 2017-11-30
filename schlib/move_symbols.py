@@ -13,9 +13,20 @@ library can be matched and moved
 The JSON file should be formatted as such:
 
 {
-    "LibName:Cmp*" : "NewLib",
+    "LibName" : {
+        "Filter1*" : "NewLibName",
+        "Filter2*" : "NewLibName2",
+    },
 
-    "EntireLib" : "NewLib2"
+    "LibNameA" : {
+        "Cmp*XXX" : "Components",
+    },
+
+    // Simply rename a library
+    "EntireLib" : "NewLib2",
+
+    // Retain original name (e.g. "SomeLibName")
+    "SomeLibName" : ""
 }
 
 """
@@ -30,30 +41,24 @@ import json
 
 import fnmatch
 
-def get_lib_name(pattern):
-    return pattern.split(':')[0].lower()
-
-def get_part_filter(pattern):
-
-    s = pattern.split(':')
-
-    # Match all the things!!
-    if len(s) < 2:
-        return '*'
-
-    return s[1].lower()
-
 def get_output_lib(pattern):
     return PATTERNS[pattern]
 
 def is_entire_lib(pattern):
 
-    """
-    Determine if a library pattern designates the entire library
-    """
+    if pattern in PATTERNS:
+        filters = PATTERNS[pattern]
 
-    return get_part_filter(pattern) in ['*', '']
+        if type(filters) is dict:
+            return True
 
+        if '*' in filters:
+            return True
+
+
+def get_lib_patterns(lib_name):
+
+    return PATTERNS.get(lib_name, None)
 
 def get_entire_lib_match(lib_name):
 
@@ -63,50 +68,41 @@ def get_entire_lib_match(lib_name):
     Otherwise, return None
     """
 
-    for pattern in PATTERNS:
-        if not is_entire_lib(pattern):
-            continue
+    patterns = get_lib_patterns(lib_name)
 
-        if get_lib_name(pattern).lower() == lib_name.lower():
+    # Remap to single lib
+    if type(patterns) in [str, unicode]:
 
-            op = get_output_lib(pattern)
+        # Return original lib name
+        if patterns in [""]:
+            return lib_name
 
-            # Blank pattern means use current name
-            if op == '':
-                op = lib_name
+        return patterns
 
-            return op
-
-    return None
+    else:
+        return None
 
 
 def get_matches(lib_name, cmp_name):
+    patterns = get_lib_patterns(lib_name)
 
-    lib_name = lib_name.lower()
-    cmp_name = cmp_name.lower()
-
-    """
-    Return any matches for a lib_name:cmp_name pair
-    """
+    if not patterns:
+        return []
 
     matches = []
 
-    for pattern in PATTERNS:
+    for pattern in patterns:
 
-        if is_entire_lib(pattern):
-            continue
+        output = patterns[pattern]
 
-        if not get_lib_name(pattern) == lib_name:
-            continue
+        pattern = pattern.lower()
 
-        part_filter = get_part_filter(pattern)
+        if pattern == cmp_name.lower():
+            # Exact match!
+            return output
 
-        # An exact match overrides all other filters
-        if part_filter == cmp_name:
-            return [get_output_lib(pattern)]
-
-        if fnmatch.fnmatch(cmp_name, part_filter):
-            matches.append(get_output_lib(pattern))
+        elif fnmatch.fnmatch(cmp_name.lower(), pattern):
+            matches.append(output)
 
     return matches
 
