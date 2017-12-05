@@ -243,12 +243,12 @@ all_symbols = [{
     'shielded': False
     },
     {
-    'lib_name': 'Connector_General',
+    'lib_name': 'Connector_Generic',
     'symbol_def': merge_dicts(conn_generic, conn_male_female),
     'shielded': False
     },
     {
-    'lib_name': 'Connector_General_Shielded',
+    'lib_name': 'Connector_Generic_Shielded',
     'symbol_def': conn_generic,
     'shielded': True
     }
@@ -320,7 +320,7 @@ def innerArtwork(type=0):
 def generateSingleSymbol(generator, series_params, num_pins_per_row, shielded=False):
     symbol_name = series_params.symbol_name_format.format(num_pins_per_row=num_pins_per_row)
     if shielded:
-        symbol_name += '_shielded'
+        symbol_name += '_Shielded'
 
     current_symbol = generator.addSymbol(
         symbol_name, footprint_filter = series_params.footprint_filter,
