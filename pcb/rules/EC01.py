@@ -19,7 +19,7 @@ class Rule(KLCRule):
         module = self.module
 
         # Allowed shapes
-        allowed = ['circle', 'oval', 'rect', 'trapezoid', 'roundrect']
+        allowed = ['circle', 'oval', 'rect', 'trapezoid', 'roundrect', 'custom']
 
         errors = []
 
