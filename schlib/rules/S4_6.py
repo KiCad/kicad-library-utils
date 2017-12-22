@@ -55,10 +55,10 @@ class Rule(KLCRule):
                     pintype = pinElectricalTypeToStr(pin['electrical_type'])))
 
         if len(self.invisible_errors) > 0:
-            self.error("NC pins are VISIBLE (should be INVISIBLE):")
+            self.warning("NC pins are VISIBLE (should be INVISIBLE):")
 
             for pin in self.invisible_errors:
-                self.errorExtra("{pin} should be INVISIBLE".format(pin=pinString(pin)))
+                self.warningExtra("{pin} should be INVISIBLE".format(pin=pinString(pin)))
 
         return len(self.invisible_errors) > 0 or len(self.type_errors) > 0
 
