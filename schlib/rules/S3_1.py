@@ -10,37 +10,48 @@ class Rule(KLCRule):
         super(Rule, self).__init__(component, 'Origin is be centered on the middle of the symbol')
 
     def check(self):
-
         """
-        Calculate the 'bounds' of the symbol based on pin locations
+        Calculate the 'bounds' of the symbol based on rectangle (if only a
+        single filled rectangle is present) or on pin positions.
         """
 
-        x_min = y_min = x_max = y_max = None
+        # If there is only a single filled rectangle, we assume that it is the
+        # main symbol outline.
+        drawing = self.component.draw
+        filled_rects = [rect for rect in drawing['rectangles']
+                        if rect['fill'] == 'f']
+        if len(filled_rects) == 1:
+            # We now find it's center
+            rect = filled_rects[0]
+            x = (int(rect['startx']) + int(rect['endx'])) // 2
+            y = (int(rect['starty']) + int(rect['endy'])) // 2
+        else:
+            x_min = y_min = x_max = y_max = None
 
-        pins = self.component.pins
+            pins = self.component.pins
 
-        # No pins? Ignore check.
-        # This can be improved to include graphical items too...
-        if len(pins) == 0:
-            return False
+            # No pins? Ignore check.
+            # This can be improved to include graphical items too...
+            if len(pins) == 0:
+                return False
 
-        for i, p in enumerate(pins):
+            for i, p in enumerate(pins):
 
-            x = int(p['posx'])
-            y = int(p['posy'])
+                x = int(p['posx'])
+                y = int(p['posy'])
 
-            if i == 0:
-                x_min = x_max = x
-                y_min = y_max = y
-            else:
-                x_min = min(x_min, x)
-                x_max = max(x_max, x)
-                y_min = min(y_min, y)
-                y_max = max(y_max, y)
+                if i == 0:
+                    x_min = x_max = x
+                    y_min = y_max = y
+                else:
+                    x_min = min(x_min, x)
+                    x_max = max(x_max, x)
+                    y_min = min(y_min, y)
+                    y_max = max(y_max, y)
 
-        # Center point average
-        x = (x_min + x_max) / 2
-        y = (y_min + y_max) / 2
+            # Center point average
+            x = (x_min + x_max) / 2
+            y = (y_min + y_max) / 2
 
         # Right on the middle!
         if x == 0 and y == 0:
