@@ -26,28 +26,18 @@ class Rule(KLCRule):
             x = (int(rect['startx']) + int(rect['endx'])) // 2
             y = (int(rect['starty']) + int(rect['endy'])) // 2
         else:
-            x_min = y_min = x_max = y_max = None
-
             pins = self.component.pins
 
             # No pins? Ignore check.
             # This can be improved to include graphical items too...
             if len(pins) == 0:
                 return False
-
-            for i, p in enumerate(pins):
-
-                x = int(p['posx'])
-                y = int(p['posy'])
-
-                if i == 0:
-                    x_min = x_max = x
-                    y_min = y_max = y
-                else:
-                    x_min = min(x_min, x)
-                    x_max = max(x_max, x)
-                    y_min = min(y_min, y)
-                    y_max = max(y_max, y)
+            x_pos = [int(pin['posx']) for pin in pins]
+            y_pos = [int(pin['posy']) for pin in pins]
+            x_min = min(x_pos)
+            x_max = max(x_pos)
+            y_min = min(y_pos)
+            y_max = max(y_pos)
 
             # Center point average
             x = (x_min + x_max) / 2
