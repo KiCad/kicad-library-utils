@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from rules.rule import *
+import fnmatch
 
 class Rule(KLCRule):
     """
@@ -73,6 +74,10 @@ class Rule(KLCRule):
                                     self.error("Specified footprint does not exist")
                                     self.errorExtra("Footprint file {l}:{f} was not found".format(l=fp_dir, f=fp_path))
                                     
+                    for filt in filters:
+                        if (not fnmatch.fnmatch(fp_path, filt)) and (not fnmatch.fnmatch(fp_name, filt)):
+                            self.error("Footprint filter '"+filt+"' does not match the footprint '"+fp_name+"' set for this symbol.")
+                            fails=True
                 if len(filters)==0:
                     self.error("Symbol has a footprint defined in the footprint field, but no footprint filter set. Add a footprint filter that matches the default footprint (+ possibly variants).")
                     fails=True
