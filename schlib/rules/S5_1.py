@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from rules.rule import *
+import fnmatch
 
 class Rule(KLCRule):
     """
@@ -26,6 +27,8 @@ class Rule(KLCRule):
                 fp_name = fp_name[1:-1]
 
             fp_desc = "Footprint field '{fp}' ".format(fp=fp_name)
+            
+            filters = self.component.fplist
 
             # Only check if there is text in the name
             if len(fp_name) > 0:
@@ -70,6 +73,21 @@ class Rule(KLCRule):
                                 if not os.path.exists(fp_file):
                                     self.error("Specified footprint does not exist")
                                     self.errorExtra("Footprint file {l}:{f} was not found".format(l=fp_dir, f=fp_path))
+                                    
+                    for filt in filters:
+                        if (not fnmatch.fnmatch(fp_path, filt)) and (not fnmatch.fnmatch(fp_name, filt)):
+                            self.error("Footprint filter '"+filt+"' does not match the footprint '"+fp_name+"' set for this symbol.")
+                            fails=True
+                if len(filters)==0:
+                    self.error("Symbol has a footprint defined in the footprint field, but no footprint filter set. Add a footprint filter that matches the default footprint (+ possibly variants).")
+                    fails=True
+                if len(filters)>1:
+                    self.error("Symbol has a footprint defined in the footprint field, but several ({fpcnt}) footprint filters set. If the symbol is for a single default footprint, remove the surplus filters. If the symbol is meant for multiple different footprints, empty the footprint field.".format(fpcnt=len(filters)))
+                    fails=True
+            else:
+                if len(filters)==1:
+                    self.error("Symbol has a single fooprint filter string '"+filters[0]+"' (i.e. it seems to be intended for a single default footprint only), but the footprint field is empty. Fill footprint field with the correct footprint in the form LIBRARY:FOOTPRINT.")
+                    fails=True
 
 
         return fail
