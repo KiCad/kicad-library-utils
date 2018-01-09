@@ -141,9 +141,12 @@ class Rule(KLCRule):
         self.info( "Fixing VALUE-field...")
         self.component.fields[1]['name'] = self.component.name
         # store datasheet field contents for later reuse
-        if len(self.component.documentation['datasheet'])==0 and len(self.component.fields[3]['name'])>0:
-            self.component.documentation['datasheet']=self.component.fields[3]['name']
-            self.info( "Copying DATASHEET to DCM-file ...")
+        if ((not self.component.documentation['datasheet']) or len(self.component.documentation['datasheet'])==0) and (len(self.component.fields[3]['name'])>2):
+            ds=self.component.fields[3]['name']
+            if ds[0]=='"' and ds[len(ds)-1]=='"':
+                ds=ds[1:(len(ds)-1)]
+            self.component.documentation['datasheet']=ds
+            self.info( "Copying DATASHEET '{ds}' to DCM-file ...".format(ds=ds))
         
         self.info( "Emptying DATASHEET-field ...")
         self.component.fields[3]['name'] = ""
