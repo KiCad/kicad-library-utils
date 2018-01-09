@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from rules.rule import *
+import math
 
 class Rule(KLCRule):
     """
@@ -46,6 +47,9 @@ class Rule(KLCRule):
         # Right on the middle!
         if x == 0 and y == 0:
             return False
+        elif math.fabs(x)<=50 and math.fabs(y)<=50:
+            self.info("Symbol slightly off-center")
+            self.info("  Center calculated @ ({x}, {y})".format(x=x, y=y))
         else:
             self.warning("Symbol not centered on origin")
             self.warningExtra("Center calculated @ ({x}, {y})".format(x=x, y=y))
