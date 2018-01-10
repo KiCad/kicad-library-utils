@@ -27,12 +27,13 @@ class Rule(KLCRule):
             return True
 
         illegal = [',', ';', ':']
-
+        mod.tags=str(mod.tags)
         #check for illegal tags
-        for char in illegal:
-            if char in mod.tags:
-                self.error("Tags contain illegal character: ('{c}')".format(c=char))
-                error = True
+        if len(mod.tags)>1:
+            for char in illegal:
+                if char in mod.tags:
+                    self.error("Tags contain illegal character: ('{c}')".format(c=char))
+                    error = True
 
         return error
 
