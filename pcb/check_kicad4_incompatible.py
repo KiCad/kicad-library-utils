@@ -8,7 +8,7 @@ import sys,os
 import re
 import glob
 
-regex_str = "\(pad\s*[0-9]\s*(?:smd|thru_hole)\s(?:roundrect|custom)"
+regex_str = "\(\s*pad\s*[^\s]+\s*(?:smd|thru_hole)\s*(?:roundrect|custom)"
 regex_pattern = re.compile(regex_str)
 
 parser = argparse.ArgumentParser(description='Checks KiCad footprint libs for compatibility with version 4. Outputs a list of incompatible footprints. (optionally removes them to allow the lib to be used with KiCad version 4)')
