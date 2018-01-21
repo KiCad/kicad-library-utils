@@ -75,8 +75,12 @@ class Rule(KLCRule):
                                     self.errorExtra("Footprint file {l}:{f} was not found".format(l=fp_dir, f=fp_path))
                                     
                     for filt in filters:
-                        if (not fnmatch.fnmatch(fp_path, filt)) and (not fnmatch.fnmatch(fp_name, filt)):
+                        match1=fnmatch.fnmatch(fp_path, filt)
+                        match2=fnmatch.fnmatch(fp_name, filt)
+                        if (not match1) and (not match2):
                             self.error("Footprint filter '"+filt+"' does not match the footprint '"+fp_name+"' set for this symbol.")
+                            self.errorExtra("could not match '{fp}' against filter '{fil}'".format(fp=fp_path, fil=filt))
+                            self.errorExtra("could not match '{fp}' against filter '{fil}'".format(fp=fp_name, fil=filt))
                             fails=True
                 if len(filters)==0:
                     self.error("Symbol has a footprint defined in the footprint field, but no footprint filter set. Add a footprint filter that matches the default footprint (+ possibly variants).")
