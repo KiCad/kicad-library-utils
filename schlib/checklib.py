@@ -92,6 +92,8 @@ for libfile in libfiles:
     if len(libfiles) > 1:
         printer.purple('Library: %s' % libfile)
 
+    n_allviolations=0
+    
     for component in lib.components:
 
         #simple match
@@ -156,8 +158,10 @@ for libfile in libfiles:
         # check the number of violations
         if n_violations > 0:
             exit_code += 1
-
-    if args.fix and n_violations > 0:
+        n_allviolations=n_allviolations+n_violations
+        
+    if args.fix and n_allviolations > 0:
         lib.save()
+        printer.green("saved '{file}' with fixes for {n_violations} violations.".format(file=libfile, n_violations=n_allviolations))
 
 sys.exit(exit_code);

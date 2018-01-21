@@ -111,7 +111,7 @@ class Rule(KLCRule):
             m = re.search('(\~)(.+)', pin['name'])
             if m and pin['pin_type'] == 'I':
                 if len(self.inversion_errors) == 0:
-                    self.error("Pins should not be inverted twice")
+                    self.error("Pins should not be inverted twice (with inversion-symbol on pin and overline on label)")
                 self.inversion_errors.append(pin)
                 self.errorExtra("{pin} : double inversion (overline + pin type:Inverting)".format(pin=pinString(pin)))
 
