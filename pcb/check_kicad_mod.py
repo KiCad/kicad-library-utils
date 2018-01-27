@@ -128,11 +128,15 @@ for filename in files:
         if args.fixmore and rule.needsFixMore:
             if rule.hasErrors():
                 n_violations += rule.errorCount
+            if rule.hasWarnings:
+                n_violations += rule.warningCount()
             rule.fixmore()
             rule.fix()
             rule.processOutput(printer, args.verbose, args.silent)
         elif rule.hasErrors():
             n_violations += rule.errorCount
+            if args.fixmore and rule.hasWarnings:
+                n_violations += rule.warningCount()
 
             if args.log:
                 logError(args.log, rule.name, lib_name, module.name)
@@ -151,7 +155,7 @@ for filename in files:
     if n_violations > 0:
         exit_code += 1
 
-    if (args.fix and n_violations > 0) or args.rotate!=0:
+    if ((args.fix or args.fixmore) and n_violations > 0) or args.rotate!=0:
         module.save()
 
 if args.fix:
