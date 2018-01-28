@@ -9,17 +9,17 @@ class Rule(KLCRule):
     def __init__(self, component):
         super(Rule, self).__init__(component, 'Pin requirements')
 
-    def checkPinOrigin(self):
+    def checkPinOrigin(self, gridspacing=100):
         self.violating_pins = []
         err = False
         for pin in self.component.pins:
             posx = int(pin['posx'])
             posy = int(pin['posy'])
-            if (posx % 100) != 0 or (posy % 100) != 0:
+            if (posx % gridspacing) != 0 or (posy % gridspacing) != 0:
                 self.violating_pins.append(pin)
                 if not err:
-                    self.error("Pins not located on 100mil grid:")
-                self.error(' - Pin {0} ({1}), {2}'.format(pin['name'], pin['num'], positionFormater(pin)))
+                    self.error("Pins not located on {0}mil (={1:.3}mm) grid:".format(gridspacing, gridspacing*0.0254))
+                self.error(' - Pin {0} ({1}), {2}mil'.format(pin['name'], pin['num'], positionFormater(pin)))
                 err = True
 
         return len(self.violating_pins) > 0
@@ -67,7 +67,7 @@ class Rule(KLCRule):
 
         return duplicate
 
-    def checkPinLength(self):
+    def checkPinLength(self, errorPinLength=49, warningPinLength=99):
         self.violating_pins = []
 
         for pin in self.component.pins:
@@ -78,10 +78,10 @@ class Rule(KLCRule):
             # ignore zero-length pins e.g. hidden power pins
             if length == 0: continue
 
-            if length < 50:
-                self.error("{pin} length ({len}mils) is below 50mils".format(pin=pinString(pin), len=length))
-            elif length < 100:
-                self.warning("{pin} length ({len}mils) is below 100mils".format(pin=pinString(pin), len=length))
+            if length <= errorPinLength:
+                self.error("{pin} length ({len}mils) is below {pl}mils".format(pin=pinString(pin), len=length, pl=errorPinLength+1))
+            elif length <= warningPinLength:
+                self.warning("{pin} length ({len}mils) is below {pl}mils".format(pin=pinString(pin), len=length, pl=warningPinLength+1))
 
 
             if length % 50 != 0:
@@ -98,12 +98,22 @@ class Rule(KLCRule):
                 self.violating_pins.append(pin)
 
         return len(self.violating_pins) > 0
-
+        
     def check(self):
-
+        # determine pin-grid: 
+        #  - standard components should use 100mil
+        #  - "small" symbols (resistors, diodes, ...) should use 50mil
+        pingrid=100
+        errorPinLength=49
+        warningPinLength=99
+        if self.component.isSmallComponentHeuristics():
+            pingrid=50
+            errorPinLength=24
+            warningPinLength=49
+        
         return any([
-            self.checkPinOrigin(),
-            self.checkPinLength(),
+            self.checkPinOrigin(pingrid),
+            self.checkPinLength(errorPinLength, warningPinLength),
             self.checkDuplicatePins()
             ])
 
