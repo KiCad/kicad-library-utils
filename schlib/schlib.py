@@ -301,6 +301,24 @@ class Component(object):
     def isGraphicSymbol(self):
         return self.isNonBOMSymbol() and len(self.pins)==0
 
+    # heuristics, which tries to determine whether this is a "small" component (resistor, capacitor, LED, diode, transistor, ...)
+    def isSmallComponentHeuristics(self):
+        if len(self.pins)<=2:
+            return True;
+
+        # If there is only a single filled rectangle, we assume that it is the
+        # main symbol outline.
+        drawing = self.draw
+        filled_rects = [rect for rect in drawing['rectangles']
+                        if rect['fill'] == 'f']
+        
+        # if there is no filled rectangle as symbol outline and we have 3 or 4 pins, we assume this 
+        # is a small symbol
+        if len(self.pins)>=3 and len(self.pins)<=4 and len(filled_rects) == 0:
+            return True;
+        
+        return False;
+
 
 
 
