@@ -269,11 +269,12 @@ class device:
         for pin in self.pins:
             if ((pin.pintype == "I/O" or pin.pintype == "Clock") and pin.name.startswith("P")):
                 port = pin.name[1]
+                pin_num = int(re.findall('\d+', pin.name)[0])
                 try:
-                    self.ports[port][int(pin.name[2:])] = pin
+                    self.ports[port][pin_num] = pin
                 except KeyError:
                     self.ports[port] = {}
-                    self.ports[port][int(pin.name[2:])] = pin
+                    self.ports[port][pin_num] = pin
             elif (pin.pintype == "Clock"):
                 self.clockPins.append(pin)  
             elif ((pin.pintype == "Power") or (pin.name.startswith("VREF"))):
