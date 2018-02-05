@@ -161,9 +161,9 @@ class device:
             self.freq = self.root.xpath("a:Frequency", namespaces=self.ns)[0].text
         except:
             self.freq = None    # Some devices don't have a frequency specification... thanks obama!
-        self.ram = self.root.xpath("a:Ram", namespaces=self.ns)[0].text
+        self.ram = [r.text for r in self.root.xpath("a:Ram", namespaces=self.ns)]
         self.io = self.root.xpath("a:IONb", namespaces=self.ns)[0].text
-        self.flash = self.root.xpath("a:Flash", namespaces=self.ns)[0].text
+        self.flash = [f.text for f in self.root.xpath("a:Flash", namespaces=self.ns)]
         try:
             self.voltage = [self.root.xpath("a:Voltage", namespaces=self.ns)[0].get("Min", default="--"), self.root.xpath("a:Voltage", namespaces=self.ns)[0].get("Max", default="--")]
         except:
@@ -496,9 +496,11 @@ class device:
             self.pdf = ""
         names = [self.name] + self.aliases
         s = ""
-        for name in names:
+        for i, name in enumerate(names):
+            f = 0 if len(self.flash) == 1 else i
+            r = 0 if len(self.ram) == 1 else i
             s += "$CMP " + name + "\n"
-            s += "D Core: " + self.core + " Package: " + self.package + " Flash: " + self.flash + "KB Ram: " + self.ram + "KB "
+            s += "D Core: " + self.core + " Package: " + self.package + " Flash: " + self.flash[f] + "KB Ram: " + self.ram[r] + "KB "
             if self.freq:
                 s += "Frequency: " + self.freq + "MHz "
             if self.voltage:
