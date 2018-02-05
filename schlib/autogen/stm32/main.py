@@ -454,38 +454,38 @@ class device:
         yOffset = math.ceil(self.boxHeight / 100 / 2) * 100
             
         s = ""
-        s += "#\r\n"
-        s += "# " + self.name.upper() + "\r\n"
-        s += "#\r\n"
-        s += "DEF " + self.name + " U 0 40 Y Y 1 L N\r\n"
-        s += "F0 \"U\" " + str(round(- self.boxWidth / 2)) + " " + str(round(yOffset) + 25) + " 50 H V L B\r\n"
-        s += "F1 \"" + self.name + "\" " + str(round(self.boxWidth / 2)) + " " + str(round(yOffset) + 25) + " 50 H V R B\r\n"
-        s += "F2 \"" + self.package + "\" " + str(round(self.boxWidth / 2)) + " " + str(round(yOffset) - 25) + " 50 H V R T\r\n"
-        s += "F3 \"~\" 0 0 50 H V C CNN\r\n"
+        s += "#\n"
+        s += "# " + self.name.upper() + "\n"
+        s += "#\n"
+        s += "DEF " + self.name + " U 0 40 Y Y 1 L N\n"
+        s += "F0 \"U\" " + str(round(- self.boxWidth / 2)) + " " + str(round(yOffset) + 25) + " 50 H V L B\n"
+        s += "F1 \"" + self.name + "\" " + str(round(self.boxWidth / 2)) + " " + str(round(yOffset) + 25) + " 50 H V R B\n"
+        s += "F2 \"" + self.package + "\" " + str(round(self.boxWidth / 2)) + " " + str(round(yOffset) - 25) + " 50 H V R T\n"
+        s += "F3 \"~\" 0 0 50 H V C CNN\n"
         if (len(self.aliases) > 0):
-            s += "ALIAS " + " ".join(self.aliases) + "\r\n"
-        s += "DRAW\r\n"
+            s += "ALIAS " + " ".join(self.aliases) + "\n"
+        s += "DRAW\n"
         
         
         y = 0
         for pin in self.rightPins:
             pin.createPintext(True)
-            s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(int(self.boxWidth / 2 + pinlength)) + " " + str(round(yOffset - (pin.y + self.yTopMargin) * 100)) + " " + str(pinlength) + " L 50 50 1 1 " + PIN_TYPES_MAPPING[pin.pintype] + "\r\n"
+            s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(int(self.boxWidth / 2 + pinlength)) + " " + str(round(yOffset - (pin.y + self.yTopMargin) * 100)) + " " + str(pinlength) + " L 50 50 1 1 " + PIN_TYPES_MAPPING[pin.pintype] + "\n"
             y += 1
                 
         for pin in self.leftPins:
             pin.createPintext(False)
-            s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(int(- self.boxWidth / 2 - pinlength)) + " " + str(round(yOffset - (pin.y + self.yTopMargin) * 100)) + " " + str(pinlength) + " R 50 50 1 1 " + PIN_TYPES_MAPPING[pin.pintype] + "\r\n"
+            s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(int(- self.boxWidth / 2 - pinlength)) + " " + str(round(yOffset - (pin.y + self.yTopMargin) * 100)) + " " + str(pinlength) + " R 50 50 1 1 " + PIN_TYPES_MAPPING[pin.pintype] + "\n"
             
         for pin in self.topPins:    
-            s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(int(pin.x * 100)) + " " + str(int(yOffset + pinlength)) + " " + str(pinlength) + " D 50 50 1 1 " + PIN_TYPES_MAPPING[pin.pintype] + "\r\n"
+            s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(int(pin.x * 100)) + " " + str(int(yOffset + pinlength)) + " " + str(pinlength) + " D 50 50 1 1 " + PIN_TYPES_MAPPING[pin.pintype] + "\n"
             
         for pin in self.bottomPins:
-            s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(int(pin.x * 100)) + " " + str(int(yOffset - self.boxHeight - pinlength)) + " " + str(pinlength) + " U 50 50 1 1 " + PIN_TYPES_MAPPING[pin.pintype] + "\r\n"
+            s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(int(pin.x * 100)) + " " + str(int(yOffset - self.boxHeight - pinlength)) + " " + str(pinlength) + " U 50 50 1 1 " + PIN_TYPES_MAPPING[pin.pintype] + "\n"
         
-        s += "S -" + str(round(self.boxWidth / 2)) + " " + str(int(yOffset - self.boxHeight)) + " " + str(int(self.boxWidth / 2)) + " " + str(int(yOffset)) + " 0 1 10 f\r\n"
-        s += "ENDDRAW\r\n"
-        s += "ENDDEF\r\n"
+        s += "S -" + str(round(self.boxWidth / 2)) + " " + str(int(yOffset - self.boxHeight)) + " " + str(int(self.boxWidth / 2)) + " " + str(int(yOffset)) + " 0 1 10 f\n"
+        s += "ENDDRAW\n"
+        s += "ENDDEF\n"
 
         self.componentstring = s
         
@@ -497,16 +497,17 @@ class device:
         names = [self.name] + self.aliases
         s = ""
         for name in names:
-            s += "$CMP " + name + "\r\n"
+            s += "$CMP " + name + "\n"
             s += "D Core: " + self.core + " Package: " + self.package + " Flash: " + self.flash + "KB Ram: " + self.ram + "KB "
             if self.freq:
                 s += "Frequency: " + self.freq + "MHz "
             if self.voltage:
                 s += "Voltage: " + self.voltage[0] + ".." + self.voltage[1] + "V "
-            s += "IO-pins: " + self.io + "\r\n"
-            s += "K " + " ".join([self.core, self.family, self.line]) + "\r\n"
-            s += "F " + pdfprefix + self.pdf + "\r\n"   # TODO: Add docfiles to devices, maybe url to docfiles follows pattern?
-            s += "$ENDCMP\r\n"
+            s += "IO-pins: " + self.io + "\n"
+            s += "K " + " ".join([self.core, self.family, self.line]) + "\n"
+            s += "F " + pdfprefix + self.pdf + "\n"   # TODO: Add docfiles to devices, maybe url to docfiles follows pattern?
+            s += "$ENDCMP\n"
+            s += "#\n"
         self.docustring = s
 
 
@@ -521,8 +522,8 @@ def main():
         docu = open("stm32.dcm", "w")
 
         #TODO: Add date and time of file generation to header
-        lib.write("EESchema-LIBRARY Version 2.3\r\n#encoding utf-8\r\n")
-        docu.write("EESchema-DOCLIB  Version 2.0\r\n#\r\n")
+        lib.write("EESchema-LIBRARY Version 2.3\n#encoding utf-8\n")
+        docu.write("EESchema-DOCLIB  Version 2.0\n#\n")
 
         files = []
         for (dirpath, dirnames, filenames) in os.walk(args[2]):
@@ -550,16 +551,20 @@ def main():
                 lib.write(mcu.componentstring)
                 docu.write(mcu.docustring)
 
-        lib.write("#\r\n# End Library\r\n")
+        lib.write("#\n# End Library\n")
         lib.close()
 
-        docu.write("#\r\n#End Doc Library")
+        docu.write("#\n#End Doc Library")
         docu.close()
     else:
         printHelp()
 
 def printHelp():
-    print("Usage: main.py path/to/xmldir path/to/pdfdir \r\nDirectory should ONLY contain valid xml files, otherwise the result will be bogus.\r\nI haven't included any error checking, so good luck!")
+    print("Usage: main.py path/to/xmldir path/to/pdfdir")
+    print("Directory should ONLY contain valid xml files, otherwise the "
+          "result")
+    print("will be bogus.  I haven't included any error checking, so good "
+          "luck!")
 
 if __name__ == "__main__":
     main()
