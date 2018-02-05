@@ -453,41 +453,60 @@ class device:
             
         yOffset = math.ceil(self.boxHeight / 100 / 2) * 100
             
-        s = ""
-        s += "#\n"
-        s += "# " + self.name.upper() + "\n"
-        s += "#\n"
-        s += "DEF " + self.name + " U 0 40 Y Y 1 L N\n"
-        s += "F0 \"U\" " + str(round(- self.boxWidth / 2)) + " " + str(round(yOffset) + 25) + " 50 H V L B\n"
-        s += "F1 \"" + self.name + "\" " + str(round(self.boxWidth / 2)) + " " + str(round(yOffset) + 25) + " 50 H V R B\n"
-        s += "F2 \"" + self.package + "\" " + str(round(self.boxWidth / 2)) + " " + str(round(yOffset) - 25) + " 50 H V R T\n"
-        s += "F3 \"~\" 0 0 50 H V C CNN\n"
+        s = []
+        s.append("#\n")
+        s.append(f"# {self.name.upper()}\n")
+        s.append("#\n")
+        s.append(f"DEF {self.name} U 0 40 Y Y 1 L N\n")
+        s.append(f'F0 "U" {str(round(- self.boxWidth / 2))} '
+                 f'{str(round(yOffset) + 25)} 50 H V L B\n')
+        s.append(f'F1 "{self.name}" {str(round(self.boxWidth / 2))} '
+                 f'{str(round(yOffset) + 25)} 50 H V R B\n')
+        s.append(f'F2 "{self.package}" {str(round(self.boxWidth / 2))} '
+                 f'{str(round(yOffset) - 25)} 50 H V R T\n')
+        s.append('F3 "~" 0 0 50 H V C CNN\n')
         if (len(self.aliases) > 0):
-            s += "ALIAS " + " ".join(self.aliases) + "\n"
-        s += "DRAW\n"
+            s.append(f'ALIAS {" ".join(self.aliases)}\n')
+        s.append("DRAW\n")
         
         
-        y = 0
         for pin in self.rightPins:
             pin.createPintext(True)
-            s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(int(self.boxWidth / 2 + pinlength)) + " " + str(round(yOffset - (pin.y + self.yTopMargin) * 100)) + " " + str(pinlength) + " L 50 50 1 1 " + PIN_TYPES_MAPPING[pin.pintype] + "\n"
-            y += 1
-                
+            s.append(f"X {pin.pintext} {str(pin.pinnumber)} "
+                     f"{str(int(self.boxWidth / 2 + pinlength))} "
+                     f"{str(round(yOffset - (pin.y + self.yTopMargin) * 100))}"
+                     f" {str(pinlength)} L 50 50 1 1 "
+                     f"{PIN_TYPES_MAPPING[pin.pintype]}\n")
+
         for pin in self.leftPins:
             pin.createPintext(False)
-            s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(int(- self.boxWidth / 2 - pinlength)) + " " + str(round(yOffset - (pin.y + self.yTopMargin) * 100)) + " " + str(pinlength) + " R 50 50 1 1 " + PIN_TYPES_MAPPING[pin.pintype] + "\n"
-            
-        for pin in self.topPins:    
-            s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(int(pin.x * 100)) + " " + str(int(yOffset + pinlength)) + " " + str(pinlength) + " D 50 50 1 1 " + PIN_TYPES_MAPPING[pin.pintype] + "\n"
-            
-        for pin in self.bottomPins:
-            s += "X " + pin.pintext + " " + str(pin.pinnumber) + " " + str(int(pin.x * 100)) + " " + str(int(yOffset - self.boxHeight - pinlength)) + " " + str(pinlength) + " U 50 50 1 1 " + PIN_TYPES_MAPPING[pin.pintype] + "\n"
-        
-        s += "S -" + str(round(self.boxWidth / 2)) + " " + str(int(yOffset - self.boxHeight)) + " " + str(int(self.boxWidth / 2)) + " " + str(int(yOffset)) + " 0 1 10 f\n"
-        s += "ENDDRAW\n"
-        s += "ENDDEF\n"
+            s.append(f"X {pin.pintext} {str(pin.pinnumber)} "
+                     f"{str(int(-self.boxWidth / 2 - pinlength))} "
+                     f"{str(round(yOffset - (pin.y + self.yTopMargin) * 100))}"
+                     f" {str(pinlength)} R 50 50 1 1 "
+                     f"{PIN_TYPES_MAPPING[pin.pintype]}\n")
 
-        self.componentstring = s
+        for pin in self.topPins:
+            s.append(f"X {pin.pintext} {str(pin.pinnumber)} "
+                     f"{str(int(pin.x * 100))} {str(int(yOffset + pinlength))}"
+                     f" {str(pinlength)} D 50 50 1 1 "
+                     f"{PIN_TYPES_MAPPING[pin.pintype]}\n")
+
+        for pin in self.bottomPins:
+            s.append(f"X {pin.pintext} {str(pin.pinnumber)} "
+                     f"{str(int(pin.x * 100))} "
+                     f"{str(int(yOffset - self.boxHeight - pinlength))} "
+                     f"{str(pinlength)} U 50 50 1 1 "
+                     f"{PIN_TYPES_MAPPING[pin.pintype]}\n")
+        
+        s.append(f"S -{str(round(self.boxWidth / 2))} "
+                 f"{str(int(yOffset - self.boxHeight))} "
+                 f"{str(int(self.boxWidth / 2))} "
+                 f"{str(int(yOffset))} 0 1 10 f\n")
+        s.append("ENDDRAW\n")
+        s.append("ENDDEF\n")
+
+        self.componentstring = "".join(s)
         
     def createDocu(self):
         pdfprefix = "http://www.st.com/st-web-ui/static/active/en/resource/technical/document/datasheet/"
@@ -495,22 +514,23 @@ class device:
             pdfprefix = ""
             self.pdf = ""
         names = [self.name] + self.aliases
-        s = ""
+        s = []
         for i, name in enumerate(names):
             f = 0 if len(self.flash) == 1 else i
             r = 0 if len(self.ram) == 1 else i
-            s += "$CMP " + name + "\n"
-            s += "D Core: " + self.core + " Package: " + self.package + " Flash: " + self.flash[f] + "KB Ram: " + self.ram[r] + "KB "
+            s.append(f"$CMP {name}\n")
+            s.append(f"D Core: {self.core} Package: {self.package} Flash: "
+                     f"{self.flash[f]}KB Ram: {self.ram[r]}KB ")
             if self.freq:
-                s += "Frequency: " + self.freq + "MHz "
+                s.append(f"Frequency: {self.freq}MHz ")
             if self.voltage:
-                s += "Voltage: " + self.voltage[0] + ".." + self.voltage[1] + "V "
-            s += "IO-pins: " + self.io + "\n"
-            s += "K " + " ".join([self.core, self.family, self.line]) + "\n"
-            s += "F " + pdfprefix + self.pdf + "\n"   # TODO: Add docfiles to devices, maybe url to docfiles follows pattern?
-            s += "$ENDCMP\n"
-            s += "#\n"
-        self.docustring = s
+                s.append(f"Voltage: {self.voltage[0]}..{self.voltage[1]}V ")
+            s.append(f"IO-pins: {self.io}\n")
+            s.append(f"K {self.core} {self.family} {self.line}\n")
+            s.append(f"F {pdfprefix}{self.pdf}\n")   # TODO: Add docfiles to devices, maybe url to docfiles follows pattern?
+            s.append("$ENDCMP\n")
+            s.append("#\n")
+        self.docustring = "".join(s)
 
 
 def main():
