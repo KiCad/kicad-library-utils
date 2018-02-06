@@ -517,7 +517,7 @@ class device:
                  f'{str(round(yOffset) + 25)} 50 H V R B\n')
         s.append(f'F2 "{self.footprint}" {str(round(self.boxWidth / 2))} '
                  f'{str(round(yOffset) - 25)} 50 H I R T\n')
-        s.append('F3 "~" 0 0 50 H I C CNN\n')
+        s.append('F3 "" 0 0 50 H I C CNN\n')
         if (len(self.aliases) > 0):
             s.append(f'ALIAS {" ".join(self.aliases)}\n')
         s.append("DRAW\n")
