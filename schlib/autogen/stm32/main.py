@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 
-import sys,os,math
-from lxml import etree
+import argparse
+import math
+import os
 import re
+
+from lxml import etree
 
 SPECIAL_PIN_MAPPING = {"VSS/TH": ["VSS/TH"],
                        "PC13-ANTI_TAMP": ["PC13", "ANTI_TAMP"],
@@ -589,66 +592,63 @@ class device:
 
 
 def main():
-    args = sys.argv
-    
-    if(not len(args) == 3 or args[1] == "help"):
-        printHelp()
-    elif(os.path.isdir(args[1]) and os.path.isdir(args[2])):
-        libname_format = "MCU_ST_{}.{}"
+    parser = argparse.ArgumentParser(
+            description='Generator for STM32 microcontroller symbols')
+    parser.add_argument('xmldir',
+            help='Directory containing ONLY valid STM32 XML files')
+    parser.add_argument('pdfdir',
+            help='Directory containing STM32 datasheet PDFs')
 
-        files = []
-        for (dirpath, dirnames, filenames) in os.walk(args[2]):
-            files.extend(filenames)
-            break
-        
+    args = parser.parse_args()
 
-        for pdffile in files:
-            pdffile = os.path.join(args[2], pdffile)
-            pdfparsedfile = pdffile + ".par"
-            if(not os.path.isfile(pdfparsedfile) and pdffile.endswith(".pdf")):
-                print("Converting: " + pdffile)
-                os.system("pdf2txt.py -o " + pdfparsedfile + " " + pdffile)
+    if not os.path.isdir(args.xmldir) or not os.path.isdir(args.pdfdir):
+        parser.error("xmldir and pdfdir must be directories")
 
-        files = []
-        for (dirpath, dirnames, filenames) in os.walk(args[1]):
-            files.extend(filenames)
-            break
-        
-        files.sort()
+    libname_format = "MCU_ST_{}.{}"
 
-        devices = {}
+    files = []
+    for (dirpath, dirnames, filenames) in os.walk(args.pdfdir):
+        files.extend(filenames)
+        break
 
-        for xmlfile in files:
-            mcu = device(os.path.join(args[1], xmlfile), args[2])
-            if mcu.family not in devices:
-                devices[mcu.family] = []
-            devices[mcu.family].append(mcu)
+    for pdffile in files:
+        pdffile = os.path.join(args.pdfdir, pdffile)
+        pdfparsedfile = pdffile + ".par"
+        if(not os.path.isfile(pdfparsedfile) and pdffile.endswith(".pdf")):
+            print("Converting: " + pdffile)
+            os.system("pdf2txt.py -o " + pdfparsedfile + " " + pdffile)
 
-        for family, mcus in devices.items():
-            print(family, len(mcus))
-            # TODO: Add date and time of file generation to header
-            with open(libname_format.format(family, "lib"), "w") as lib:
-                lib.write("EESchema-LIBRARY Version 2.3\n#encoding utf-8\n")
-                for mcu in mcus:
-                    if mcu.pdf != "":
-                        lib.write(mcu.componentstring)
-                lib.write("#\n# End Library\n")
+    files = []
+    for (dirpath, dirnames, filenames) in os.walk(args.xmldir):
+        files.extend(filenames)
+        break
 
-            with open(libname_format.format(family, "dcm"), "w") as dcm:
-                dcm.write("EESchema-DOCLIB  Version 2.0\n#\n")
-                for mcu in mcus:
-                    if mcu.pdf != "":
-                        dcm.write(mcu.docustring)
-                dcm.write("#\n#End Doc Library")
-    else:
-        printHelp()
+    files.sort()
 
-def printHelp():
-    print("Usage: main.py path/to/xmldir path/to/pdfdir")
-    print("Directory should ONLY contain valid xml files, otherwise the "
-          "result")
-    print("will be bogus.  I haven't included any error checking, so good "
-          "luck!")
+    devices = {}
+
+    for xmlfile in files:
+        mcu = device(os.path.join(args.xmldir, xmlfile), args.pdfdir)
+        if mcu.family not in devices:
+            devices[mcu.family] = []
+        devices[mcu.family].append(mcu)
+
+    for family, mcus in devices.items():
+        print(family, len(mcus))
+        # TODO: Add date and time of file generation to header
+        with open(libname_format.format(family, "lib"), "w") as lib:
+            lib.write("EESchema-LIBRARY Version 2.3\n#encoding utf-8\n")
+            for mcu in mcus:
+                if mcu.pdf != "":
+                    lib.write(mcu.componentstring)
+            lib.write("#\n# End Library\n")
+
+        with open(libname_format.format(family, "dcm"), "w") as dcm:
+            dcm.write("EESchema-DOCLIB  Version 2.0\n#\n")
+            for mcu in mcus:
+                if mcu.pdf != "":
+                    dcm.write(mcu.docustring)
+            dcm.write("#\n#End Doc Library")
 
 if __name__ == "__main__":
     main()
