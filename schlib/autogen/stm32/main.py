@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import logging
 import math
 import os
 import re
@@ -121,7 +122,7 @@ class pin:
 
 class device:
     def __init__(self, xmlfile, pdfdir):
-        print(xmlfile)
+        logging.debug(xmlfile)
         self.xmlfile = xmlfile
         self.pdfdir = pdfdir
         self.name = ""
@@ -181,8 +182,8 @@ class device:
             if newpin.name == "PB2":
                 for pre in BOOT1_FIX_PARTS:
                     if re.search(pre, name) and (not ("BOOT1" in newpin.altfunctions)):
-                        print("Fixing PB2/BOOT1 for part " + name)
-                        print("  " + newpin.name + " " + str(newpin.altfunctions))
+                        logging.info(f"Fixing PB2/BOOT1 for part {name}")
+                        logging.info(f"  {newpin.name} {str(newpin.altfunctions)}")
                         newpin.altfunctions.insert(0, "BOOT1")
                     
                     
@@ -194,14 +195,14 @@ class device:
             self.hasPowerPad = True
         else:
             if self.package in POWER_PAD_FIX_PACKAGES:
-                print("Absent powerpad detected in part " + self.name)
+                logging.info(f"Absent powerpad detected in part {self.name}")
                 self.hasPowerPad = True
 
         if(self.hasPowerPad == True):    # Special case for the thermal pad
             # Some heuristic here
             packPinCountR = re.search(r"^[a-zA-Z]+([0-9]+)$", self.package)
             powerpinnumber = int(packPinCountR.group(1)) + 1
-            print("Device " + name + " with powerpad, package " + self.package + ", power pin: " + str(powerpinnumber))
+            logging.info(f"Device {name} with powerpad, package {self.package}, power pin: {str(powerpinnumber)}")
             powerpadpin = pin(powerpinnumber, "VSS", "Power")
             self.pins.append(powerpadpin)
         
@@ -285,19 +286,19 @@ class device:
                 if(winner == firstwinner):
                     self.pdf = winner[:-4]
                 else:
-                    print("Multiple datasheet determined for this device: " + self.name + "(" + str(winners) + ")")
+                    logging.warning(f"Multiple datasheets determined for device {self.name} ({str(winners)})")
                     self.pdf = "NOSHEET"
                     break
         
         if(self.pdf == "NOSHEET"):
-            print("Datasheet could not be determined for this device: " + self.name)
+            logging.warning(f"Datasheet could not be determined for device {self.name}")
     
     def runDRC(self):
         pinNumMap = {}
         removePins = []
         for pin in self.pins:
             if pin.pinnumber in pinNumMap:
-                print("Duplicated pin " + str(pin.pinnumber) + " in part " + self.name + ", merging")
+                logging.info(f"Duplicated pin {str(pin.pinnumber)} in part {self.name}, merging")
                 mergedPin = pinNumMap[pin.pinnumber]
                 mergedPin.altNames.append(pin.name)
                 mergedPin.altfunctions += pin.altfunctions
@@ -598,43 +599,48 @@ def main():
             help='Directory containing ONLY valid STM32 XML files')
     parser.add_argument('pdfdir',
             help='Directory containing STM32 datasheet PDFs')
+    parser.add_argument('-v', '--verbose', action='count', default=0,
+            help='Print more information')
 
     args = parser.parse_args()
 
     if not os.path.isdir(args.xmldir) or not os.path.isdir(args.pdfdir):
         parser.error("xmldir and pdfdir must be directories")
 
-    libname_format = "MCU_ST_{}.{}"
+    if args.verbose == 0:
+        loglevel = logging.WARNING
+    elif args.verbose == 1:
+        loglevel = logging.INFO
+    elif args.verbose >= 2:
+        loglevel = logging.DEBUG
 
-    files = []
-    for (dirpath, dirnames, filenames) in os.walk(args.pdfdir):
-        files.extend(filenames)
+    logging.basicConfig(format='%(levelname)s:%(message)s', level=loglevel)
+
+    # Parse text from PDFs
+    for _, _, filenames in os.walk(args.pdfdir):
+        for pdffile in filenames:
+            pdffile = os.path.join(args.pdfdir, pdffile)
+            pdfparsedfile = pdffile + ".par"
+            if not os.path.isfile(pdfparsedfile) and pdffile.endswith(".pdf"):
+                logging.info(f"Converting: {pdffile}")
+                os.system("pdf2txt.py -o " + pdfparsedfile + " " + pdffile)
         break
 
-    for pdffile in files:
-        pdffile = os.path.join(args.pdfdir, pdffile)
-        pdfparsedfile = pdffile + ".par"
-        if(not os.path.isfile(pdfparsedfile) and pdffile.endswith(".pdf")):
-            print("Converting: " + pdffile)
-            os.system("pdf2txt.py -o " + pdfparsedfile + " " + pdffile)
-
-    files = []
-    for (dirpath, dirnames, filenames) in os.walk(args.xmldir):
-        files.extend(filenames)
-        break
-
-    files.sort()
-
+    # Load devices from XML, sorted by family
     devices = {}
+    for _, _, filenames in os.walk(args.xmldir):
+        filenames.sort()
+        for xmlfile in filenames:
+            mcu = device(os.path.join(args.xmldir, xmlfile), args.pdfdir)
+            if mcu.family not in devices:
+                devices[mcu.family] = []
+            devices[mcu.family].append(mcu)
+        break
 
-    for xmlfile in files:
-        mcu = device(os.path.join(args.xmldir, xmlfile), args.pdfdir)
-        if mcu.family not in devices:
-            devices[mcu.family] = []
-        devices[mcu.family].append(mcu)
-
+    # Write libraries
+    libname_format = "MCU_ST_{}.{}"
     for family, mcus in devices.items():
-        print(family, len(mcus))
+        logging.info(f"{family} {len(mcus)}")
         # TODO: Add date and time of file generation to header
         with open(libname_format.format(family, "lib"), "w") as lib:
             lib.write("EESchema-LIBRARY Version 2.3\n#encoding utf-8\n")
