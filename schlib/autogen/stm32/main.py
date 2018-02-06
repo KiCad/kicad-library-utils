@@ -592,13 +592,7 @@ def main():
     if(not len(args) == 3 or args[1] == "help"):
         printHelp()
     elif(os.path.isdir(args[1]) and os.path.isdir(args[2])):
-
-        lib = open("stm32.lib", "w")
-        docu = open("stm32.dcm", "w")
-
-        #TODO: Add date and time of file generation to header
-        lib.write("EESchema-LIBRARY Version 2.3\n#encoding utf-8\n")
-        docu.write("EESchema-DOCLIB  Version 2.0\n#\n")
+        libname_format = "MCU_ST_{}.{}"
 
         files = []
         for (dirpath, dirnames, filenames) in os.walk(args[2]):
@@ -620,17 +614,30 @@ def main():
         
         files.sort()
 
+        devices = {}
+
         for xmlfile in files:
             mcu = device(os.path.join(args[1], xmlfile), args[2])
-            if(mcu.pdf != ""):
-                lib.write(mcu.componentstring)
-                docu.write(mcu.docustring)
+            if mcu.family not in devices:
+                devices[mcu.family] = []
+            devices[mcu.family].append(mcu)
 
-        lib.write("#\n# End Library\n")
-        lib.close()
+        for family, mcus in devices.items():
+            print(family, len(mcus))
+            # TODO: Add date and time of file generation to header
+            with open(libname_format.format(family, "lib"), "w") as lib:
+                lib.write("EESchema-LIBRARY Version 2.3\n#encoding utf-8\n")
+                for mcu in mcus:
+                    if mcu.pdf != "":
+                        lib.write(mcu.componentstring)
+                lib.write("#\n# End Library\n")
 
-        docu.write("#\n#End Doc Library")
-        docu.close()
+            with open(libname_format.format(family, "dcm"), "w") as dcm:
+                dcm.write("EESchema-DOCLIB  Version 2.0\n#\n")
+                for mcu in mcus:
+                    if mcu.pdf != "":
+                        dcm.write(mcu.docustring)
+                dcm.write("#\n#End Doc Library")
     else:
         printHelp()
 
