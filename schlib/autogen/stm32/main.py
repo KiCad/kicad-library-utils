@@ -23,6 +23,52 @@ BOOT1_FIX_PARTS = {r"^STM32F10\d.+$", r"^STM32F2\d\d.+$", r"^STM32F4\d\d.+$",
 
 POWER_PAD_FIX_PACKAGES = {"UFQFPN28", "UFQFPN32", "UFQFPN48", "VFQFPN36"}
 
+FOOTPRINT_MAPPING = {
+    # No footprint "EWLCSP49": "",
+    # No footprint "EWLCSP66": "",
+    # No footprint "LFBGA100": "",
+    # No footprint "LFBGA144": "",
+    "LQFP32": "Package_QFP:LQFP-32_7x7mm_P0.8mm",
+    "LQFP48": "Package_QFP:LQFP-48_7x7mm_P0.5mm",
+    "LQFP64": "Package_QFP:LQFP-64_10x10mm_P0.5mm",
+    "LQFP100": "Package_QFP:LQFP-100_14x14mm_P0.5mm",
+    "LQFP144": "Package_QFP:LQFP-144_20x20mm_P0.5mm",
+    "LQFP176": "Package_QFP:LQFP-176_24x24mm_P0.5mm",
+    "LQFP208": "Package_QFP:LQFP-208_28x28mm_P0.5mm",
+    # Closest footprint has wrong pad dimensions, risky for BGA "TFBGA64": "",
+    # No footprint "TFBGA100": "",
+    # No footprint "TFBGA216": "",
+    # No footprint "TFBGA240": "",
+    "TSSOP14": "Package_SO:TSSOP-14_4.4x5mm_P0.65mm",
+    "TSSOP20": "Package_SO:TSSOP-20_4.4x6.5mm_P0.65mm",
+    # Closest footprint has wrong pad dimensions, risky for BGA "UFBGA64": "",
+    # No footprint "UFBGA100": "",
+    "UFBGA132": "Package_BGA:UFBGA-132_7x7mm_P0.5mm",
+    # ST uses this name for two sizes of BGA "UFBGA144": "",
+    # No footprint "UFBGA169": "",
+    # No footprint "UFBGA176": "",
+    "UFQFPN20": "Package_DFN_QFN:ST_UFQFPN-20_3x3mm_P0.5mm",
+    # No footprint "UFQFPN28": "",
+    "UFQFPN32": "Package_DFN_QFN:QFN-32-1EP_5x5mm_P0.5mm_EP3.45x3.45mm",
+    "UFQFPN48": "Package_DFN_QFN:QFN-48-1EP_7x7mm_P0.5mm_EP5.15x5.15mm",
+    "VFQFPN36": "Package_DFN_QFN:QFN-36-1EP_6x6mm_P0.5mm_EP3.7x3.7mm",
+    # No footprint "WLCSP25": "",
+    # No footprint "WLCSP36": "",
+    # No footprint "WLCSP49": "",
+    # No footprint "WLCSP63": "",
+    # No footprint "WLCSP64": "",
+    # No footprint "WLCSP66": "",
+    # No footprint "WLCSP72": "",
+    # No footprint "WLCSP81": "",
+    # No footprint "WLCSP90": "",
+    # No footprint "WLCSP100": "",
+    # No footprint "WLCSP104": "",
+    # No footprint "WLCSP143": "",
+    # No footprint "WLCSP144": "",
+    # No footprint "WLCSP168": "",
+    # No footprint "WLCSP180": ""
+}
+
 def unique(items):
     found = set([])
     keep = []
@@ -77,6 +123,7 @@ class device:
         self.pdfdir = pdfdir
         self.name = ""
         self.package = ""
+        self.footprint = ""
         self.pins = []
         self.aliases = []
 
@@ -105,6 +152,12 @@ class device:
             self.name = name
 
         self.package = self.root.get("Package")
+
+        # Get the footprint for this package
+        try:
+            self.footprint = FOOTPRINT_MAPPING[self.package]
+        except KeyError:
+            self.footprint = self.package
 
         self.bga = False
         for child in self.root.xpath("a:Pin", namespaces=self.ns):
@@ -462,9 +515,9 @@ class device:
                  f'{str(round(yOffset) + 25)} 50 H V L B\n')
         s.append(f'F1 "{self.name}" {str(round(self.boxWidth / 2))} '
                  f'{str(round(yOffset) + 25)} 50 H V R B\n')
-        s.append(f'F2 "{self.package}" {str(round(self.boxWidth / 2))} '
-                 f'{str(round(yOffset) - 25)} 50 H V R T\n')
-        s.append('F3 "~" 0 0 50 H V C CNN\n')
+        s.append(f'F2 "{self.footprint}" {str(round(self.boxWidth / 2))} '
+                 f'{str(round(yOffset) - 25)} 50 H I R T\n')
+        s.append('F3 "~" 0 0 50 H I C CNN\n')
         if (len(self.aliases) > 0):
             s.append(f'ALIAS {" ".join(self.aliases)}\n')
         s.append("DRAW\n")
