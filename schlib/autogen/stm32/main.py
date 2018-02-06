@@ -331,7 +331,7 @@ class device:
             elif (pin.pintype == "Clock"):
                 self.clockPins.append(pin)  
             elif ((pin.pintype == "Power") or (pin.name.startswith("VREF"))):
-                if(pin.name.startswith("VDD")):
+                if pin.name.startswith("VDD") or pin.name.startswith("VBAT"):
                     self.topPins.append(pin)
                 elif(pin.name.startswith("VSS")):
                     self.bottomPins.append(pin)
