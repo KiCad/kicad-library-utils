@@ -106,14 +106,14 @@ class pin:
     def createPintext(self, left):
         if (left):
             if (self.name == ""):
-                s = "/".join(self.altfunctions + self.altNames)
+                s = (self.altNames + self.altfunctions)[0]
             else:
-                s = "/".join(self.altfunctions + self.altNames + [self.name])
+                s = self.name
         else:
             if (self.name == ""):
-                s = "/".join(self.altNames + self.altfunctions)
+                s = (self.altNames + self.altfunctions)[0]
             else:
-                s = "/".join([self.name] + self.altNames + self.altfunctions)
+                s = self.name
         self.pintext = s.replace(" ","")
 
 class device:
@@ -487,7 +487,9 @@ class device:
         #if (self.boxHeight / 2) % 100 > 0:
         #    self.boxHeight += 100
             
-        self.boxWidth = (maxXSize + 1) * 47 + 100
+        self.boxWidth = max((maxXSize + 1) * 47 + 200,
+                            100*(len(self.topPins) + 1),
+                            100*(len(self.bottomPins) + 1))
         self.boxWidth = math.floor(self.boxWidth / 100) * 100
         if (self.boxWidth / 2) % 100 > 0:
             self.boxWidth += 100
@@ -514,7 +516,7 @@ class device:
         s.append(f'F0 "U" {str(round(- self.boxWidth / 2))} '
                  f'{str(round(yOffset) + 25)} 50 H V L B\n')
         s.append(f'F1 "{self.name}" {str(round(self.boxWidth / 2))} '
-                 f'{str(round(yOffset) + 25)} 50 H V R B\n')
+                 f'{str(round(yOffset) + 25)} 50 H V L B\n')
         s.append(f'F2 "{self.footprint}" {str(round(self.boxWidth / 2))} '
                  f'{str(round(yOffset) - 25)} 50 H I R T\n')
         s.append('F3 "" 0 0 50 H I C CNN\n')
