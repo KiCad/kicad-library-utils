@@ -339,9 +339,13 @@ class Device:
                 self.otherPins.append(pin)
         
         # Apply pins to sides
-        leftGroups = [[]]
-        rightGroups = [[]]
-        
+        leftGroups = []
+        rightGroups = []
+
+        leftSpace = 0
+        rightSpace = 0
+
+        # Special groups go to the left
         if len(self.resetPins) > 0:
             leftGroups.append(self.resetPins)
         if len(self.bootPins) > 0:
@@ -353,36 +357,24 @@ class Device:
         if len(self.otherPins) > 0:
             leftGroups.append(self.otherPins)
         
-        del leftGroups[0]
-
-        leftSpace = 0
-        rightSpace = 0
-        
+        # Count the space needed for special groups
         for group in leftGroups:
-            l = len(group)
-            leftSpace += l + 1
-            
-        serviceSpace = leftSpace
-                    
-        portNames = sorted(self.ports.keys())
+            leftSpace += len(group) + 1
 
-        for portname in portNames:
-            port = self.ports[portname]
-            pins = []
-            for pinname in sorted(port.keys()):
-                pins.append(port[pinname])
-            l = len(pins)
-            rightSpace += l + 1
+        serviceSpace = leftSpace
+
+        # Add ports to the right
+        for _, port in sorted(self.ports.items()):
+            pins = [pin for _, pin in sorted(port.items())]
+            rightSpace += len(pins) + 1
             rightGroups.append(pins)
-        
-        del rightGroups[0]
-                        
+
+        # Move ports to the left from the right until moving one more would
+        # make the symbol get taller.
         maxSize = max(leftSpace, rightSpace)
         movedSpace = 0
-        
         movedGroups = []
-        
-        while(True):
+        while True:
             groupToMove = rightGroups[-1]
             newLeftSpace = leftSpace + len(groupToMove) + 1
             newRightSpace = rightSpace - len(groupToMove) - 1
@@ -394,10 +386,11 @@ class Device:
             rightSpace = newRightSpace
 
             movedSpace += len(groupToMove) + 1
-            
+
             movedGroups.append(groupToMove)
             rightGroups.pop()
 
+        # Arrange y position of left/right pins within their groups
         for group in movedGroups:
             i = 0
             for pin in group:
@@ -405,7 +398,7 @@ class Device:
                 i += 1
             movedSpace -= i + 1
             leftGroups.append(group)
-            
+
         movedSpace = 0
         for group in reversed(rightGroups):
             movedSpace += len(group) + 1
@@ -413,7 +406,8 @@ class Device:
             for pin in group:
                 pin.y = - (movedSpace - 1) + i
                 i += 1
-            
+
+        # Arrange y position of left/right pins
         y = 0
         for group in leftGroups:
             for pin in group:
@@ -427,7 +421,7 @@ class Device:
                 self.leftPins.append(pin)
                 y += 1
             y += 1
-            
+
         y = 0
         for group in rightGroups:
             for pin in group:
@@ -441,18 +435,20 @@ class Device:
                 self.rightPins.append(pin)
                 y += 1
             y += 1
-            
+
+        # Calculate the width needed for the left/right pin texts
         maxXSize = 0
         for i in range(maxSize):
             size = 0
             for pin in self.pins:
-                if (pin.placed == True) and (int(pin.y) == i):
+                if pin.placed and int(pin.y) == i:
                     pin.createPintext(False)
                     size += len(pin.pintext)
 
             if (maxXSize < size):
                 maxXSize = size
-        
+
+        # Calculate the height needed for the top pin texts
         topMaxLen = 0
         self.topPins = sorted(self.topPins, key=lambda p: p.name)
         topX = - int(len(self.topPins) / 2)
@@ -462,7 +458,8 @@ class Device:
             pin.createPintext(False)
             if len(pin.pintext) > topMaxLen:
                 topMaxLen = len(pin.pintext)
-                
+
+        # Calculate the height needed for the bottom pin texts
         bottomMaxLen = 0
         self.bottomPins = sorted(self.bottomPins, key=lambda p: p.name)
         bottomX = - int(len(self.bottomPins) / 2)
@@ -472,23 +469,23 @@ class Device:
             pin.createPintext(False)
             if len(pin.pintext) > bottomMaxLen:
                 bottomMaxLen = len(pin.pintext)
-        
+
+        # Calculate margins
         self.yTopMargin = math.ceil((topMaxLen * 47 + 75) / 100)
         self.yBottomMargin = math.ceil((bottomMaxLen * 47 + 75) / 100)
-                
+
+        # Calculate box dimensions
         self.boxHeight = (maxSize - 2 + self.yTopMargin + self.yBottomMargin) * 100
         #self.boxHeight = math.floor(self.boxHeight / 100) * 100
         #if (self.boxHeight / 2) % 100 > 0:
         #    self.boxHeight += 100
-            
+
         self.boxWidth = max((maxXSize + 1) * 47 + 200,
                             100*(len(self.topPins) + 1),
                             100*(len(self.bottomPins) + 1))
         self.boxWidth = math.floor(self.boxWidth / 100) * 100
         if (self.boxWidth / 2) % 100 > 0:
             self.boxWidth += 100
-            
-        #print(self.rightPins)
 
     def createComponent(self):
         self.runDRC()
