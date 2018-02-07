@@ -8,22 +8,18 @@ import re
 
 from lxml import etree
 
-SPECIAL_PIN_MAPPING = {"VSS/TH": ["VSS/TH"],
-                       "PC13-ANTI_TAMP": ["PC13", "ANTI_TAMP"],
-                       "PB2/BOOT1": ["PB2", "BOOT1"],
-                       "PC14OSC32_IN": ["PC14"],
+SPECIAL_PIN_MAPPING = {"PC14OSC32_IN": ["PC14"],
                        "PC15OSC32_OUT": ["PC15"], 
                        "PF11BOOT0": ["PF11"],
                        "OSC_IN": [""],
-                       "OSC_OUT": [""]}
+                       "OSC_OUT": [""],
+                       "VREF-": ["VREF-"],
+                       "VREFSD-": ["VREFSD-"]}
 
 SPECIAL_TYPES_MAPPING = {"RCC_OSC_IN": "Clock", "RCC_OSC_OUT": "Clock"}
 
 PIN_TYPES_MAPPING = {"Power": "W", "I/O": "B", "Reset": "I", "Boot": "I", 
                      "MonoIO": "B", "NC": "N", "Clock": "I"}
-
-BOOT1_FIX_PARTS = {r"^STM32F10\d.+$", r"^STM32F2\d\d.+$", r"^STM32F4\d\d.+$", 
-                   r"^STM32L1\d\d.+$"}
 
 POWER_PAD_FIX_PACKAGES = {"UFQFPN28", "UFQFPN32", "UFQFPN48", "VFQFPN36"}
 
@@ -74,36 +70,20 @@ FOOTPRINT_MAPPING = {
 }
 
 class Pin:
-    def __init__(self, pinnumber, name, pintype):
-        if not (name in SPECIAL_PIN_MAPPING):
-            splname = name.split("/");
-            realname = splname[0]
-            splname2 = splname[0].split("-")
-            if (len(splname2) > 1 and splname2[1] != ""):
-                realname = splname2[0]
-            altf = []
-        else:
-            realname = SPECIAL_PIN_MAPPING[name][0]
-            altf = SPECIAL_PIN_MAPPING[name][1:]
 
+    def __init__(self, pinnumber, name, pintype):
         self.pinnumber = pinnumber
-        self.name = realname
-        self.altNames = []
+        self.name = name
         self.pintype = pintype
-        self.altfunctions = altf
-        self.drawn = False  # Whether this pin has already been included in the component or not
-        self.x = 0;
-        self.y = 0;
+        self.x = 0
+        self.y = 0
         self.placed = False
 
-    def createPintext(self):
-        if self.name == "":
-            s = (self.altNames + self.altfunctions)[0]
-        else:
-            s = "/".join([self.name] + self.altNames)
-        self.pintext = s.replace(" ","")
-
 class Device:
+    _name_search = re.compile(r"^(.+)\((.+)\)(.+)$")
+    _number_findall = re.compile(r"\d+")
+    _pincount_search = re.compile(r"^[a-zA-Z]+([0-9]+)$")
+    _pinname_split = re.compile('[ /-]+')
     pdfinfo = {}
 
     def __init__(self, xmlfile, pdfdir):
@@ -130,7 +110,7 @@ class Device:
         name = self.root.get("RefName")
 
         # Get all the part names for this part
-        als = re.search(r"^(.+)\((.+)\)(.+)$", name)
+        als = Device._name_search.search(name)
         if als:
             pre = als.group(1)
             post = als.group(3)
@@ -154,39 +134,28 @@ class Device:
             # Create object and read attributes
             newpin = Pin(child.get("Position"), child.get("Name"), child.get("Type"))
 
+            if newpin.name in SPECIAL_PIN_MAPPING:
+                newpin.name = SPECIAL_PIN_MAPPING[newpin.name][0]
+            else:
+                newpin.name = Device._pinname_split.split(newpin.name)[0]
+
             # Get alternate functions
             for signal in child.xpath("a:Signal", namespaces=self.ns):
                 altfunction = signal.get("Name")
-                # Avoid listing GPIO as an alt function
-                if not altfunction == "GPIO":
-                    newpin.altfunctions.append(altfunction)
+                # If the pin doesn't have a name, use the first alt function
+                if not newpin.name:
+                    newpin.name = altfunction
                 # If an alt function corresponds to a pin type, set that
                 if altfunction in SPECIAL_TYPES_MAPPING:
                     newpin.pintype = SPECIAL_TYPES_MAPPING[altfunction]
 
-            # Fix the boot pin if we have to
-            if newpin.name == "PB2":
-                for pre in BOOT1_FIX_PARTS:
-                    if re.search(pre, name) and not "BOOT1" in newpin.altfunctions:
-                        logging.info(f"Fixing PB2/BOOT1 for part {name}")
-                        logging.info(f"  {newpin.name} {newpin.altfunctions}")
-                        newpin.altfunctions.insert(0, "BOOT1")
-
             self.pins.append(newpin)
 
-        # Determine if this part has a power pad
-        if self.root.get("HasPowerPad") == "true":
-            self.hasPowerPad = True
-        elif self.package in POWER_PAD_FIX_PACKAGES:
-            logging.info(f"Absent powerpad detected in part {self.name}")
-            self.hasPowerPad = True
-        else:
-            self.hasPowerPad = False
-
-        # If it does have a power pad, we have to add it manually
-        if self.hasPowerPad:
+        # If this part has a power pad, we have to add it manually
+        if (self.root.get("HasPowerPad") == "true"
+                or self.package in POWER_PAD_FIX_PACKAGES):
             # Read pin count from package name
-            packPinCountR = re.search(r"^[a-zA-Z]+([0-9]+)$", self.package)
+            packPinCountR = Device._pincount_search.search(self.package)
             powerpinnumber = str(int(packPinCountR.group(1)) + 1)
             logging.info(f"Device {name} with powerpad, package {self.package}, power pin: {powerpinnumber}")
             # Create power pad pin
@@ -283,8 +252,7 @@ class Device:
             if pin.pinnumber in pinNumMap:
                 logging.info(f"Duplicated pin {pin.pinnumber} in part {self.name}, merging")
                 mergedPin = pinNumMap[pin.pinnumber]
-                mergedPin.altNames.append(pin.name)
-                mergedPin.altfunctions += pin.altfunctions
+                mergedPin.name += f"/{pin.name}"
                 removePins.append(pin)
             else:
                 pinNumMap[pin.pinnumber] = pin
@@ -310,7 +278,7 @@ class Device:
         for pin in self.pins:
             if ((pin.pintype == "I/O" or pin.pintype == "Clock") and pin.name.startswith("P")):
                 port = pin.name[1]
-                pin_num = int(re.findall('\d+', pin.name)[0])
+                pin_num = int(Device._number_findall.findall(pin.name)[0])
                 try:
                     self.ports[port][pin_num] = pin
                 except KeyError:
@@ -374,7 +342,7 @@ class Device:
             newRightSpace = rightSpace - len(groupToMove) - 1
             newSize = max(newLeftSpace, newRightSpace)
             if newSize >= maxSize:
-                break;
+                break
             maxSize = newSize
             leftSpace = newLeftSpace
             rightSpace = newRightSpace
@@ -436,8 +404,7 @@ class Device:
             size = 0
             for pin in self.pins:
                 if pin.placed and int(pin.y) == i:
-                    pin.createPintext()
-                    size += len(pin.pintext)
+                    size += len(pin.name)
 
             if (maxXSize < size):
                 maxXSize = size
@@ -449,9 +416,8 @@ class Device:
         for pin in self.topPins:
             pin.x = topX
             topX += 1
-            pin.createPintext()
-            if len(pin.pintext) > topMaxLen:
-                topMaxLen = len(pin.pintext)
+            if len(pin.name) > topMaxLen:
+                topMaxLen = len(pin.name)
 
         # Calculate the height needed for the bottom pin texts
         bottomMaxLen = 0
@@ -460,9 +426,8 @@ class Device:
         for pin in self.bottomPins:
             pin.x = bottomX
             bottomX += 1
-            pin.createPintext()
-            if len(pin.pintext) > bottomMaxLen:
-                bottomMaxLen = len(pin.pintext)
+            if len(pin.name) > bottomMaxLen:
+                bottomMaxLen = len(pin.name)
 
         # Calculate margins
         self.yTopMargin = math.ceil((topMaxLen * 47 + 75) / 100)
@@ -510,29 +475,27 @@ class Device:
         
         
         for pin in self.rightPins:
-            pin.createPintext()
-            s.append(f"X {pin.pintext} {pin.pinnumber} "
+            s.append(f"X {pin.name} {pin.pinnumber} "
                      f"{self.boxWidth // 2 + pinlength} "
                      f"{yOffset - (pin.y + self.yTopMargin) * 100} "
                      f"{pinlength} L 50 50 1 1 "
                      f"{PIN_TYPES_MAPPING[pin.pintype]}\n")
 
         for pin in self.leftPins:
-            pin.createPintext()
-            s.append(f"X {pin.pintext} {pin.pinnumber} "
+            s.append(f"X {pin.name} {pin.pinnumber} "
                      f"{-self.boxWidth // 2 - pinlength} "
                      f"{yOffset - (pin.y + self.yTopMargin) * 100} "
                      f"{pinlength} R 50 50 1 1 "
                      f"{PIN_TYPES_MAPPING[pin.pintype]}\n")
 
         for pin in self.topPins:
-            s.append(f"X {pin.pintext} {pin.pinnumber} "
+            s.append(f"X {pin.name} {pin.pinnumber} "
                      f"{pin.x * 100} {int(yOffset + pinlength)} "
                      f"{pinlength} D 50 50 1 1 "
                      f"{PIN_TYPES_MAPPING[pin.pintype]}\n")
 
         for pin in self.bottomPins:
-            s.append(f"X {pin.pintext} {pin.pinnumber} {pin.x * 100} "
+            s.append(f"X {pin.name} {pin.pinnumber} {pin.x * 100} "
                      f"{yOffset - self.boxHeight - pinlength} "
                      f"{pinlength} U 50 50 1 1 "
                      f"{PIN_TYPES_MAPPING[pin.pintype]}\n")
