@@ -244,11 +244,10 @@ class Device:
                 logging.warning(f"Datasheet could not be determined for "
                         f"device {self.name}")
     
-    def runDRC(self):
+    def merge_duplicate_pins(self):
         pinNumMap = {}
         removePins = []
         for pin in self.pins:
-            pnim = pin.pinnumber in pinNumMap
             if pin.pinnumber in pinNumMap:
                 logging.info(f"Duplicated pin {pin.pinnumber} in part {self.name}, merging")
                 mergedPin = pinNumMap[pin.pinnumber]
@@ -447,7 +446,7 @@ class Device:
             self.boxWidth += 100
 
     def createComponent(self):
-        self.runDRC()
+        self.merge_duplicate_pins()
         self.processPins()
         
         if (len(self.pins) < 100):
