@@ -73,17 +73,6 @@ FOOTPRINT_MAPPING = {
     # No footprint "WLCSP180": ""
 }
 
-def unique(items):
-    found = set([])
-    keep = []
-
-    for item in items:
-        if item not in found:
-            found.add(item)
-            keep.append(item)
-
-    return keep
-
 class pin:
     def __init__(self, pinnumber, name, pintype):
         if not (name in SPECIAL_PIN_MAPPING):
@@ -120,7 +109,9 @@ class pin:
                 s = self.name
         self.pintext = s.replace(" ","")
 
-class device:
+class Device:
+    pdfinfo = {}
+
     def __init__(self, xmlfile, pdfdir):
         logging.debug(xmlfile)
         self.xmlfile = xmlfile
@@ -227,40 +218,45 @@ class device:
             self.voltage = None # Some devices don't have a voltage specification also
 
     def xcompare(self, x, y):
-        l = min(len(x), len(y))
-        for i in range(0, l):
-            if ((x[i] != 'x') and (y[i] != 'x') and (x[i] != y[i])):
+        for a, b in zip(x, y):
+            if a != b and a != 'x' and b != 'x':
                 return False
         return True
 
-    def readpdf(self):
-        self.pdf = "NOSHEET"
-        files = []
-        for (dirpath, dirnames, filenames) in os.walk(self.pdfdir):
-            files.extend(filenames)
+    @classmethod
+    def readpdfinfo(cls, pdfdir):
+        for _, _, filenames in os.walk(pdfdir):
+            files = [fn for fn in filenames if fn.endswith(".pdf.par")]
             break
 
-        s = self.name
-
-        #print("NEW: " + s)
-        candidatestring = {}
         for pdf in files:
-            if(pdf.endswith(".pdf.par")):   # Find all processed PDF files and open them for evaluation
-                p = open(os.path.join(self.pdfdir, pdf), "r")
-                for line in p:
-                    if(line.find(s[:8]) >= 0):
-                        candidatenames = line.rstrip().translate(str.maketrans(","," ")).split()    # Remove newline and commas and then split string
-                        for candidatename in candidatenames:
-                            candidatestring[candidatename] = pdf    # Associate file with every device name
-                    if(not line.startswith("STM32")):   # Assume that the device names are always at the beginning of file
-                        break
-        #print(candidatestring)  # TODO: CONTINUE HERE!!!!
-        keystokeep = []
-        for key in candidatestring:
+            p = open(os.path.join(pdfdir, pdf), "r")
+            for line in p:
+                line = line.strip()
+                if line.find("STM32") >= 0:
+                    # Remove commas and then split string
+                    candidatenames = line.translate(str.maketrans(","," ")).split()
+                    for candidatename in candidatenames:
+                        # Associate file with every device name
+                        cls.pdfinfo[candidatename] = pdf
+                # Assume that the device names are always at the beginning of file
+                if not line.startswith("STM32"):
+                    break
+
+    def readpdf(self):
+        # Read device names from PDFs if we haven't yet
+        if not Device.pdfinfo:
+            Device.readpdfinfo(self.pdfdir)
+
+        s = self.name
+        #logging.debug("NEW: " + s)
+        #logging.debug(Device.pdfinfo)
+        winners = set()
+        for key, value in Device.pdfinfo.items():
             # Some heuristic here
             minussplit = key.split("-")
             variants = minussplit[0].split("/")
-            if (len(minussplit) > 1):
+            if len(minussplit) > 1:
                 suffix = "x" + "x".join(minussplit[1:])
             else:
                 suffix = ""
@@ -269,29 +265,19 @@ class device:
                 strings.append(strings[0][:-len(var)] + var + suffix)
             for string in strings:
                 if self.xcompare(s, string):
-                    keystokeep.append(key)
-        
-        winners = []    # I got too tired of this
-        for key in unique(keystokeep):
-            try:
-                winners.append(candidatestring.pop(key))
-            except:
-                pass
+                    winners.add(value)
 
-        #print(winners)
-        if(len(winners) > 0):
-            firstwinner = winners[0]
-            #print(winners)
-            for winner in winners:
-                if(winner == firstwinner):
-                    self.pdf = winner[:-4]
-                else:
-                    logging.warning(f"Multiple datasheets determined for device {self.name} ({str(winners)})")
-                    self.pdf = "NOSHEET"
-                    break
-        
-        if(self.pdf == "NOSHEET"):
-            logging.warning(f"Datasheet could not be determined for device {self.name}")
+        #logging.debug(winners)
+        if len(winners) == 1:
+            self.pdf = winners.pop()[:-4]
+        else:
+            self.pdf = "NOSHEET"
+            if winners:
+                logging.warning(f"Multiple datasheets determined for device "
+                        f"{self.name} ({winners})")
+            else:
+                logging.warning(f"Datasheet could not be determined for "
+                        f"device {self.name}")
     
     def runDRC(self):
         pinNumMap = {}
@@ -631,7 +617,7 @@ def main():
     for _, _, filenames in os.walk(args.xmldir):
         filenames.sort()
         for xmlfile in filenames:
-            mcu = device(os.path.join(args.xmldir, xmlfile), args.pdfdir)
+            mcu = Device(os.path.join(args.xmldir, xmlfile), args.pdfdir)
             if mcu.family not in devices:
                 devices[mcu.family] = []
             devices[mcu.family].append(mcu)
