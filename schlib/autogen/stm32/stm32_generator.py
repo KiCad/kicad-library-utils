@@ -96,17 +96,11 @@ class Pin:
         self.y = 0;
         self.placed = False
 
-    def createPintext(self, left):
-        if (left):
-            if (self.name == ""):
-                s = (self.altNames + self.altfunctions)[0]
-            else:
-                s = self.name
+    def createPintext(self):
+        if self.name == "":
+            s = (self.altNames + self.altfunctions)[0]
         else:
-            if (self.name == ""):
-                s = (self.altNames + self.altfunctions)[0]
-            else:
-                s = self.name
+            s = "/".join([self.name] + self.altNames)
         self.pintext = s.replace(" ","")
 
 class Device:
@@ -442,7 +436,7 @@ class Device:
             size = 0
             for pin in self.pins:
                 if pin.placed and int(pin.y) == i:
-                    pin.createPintext(False)
+                    pin.createPintext()
                     size += len(pin.pintext)
 
             if (maxXSize < size):
@@ -455,7 +449,7 @@ class Device:
         for pin in self.topPins:
             pin.x = topX
             topX += 1
-            pin.createPintext(False)
+            pin.createPintext()
             if len(pin.pintext) > topMaxLen:
                 topMaxLen = len(pin.pintext)
 
@@ -466,7 +460,7 @@ class Device:
         for pin in self.bottomPins:
             pin.x = bottomX
             bottomX += 1
-            pin.createPintext(False)
+            pin.createPintext()
             if len(pin.pintext) > bottomMaxLen:
                 bottomMaxLen = len(pin.pintext)
 
@@ -516,7 +510,7 @@ class Device:
         
         
         for pin in self.rightPins:
-            pin.createPintext(True)
+            pin.createPintext()
             s.append(f"X {pin.pintext} {pin.pinnumber} "
                      f"{self.boxWidth // 2 + pinlength} "
                      f"{yOffset - (pin.y + self.yTopMargin) * 100} "
@@ -524,7 +518,7 @@ class Device:
                      f"{PIN_TYPES_MAPPING[pin.pintype]}\n")
 
         for pin in self.leftPins:
-            pin.createPintext(False)
+            pin.createPintext()
             s.append(f"X {pin.pintext} {pin.pinnumber} "
                      f"{-self.boxWidth // 2 - pinlength} "
                      f"{yOffset - (pin.y + self.yTopMargin) * 100} "
