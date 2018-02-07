@@ -510,7 +510,7 @@ class Device:
         s.append(f'F0 "U" {-self.boxWidth // 2} {yOffset + 25} 50 H V L B\n')
         s.append(f'F1 "{self.name}" {self.boxWidth // 2} '
                  f'{yOffset + 25} 50 H V L B\n')
-        s.append(f'F2 "{self.footprint}" {self.boxWidth / 2} '
+        s.append(f'F2 "{self.footprint}" {self.boxWidth // 2} '
                  f'{yOffset - 25} 50 H I R T\n')
         s.append('F3 "" 0 0 50 H I C CNN\n')
         if (len(self.aliases) > 0):
