@@ -73,7 +73,7 @@ FOOTPRINT_MAPPING = {
     # No footprint "WLCSP180": ""
 }
 
-class pin:
+class Pin:
     def __init__(self, pinnumber, name, pintype):
         if not (name in SPECIAL_PIN_MAPPING):
             splname = name.split("/");
@@ -135,8 +135,9 @@ class Device:
 
         name = self.root.get("RefName")
 
+        # Get all the part names for this part
         als = re.search(r"^(.+)\((.+)\)(.+)$", name)
-        if (als):
+        if als:
             pre = als.group(1)
             post = als.group(3)
             s = als.group(2).split("-")
@@ -154,52 +155,49 @@ class Device:
         except KeyError:
             self.footprint = self.package
 
-        self.bga = False
+        # Read the information for each pin
         for child in self.root.xpath("a:Pin", namespaces=self.ns):
             # Create object and read attributes
-            newpin = pin(child.get("Position"), child.get("Name"), child.get("Type"))
-            try:
-                int(child.get("Position"))
-            except ValueError:
-                self.bga = True
+            newpin = Pin(child.get("Position"), child.get("Name"), child.get("Type"))
 
-            for signal in child.xpath("a:Signal",namespaces=self.ns):
+            # Get alternate functions
+            for signal in child.xpath("a:Signal", namespaces=self.ns):
                 altfunction = signal.get("Name")
-                if(not altfunction == "GPIO"):   # No need to add GPIO as alt function
+                # Avoid listing GPIO as an alt function
+                if not altfunction == "GPIO":
                     newpin.altfunctions.append(altfunction)
-                if(altfunction in SPECIAL_TYPES_MAPPING):
+                # If an alt function corresponds to a pin type, set that
+                if altfunction in SPECIAL_TYPES_MAPPING:
                     newpin.pintype = SPECIAL_TYPES_MAPPING[altfunction]
-                    
+
+            # Fix the boot pin if we have to
             if newpin.name == "PB2":
                 for pre in BOOT1_FIX_PARTS:
-                    if re.search(pre, name) and (not ("BOOT1" in newpin.altfunctions)):
+                    if re.search(pre, name) and not "BOOT1" in newpin.altfunctions:
                         logging.info(f"Fixing PB2/BOOT1 for part {name}")
-                        logging.info(f"  {newpin.name} {str(newpin.altfunctions)}")
+                        logging.info(f"  {newpin.name} {newpin.altfunctions}")
                         newpin.altfunctions.insert(0, "BOOT1")
-                    
-                    
+
             self.pins.append(newpin)
 
-        self.hasPowerPad = False
-
+        # Determine if this part has a power pad
         if self.root.get("HasPowerPad") == "true":
             self.hasPowerPad = True
+        elif self.package in POWER_PAD_FIX_PACKAGES:
+            logging.info(f"Absent powerpad detected in part {self.name}")
+            self.hasPowerPad = True
         else:
-            if self.package in POWER_PAD_FIX_PACKAGES:
-                logging.info(f"Absent powerpad detected in part {self.name}")
-                self.hasPowerPad = True
+            self.hasPowerPad = False
 
-        if(self.hasPowerPad == True):    # Special case for the thermal pad
-            # Some heuristic here
+        # If it does have a power pad, we have to add it manually
+        if self.hasPowerPad:
+            # Read pin count from package name
             packPinCountR = re.search(r"^[a-zA-Z]+([0-9]+)$", self.package)
-            powerpinnumber = int(packPinCountR.group(1)) + 1
-            logging.info(f"Device {name} with powerpad, package {self.package}, power pin: {str(powerpinnumber)}")
-            powerpadpin = pin(powerpinnumber, "VSS", "Power")
+            powerpinnumber = str(int(packPinCountR.group(1)) + 1)
+            logging.info(f"Device {name} with powerpad, package {self.package}, power pin: {powerpinnumber}")
+            # Create power pad pin
+            powerpadpin = Pin(powerpinnumber, "VSS", "Power")
             self.pins.append(powerpadpin)
-        
-        if(not self.bga):
-            for apin in self.pins:
-                apin.pinnumber = int(apin.pinnumber)
 
         # Parse information for documentation
         self.core = self.root.xpath("a:Core", namespaces=self.ns)[0].text
@@ -208,14 +206,18 @@ class Device:
         try:
             self.freq = self.root.xpath("a:Frequency", namespaces=self.ns)[0].text
         except:
-            self.freq = None    # Some devices don't have a frequency specification... thanks obama!
+            # Not all chips have a frequency specification
+            logging.info("Unknown frequency")
+            self.freq = None
         self.ram = [r.text for r in self.root.xpath("a:Ram", namespaces=self.ns)]
         self.io = self.root.xpath("a:IONb", namespaces=self.ns)[0].text
         self.flash = [f.text for f in self.root.xpath("a:Flash", namespaces=self.ns)]
         try:
             self.voltage = [self.root.xpath("a:Voltage", namespaces=self.ns)[0].get("Min", default="--"), self.root.xpath("a:Voltage", namespaces=self.ns)[0].get("Max", default="--")]
         except:
-            self.voltage = None # Some devices don't have a voltage specification also
+			# Not all chips have a voltage specification
+            logging.info("Unknown voltage")
+            self.voltage = None
 
     def xcompare(self, x, y):
         for a, b in zip(x, y):
@@ -283,13 +285,15 @@ class Device:
         pinNumMap = {}
         removePins = []
         for pin in self.pins:
+            pnim = pin.pinnumber in pinNumMap
             if pin.pinnumber in pinNumMap:
-                logging.info(f"Duplicated pin {str(pin.pinnumber)} in part {self.name}, merging")
+                logging.info(f"Duplicated pin {pin.pinnumber} in part {self.name}, merging")
                 mergedPin = pinNumMap[pin.pinnumber]
                 mergedPin.altNames.append(pin.name)
                 mergedPin.altfunctions += pin.altfunctions
                 removePins.append(pin)
-            pinNumMap[pin.pinnumber] = pin
+            else:
+                pinNumMap[pin.pinnumber] = pin
             
         for pin in removePins:
             self.pins.remove(pin)
@@ -490,25 +494,24 @@ class Device:
         self.runDRC()
         self.processPins()
         
-        # s contains the entire component in a single string
         if (len(self.pins) < 100):
             pinlength = 100
         else:
             pinlength = 200
             
         yOffset = math.ceil(self.boxHeight / 100 / 2) * 100
-            
+
+        # s contains strings that we concatenate to make the component
         s = []
         s.append("#\n")
         s.append(f"# {self.name.upper()}\n")
         s.append("#\n")
         s.append(f"DEF {self.name} U 0 40 Y Y 1 L N\n")
-        s.append(f'F0 "U" {str(round(- self.boxWidth / 2))} '
-                 f'{str(round(yOffset) + 25)} 50 H V L B\n')
-        s.append(f'F1 "{self.name}" {str(round(self.boxWidth / 2))} '
-                 f'{str(round(yOffset) + 25)} 50 H V L B\n')
-        s.append(f'F2 "{self.footprint}" {str(round(self.boxWidth / 2))} '
-                 f'{str(round(yOffset) - 25)} 50 H I R T\n')
+        s.append(f'F0 "U" {-self.boxWidth // 2} {yOffset + 25} 50 H V L B\n')
+        s.append(f'F1 "{self.name}" {self.boxWidth // 2} '
+                 f'{yOffset + 25} 50 H V L B\n')
+        s.append(f'F2 "{self.footprint}" {self.boxWidth / 2} '
+                 f'{yOffset - 25} 50 H I R T\n')
         s.append('F3 "" 0 0 50 H I C CNN\n')
         if (len(self.aliases) > 0):
             s.append(f'ALIAS {" ".join(self.aliases)}\n')
@@ -517,37 +520,34 @@ class Device:
         
         for pin in self.rightPins:
             pin.createPintext(True)
-            s.append(f"X {pin.pintext} {str(pin.pinnumber)} "
-                     f"{str(int(self.boxWidth / 2 + pinlength))} "
-                     f"{str(round(yOffset - (pin.y + self.yTopMargin) * 100))}"
-                     f" {str(pinlength)} L 50 50 1 1 "
+            s.append(f"X {pin.pintext} {pin.pinnumber} "
+                     f"{self.boxWidth // 2 + pinlength} "
+                     f"{yOffset - (pin.y + self.yTopMargin) * 100} "
+                     f"{pinlength} L 50 50 1 1 "
                      f"{PIN_TYPES_MAPPING[pin.pintype]}\n")
 
         for pin in self.leftPins:
             pin.createPintext(False)
-            s.append(f"X {pin.pintext} {str(pin.pinnumber)} "
-                     f"{str(int(-self.boxWidth / 2 - pinlength))} "
-                     f"{str(round(yOffset - (pin.y + self.yTopMargin) * 100))}"
-                     f" {str(pinlength)} R 50 50 1 1 "
+            s.append(f"X {pin.pintext} {pin.pinnumber} "
+                     f"{-self.boxWidth // 2 - pinlength} "
+                     f"{yOffset - (pin.y + self.yTopMargin) * 100} "
+                     f"{pinlength} R 50 50 1 1 "
                      f"{PIN_TYPES_MAPPING[pin.pintype]}\n")
 
         for pin in self.topPins:
-            s.append(f"X {pin.pintext} {str(pin.pinnumber)} "
-                     f"{str(int(pin.x * 100))} {str(int(yOffset + pinlength))}"
-                     f" {str(pinlength)} D 50 50 1 1 "
+            s.append(f"X {pin.pintext} {pin.pinnumber} "
+                     f"{pin.x * 100} {int(yOffset + pinlength)} "
+                     f"{pinlength} D 50 50 1 1 "
                      f"{PIN_TYPES_MAPPING[pin.pintype]}\n")
 
         for pin in self.bottomPins:
-            s.append(f"X {pin.pintext} {str(pin.pinnumber)} "
-                     f"{str(int(pin.x * 100))} "
-                     f"{str(int(yOffset - self.boxHeight - pinlength))} "
-                     f"{str(pinlength)} U 50 50 1 1 "
+            s.append(f"X {pin.pintext} {pin.pinnumber} {pin.x * 100} "
+                     f"{yOffset - self.boxHeight - pinlength} "
+                     f"{pinlength} U 50 50 1 1 "
                      f"{PIN_TYPES_MAPPING[pin.pintype]}\n")
         
-        s.append(f"S -{str(round(self.boxWidth / 2))} "
-                 f"{str(int(yOffset - self.boxHeight))} "
-                 f"{str(int(self.boxWidth / 2))} "
-                 f"{str(int(yOffset))} 0 1 10 f\n")
+        s.append(f"S -{self.boxWidth // 2} {yOffset - self.boxHeight} "
+                 f"{self.boxWidth // 2} {yOffset} 0 1 10 f\n")
         s.append("ENDDRAW\n")
         s.append("ENDDEF\n")
 
