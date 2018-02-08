@@ -5,85 +5,116 @@ import logging
 import math
 import os
 import re
+import sys
 
 from lxml import etree
 
-SPECIAL_PIN_MAPPING = {"PC14OSC32_IN": ["PC14"],
-                       "PC15OSC32_OUT": ["PC15"], 
-                       "PF11BOOT0": ["PF11"],
-                       "OSC_IN": [""],
-                       "OSC_OUT": [""],
-                       "VREF-": ["VREF-"],
-                       "VREFSD-": ["VREFSD-"]}
+sys.path.append(os.path.join(sys.path[0],'..'))
+from KiCadSymbolGenerator import *
 
-SPECIAL_TYPES_MAPPING = {"RCC_OSC_IN": "Clock", "RCC_OSC_OUT": "Clock"}
 
-PIN_TYPES_MAPPING = {"Power": "W", "I/O": "B", "Reset": "I", "Boot": "I", 
-                     "MonoIO": "B", "NC": "N", "Clock": "I"}
+class DataPin:
+    _PIN_TYPES_MAPPING = {
+        "Power": DrawingPin.PinElectricalType.EL_TYPE_POWER_INPUT,
+        "I/O": DrawingPin.PinElectricalType.EL_TYPE_BIDIR,
+        "Reset": DrawingPin.PinElectricalType.EL_TYPE_INPUT,
+        "Boot": DrawingPin.PinElectricalType.EL_TYPE_INPUT,
+        "MonoIO": DrawingPin.PinElectricalType.EL_TYPE_BIDIR,
+        "NC": DrawingPin.PinElectricalType.EL_TYPE_NC,
+        "Clock": DrawingPin.PinElectricalType.EL_TYPE_INPUT
+    }
 
-POWER_PAD_FIX_PACKAGES = {"UFQFPN28", "UFQFPN32", "UFQFPN48", "VFQFPN36"}
-
-FOOTPRINT_MAPPING = {
-    # No footprint "EWLCSP49": "",
-    # No footprint "EWLCSP66": "",
-    # No footprint "LFBGA100": "",
-    # No footprint "LFBGA144": "",
-    "LQFP32": "Package_QFP:LQFP-32_7x7mm_P0.8mm",
-    "LQFP48": "Package_QFP:LQFP-48_7x7mm_P0.5mm",
-    "LQFP64": "Package_QFP:LQFP-64_10x10mm_P0.5mm",
-    "LQFP100": "Package_QFP:LQFP-100_14x14mm_P0.5mm",
-    "LQFP144": "Package_QFP:LQFP-144_20x20mm_P0.5mm",
-    "LQFP176": "Package_QFP:LQFP-176_24x24mm_P0.5mm",
-    "LQFP208": "Package_QFP:LQFP-208_28x28mm_P0.5mm",
-    # Closest footprint has wrong pad dimensions, risky for BGA "TFBGA64": "",
-    # No footprint "TFBGA100": "",
-    # No footprint "TFBGA216": "",
-    # No footprint "TFBGA240": "",
-    "TSSOP14": "Package_SO:TSSOP-14_4.4x5mm_P0.65mm",
-    "TSSOP20": "Package_SO:TSSOP-20_4.4x6.5mm_P0.65mm",
-    # Closest footprint has wrong pad dimensions, risky for BGA "UFBGA64": "",
-    # No footprint "UFBGA100": "",
-    "UFBGA132": "Package_BGA:UFBGA-132_7x7mm_P0.5mm",
-    # ST uses this name for two sizes of BGA "UFBGA144": "",
-    # No footprint "UFBGA169": "",
-    # No footprint "UFBGA176": "",
-    "UFQFPN20": "Package_DFN_QFN:ST_UFQFPN-20_3x3mm_P0.5mm",
-    # No footprint "UFQFPN28": "",
-    "UFQFPN32": "Package_DFN_QFN:QFN-32-1EP_5x5mm_P0.5mm_EP3.45x3.45mm",
-    "UFQFPN48": "Package_DFN_QFN:QFN-48-1EP_7x7mm_P0.5mm_EP5.15x5.15mm",
-    "VFQFPN36": "Package_DFN_QFN:QFN-36-1EP_6x6mm_P0.5mm_EP3.7x3.7mm",
-    # No footprint "WLCSP25": "",
-    # No footprint "WLCSP36": "",
-    # No footprint "WLCSP49": "",
-    # No footprint "WLCSP63": "",
-    # No footprint "WLCSP64": "",
-    # No footprint "WLCSP66": "",
-    # No footprint "WLCSP72": "",
-    # No footprint "WLCSP81": "",
-    # No footprint "WLCSP90": "",
-    # No footprint "WLCSP100": "",
-    # No footprint "WLCSP104": "",
-    # No footprint "WLCSP143": "",
-    # No footprint "WLCSP144": "",
-    # No footprint "WLCSP168": "",
-    # No footprint "WLCSP180": ""
-}
-
-class Pin:
-
-    def __init__(self, pinnumber, name, pintype):
-        self.pinnumber = pinnumber
+    def __init__(self, number, name, pintype):
+        self.num = number
         self.name = name
         self.pintype = pintype
-        self.x = 0
-        self.y = 0
-        self.placed = False
+
+    def to_drawing_pin(self, **kwargs):
+        # Get the el_type for the DrawingPin
+        el_type = DataPin._PIN_TYPES_MAPPING[self.pintype]
+        # Get visibility based on el_type
+        # NOTE: due to a typo, we have to call this "visiblility" when creating
+        # the pin.  Whoops.
+        if el_type == DrawingPin.PinElectricalType.EL_TYPE_NC:
+            visibility = DrawingPin.PinVisibility.INVISIBLE
+        else:
+            visibility = DrawingPin.PinVisibility.VISIBLE
+        # Make the DrawingPin
+        return DrawingPin(Point(0, 0), self.num, name=self.name,
+                el_type=el_type, visiblility=visibility, **kwargs)
+
 
 class Device:
     _name_search = re.compile(r"^(.+)\((.+)\)(.+)$")
     _number_findall = re.compile(r"\d+")
     _pincount_search = re.compile(r"^[a-zA-Z]+([0-9]+)$")
     _pinname_split = re.compile('[ /-]+')
+
+    _SPECIAL_PIN_MAPPING = {
+        "PC14OSC32_IN": ["PC14"],
+        "PC15OSC32_OUT": ["PC15"],
+        "PF11BOOT0": ["PF11"],
+        "OSC_IN": [""],
+        "OSC_OUT": [""],
+        "VREF-": ["VREF-"],
+        "VREFSD-": ["VREFSD-"]
+    }
+    _SPECIAL_TYPES_MAPPING = {
+        "RCC_OSC_IN": "Clock",
+        "RCC_OSC_OUT": "Clock"
+    }
+    _POWER_PAD_FIX_PACKAGES = {
+        "UFQFPN28",
+        "UFQFPN32",
+        "UFQFPN48",
+        "VFQFPN36"
+    }
+    _FOOTPRINT_MAPPING = {
+        # No footprint "EWLCSP49": "",
+        # No footprint "EWLCSP66": "",
+        # No footprint "LFBGA100": "",
+        # No footprint "LFBGA144": "",
+        "LQFP32": "Package_QFP:LQFP-32_7x7mm_P0.8mm",
+        "LQFP48": "Package_QFP:LQFP-48_7x7mm_P0.5mm",
+        "LQFP64": "Package_QFP:LQFP-64_10x10mm_P0.5mm",
+        "LQFP100": "Package_QFP:LQFP-100_14x14mm_P0.5mm",
+        "LQFP144": "Package_QFP:LQFP-144_20x20mm_P0.5mm",
+        "LQFP176": "Package_QFP:LQFP-176_24x24mm_P0.5mm",
+        "LQFP208": "Package_QFP:LQFP-208_28x28mm_P0.5mm",
+        # Closest footprint has wrong pad dimensions, risky for BGA "TFBGA64": "",
+        # No footprint "TFBGA100": "",
+        # No footprint "TFBGA216": "",
+        # No footprint "TFBGA240": "",
+        "TSSOP14": "Package_SO:TSSOP-14_4.4x5mm_P0.65mm",
+        "TSSOP20": "Package_SO:TSSOP-20_4.4x6.5mm_P0.65mm",
+        # Closest footprint has wrong pad dimensions, risky for BGA "UFBGA64": "",
+        # No footprint "UFBGA100": "",
+        "UFBGA132": "Package_BGA:UFBGA-132_7x7mm_P0.5mm",
+        # ST uses this name for two sizes of BGA "UFBGA144": "",
+        # No footprint "UFBGA169": "",
+        # No footprint "UFBGA176": "",
+        "UFQFPN20": "Package_DFN_QFN:ST_UFQFPN-20_3x3mm_P0.5mm",
+        # No footprint "UFQFPN28": "",
+        "UFQFPN32": "Package_DFN_QFN:QFN-32-1EP_5x5mm_P0.5mm_EP3.45x3.45mm",
+        "UFQFPN48": "Package_DFN_QFN:QFN-48-1EP_7x7mm_P0.5mm_EP5.15x5.15mm",
+        "VFQFPN36": "Package_DFN_QFN:QFN-36-1EP_6x6mm_P0.5mm_EP3.7x3.7mm",
+        # No footprint "WLCSP25": "",
+        # No footprint "WLCSP36": "",
+        # No footprint "WLCSP49": "",
+        # No footprint "WLCSP63": "",
+        # No footprint "WLCSP64": "",
+        # No footprint "WLCSP66": "",
+        # No footprint "WLCSP72": "",
+        # No footprint "WLCSP81": "",
+        # No footprint "WLCSP90": "",
+        # No footprint "WLCSP100": "",
+        # No footprint "WLCSP104": "",
+        # No footprint "WLCSP143": "",
+        # No footprint "WLCSP144": "",
+        # No footprint "WLCSP168": "",
+        # No footprint "WLCSP180": ""
+    }
+
     pdfinfo = {}
 
     def __init__(self, xmlfile, pdfdir):
@@ -96,12 +127,9 @@ class Device:
         self.pins = []
         self.aliases = []
 
-        self.readxml()
-        self.readpdf()
-        self.createComponent()
-        self.createDocu()
+        self.read_info()
 
-    def readxml(self):
+    def read_info(self):
         self.tree = etree.parse(self.xmlfile)
         self.root = self.tree.getroot()
 
@@ -125,19 +153,23 @@ class Device:
 
         # Get the footprint for this package
         try:
-            self.footprint = FOOTPRINT_MAPPING[self.package]
+            self.footprint = Device._FOOTPRINT_MAPPING[self.package]
         except KeyError:
             self.footprint = self.package
 
         # Read the information for each pin
         for child in self.root.xpath("a:Pin", namespaces=self.ns):
             # Create object and read attributes
-            newpin = Pin(child.get("Position"), child.get("Name"), child.get("Type"))
+            newpin = DataPin(child.get("Position"), child.get("Name"), child.get("Type"))
 
-            if newpin.name in SPECIAL_PIN_MAPPING:
-                newpin.name = SPECIAL_PIN_MAPPING[newpin.name][0]
+            if newpin.name in Device._SPECIAL_PIN_MAPPING:
+                newpin.name = Device._SPECIAL_PIN_MAPPING[newpin.name][0]
             else:
                 newpin.name = Device._pinname_split.split(newpin.name)[0]
+
+            # Fix type for NC pins
+            if newpin.name == "NC":
+                newpin.pintype = "NC"
 
             # Get alternate functions
             for signal in child.xpath("a:Signal", namespaces=self.ns):
@@ -146,20 +178,20 @@ class Device:
                 if not newpin.name:
                     newpin.name = altfunction
                 # If an alt function corresponds to a pin type, set that
-                if altfunction in SPECIAL_TYPES_MAPPING:
-                    newpin.pintype = SPECIAL_TYPES_MAPPING[altfunction]
+                if altfunction in Device._SPECIAL_TYPES_MAPPING:
+                    newpin.pintype = Device._SPECIAL_TYPES_MAPPING[altfunction]
 
             self.pins.append(newpin)
 
         # If this part has a power pad, we have to add it manually
         if (self.root.get("HasPowerPad") == "true"
-                or self.package in POWER_PAD_FIX_PACKAGES):
+                or self.package in Device._POWER_PAD_FIX_PACKAGES):
             # Read pin count from package name
             packPinCountR = Device._pincount_search.search(self.package)
             powerpinnumber = str(int(packPinCountR.group(1)) + 1)
             logging.info(f"Device {name} with powerpad, package {self.package}, power pin: {powerpinnumber}")
             # Create power pad pin
-            powerpadpin = Pin(powerpinnumber, "VSS", "Power")
+            powerpadpin = DataPin(powerpinnumber, "VSS", "Power")
             self.pins.append(powerpadpin)
 
         # Parse information for documentation
@@ -178,9 +210,46 @@ class Device:
         try:
             self.voltage = [self.root.xpath("a:Voltage", namespaces=self.ns)[0].get("Min", default="--"), self.root.xpath("a:Voltage", namespaces=self.ns)[0].get("Max", default="--")]
         except:
-			# Not all chips have a voltage specification
+            # Not all chips have a voltage specification
             logging.info("Unknown voltage")
             self.voltage = None
+
+        # Get the datasheet filename
+        self.pdf = self.readpdf()
+
+        # Merge any duplicated pins
+        self.merge_duplicate_pins()
+
+    def create_symbol(self, gen):
+        # Make strings for DCM entries
+        freqstr = f"Frequency: {self.freq}MHz " if self.freq else ""
+        voltstr = f"Voltage: {self.voltage[0]}..{self.voltage[1]}V " if self.voltage else ""
+        desc_fmt = (f"Core: {self.core} Package: {self.package} Flash: "
+                f"{{flash}}KB Ram: {{ram}}KB {freqstr}{voltstr}"
+                f"IO-pins: {self.io}")
+        keywords = f"{self.core} {self.family} {self.line}"
+        datasheet = "" if self.pdf is None else (f"http://www.st.com/"
+                f"st-web-ui/static/active/en/resource/technical/document/"
+                f"datasheet/{self.pdf}")
+
+        # Make the symbol
+        self.symbol = gen.addSymbol(self.name, dcm_options={
+                'description': desc_fmt.format(flash=self.flash[0],
+                    ram=self.ram[0]),
+                'keywords': keywords,
+                'datasheet': datasheet})
+
+        # Add aliases
+        for i, alias in enumerate(self.aliases):
+            f = 0 if len(self.flash) == 1 else i+1
+            r = 0 if len(self.ram) == 1 else i+1
+            self.symbol.addAlias(alias, dcm_options={
+                'description': desc_fmt.format(flash=self.flash[f],
+                    ram=self.ram[r]), 'keywords': keywords, 'datasheet':
+                datasheet})
+
+        # Draw the symbol
+        self.draw_symbol()
 
     def xcompare(self, x, y):
         for a, b in zip(x, y):
@@ -234,70 +303,100 @@ class Device:
 
         #logging.debug(winners)
         if len(winners) == 1:
-            self.pdf = winners.pop()[:-4]
+            return winners.pop()[:-4]
         else:
-            self.pdf = "NOSHEET"
             if winners:
                 logging.warning(f"Multiple datasheets determined for device "
                         f"{self.name} ({winners})")
             else:
                 logging.warning(f"Datasheet could not be determined for "
                         f"device {self.name}")
+            return None
     
     def merge_duplicate_pins(self):
         pinNumMap = {}
         removePins = []
         for pin in self.pins:
-            if pin.pinnumber in pinNumMap:
-                logging.info(f"Duplicated pin {pin.pinnumber} in part {self.name}, merging")
-                mergedPin = pinNumMap[pin.pinnumber]
+            if pin.num in pinNumMap:
+                logging.info(f"Duplicated pin {pin.num} in part {self.name}, merging")
+                mergedPin = pinNumMap[pin.num]
                 mergedPin.name += f"/{pin.name}"
                 removePins.append(pin)
             else:
-                pinNumMap[pin.pinnumber] = pin
+                pinNumMap[pin.num] = pin
             
         for pin in removePins:
             self.pins.remove(pin)
     
-    def processPins(self):
-        #{"TOP": [], "BOTTOM": [], "RESET": [], "BOOT": [], "PWR": [], "OSC": [], "OTHER": [], "PORT": {}}
-        self.resetPins = []
-        self.bootPins = []
-        self.powerPins = []
-        self.clockPins = []
-        self.otherPins = []
-        self.ports = {}
+    def draw_symbol(self):
+        resetPins = []
+        bootPins = []
+        powerPins = []
+        clockPins = []
+        ncPins = []
+        otherPins = []
+        ports = {}
         
-        self.leftPins = []
-        self.rightPins = []
-        self.topPins = []
-        self.bottomPins = []
-        
+        leftPins = []
+        rightPins = []
+        topPins = []
+        bottomPins = []
+
+        # Get pin length
+        # NOTE: there is a typo in the library making it so we have to call
+        # this "pin_lenght" when making the drawing pin.  Whoops!
+        pin_length = 100 if len(self.pins) < 100 else 200
+
         # Classify pins
         for pin in self.pins:
-            if ((pin.pintype == "I/O" or pin.pintype == "Clock") and pin.name.startswith("P")):
+            # I/O pins - uncertain orientation
+            if ((pin.pintype == "I/O" or pin.pintype == "Clock")
+                    and pin.name.startswith("P")):
                 port = pin.name[1]
                 pin_num = int(Device._number_findall.findall(pin.name)[0])
                 try:
-                    self.ports[port][pin_num] = pin
+                    ports[port][pin_num] = pin.to_drawing_pin(
+                            pin_lenght=pin_length)
                 except KeyError:
-                    self.ports[port] = {}
-                    self.ports[port][pin_num] = pin
-            elif (pin.pintype == "Clock"):
-                self.clockPins.append(pin)  
-            elif ((pin.pintype == "Power") or (pin.name.startswith("VREF"))):
+                    ports[port] = {}
+                    ports[port][pin_num] = pin.to_drawing_pin(
+                            pin_lenght=pin_length)
+            # Clock pins go on the left
+            elif pin.pintype == "Clock":
+                clockPins.append(pin.to_drawing_pin(pin_lenght=pin_length,
+                        orientation=DrawingPin.PinOrientation.RIGHT))
+            # Power pins
+            elif pin.pintype == "Power" or pin.name.startswith("VREF"):
+                # Positive pins go on the top
                 if pin.name.startswith("VDD") or pin.name.startswith("VBAT"):
-                    self.topPins.append(pin)
-                elif(pin.name.startswith("VSS")):
-                    self.bottomPins.append(pin)
+                    topPins.append(pin.to_drawing_pin(
+                            pin_lenght=pin_length,
+                            orientation=DrawingPin.PinOrientation.DOWN))
+                # Negative pins go on the bottom
+                elif pin.name.startswith("VSS"):
+                    bottomPins.append(pin.to_drawing_pin(
+                            pin_lenght=pin_length,
+                            orientation=DrawingPin.PinOrientation.UP))
+                # Other pins go on the left
                 else:
-                    self.powerPins.append(pin)
-            elif (pin.pintype == "Reset"):
-                self.resetPins.append(pin)
-            elif (pin.pintype == "Boot"):
-                self.bootPins.append(pin)
+                    powerPins.append(pin.to_drawing_pin(pin_lenght=pin_length,
+                            orientation=DrawingPin.PinOrientation.RIGHT))
+            # Reset pins go on the left
+            elif pin.pintype == "Reset":
+                resetPins.append(pin.to_drawing_pin(pin_lenght=pin_length,
+                        orientation=DrawingPin.PinOrientation.RIGHT))
+            # Boot pins go on the left
+            elif pin.pintype == "Boot":
+                bootPins.append(pin.to_drawing_pin(pin_lenght=pin_length,
+                        orientation=DrawingPin.PinOrientation.RIGHT))
+            # NC pins go in their own group
+            elif pin.pintype == "NC":
+                ncPins.append(pin.to_drawing_pin(pin_lenght=pin_length,
+                        orientation=DrawingPin.PinOrientation.RIGHT))
+            # Other pins go on the left
             else:
-                self.otherPins.append(pin)
+                otherPins.append(pin.to_drawing_pin(pin_lenght=pin_length,
+                        orientation=DrawingPin.PinOrientation.RIGHT))
         
         # Apply pins to sides
         leftGroups = []
@@ -307,16 +406,16 @@ class Device:
         rightSpace = 0
 
         # Special groups go to the left
-        if len(self.resetPins) > 0:
-            leftGroups.append(self.resetPins)
-        if len(self.bootPins) > 0:
-            leftGroups.append(self.bootPins)
-        if len(self.powerPins) > 0:
-            leftGroups.append(self.powerPins)
-        if len(self.clockPins) > 0:
-            leftGroups.append(self.clockPins)
-        if len(self.otherPins) > 0:
-            leftGroups.append(self.otherPins)
+        if len(resetPins) > 0:
+            leftGroups.append(resetPins)
+        if len(bootPins) > 0:
+            leftGroups.append(bootPins)
+        if len(powerPins) > 0:
+            leftGroups.append(powerPins)
+        if len(clockPins) > 0:
+            leftGroups.append(clockPins)
+        if len(otherPins) > 0:
+            leftGroups.append(otherPins)
         
         # Count the space needed for special groups
         for group in leftGroups:
@@ -324,8 +423,8 @@ class Device:
 
         serviceSpace = leftSpace
 
-        # Add ports to the right
-        for _, port in sorted(self.ports.items()):
+        # Add ports to the right, counting the space needed
+        for _, port in sorted(ports.items()):
             pins = [pin for _, pin in sorted(port.items())]
             rightSpace += len(pins) + 1
             rightGroups.append(pins)
@@ -351,184 +450,100 @@ class Device:
             movedGroups.append(groupToMove)
             rightGroups.pop()
 
-        # Arrange y position of left/right pins within their groups
-        for group in movedGroups:
-            i = 0
-            for pin in group:
-                pin.y = - (movedSpace - 1) + i
-                i += 1
-            movedSpace -= i + 1
-            leftGroups.append(group)
+        # Calculate height of the symbol
+        box_height = max(leftSpace, rightSpace) * 100
 
-        movedSpace = 0
-        for group in reversed(rightGroups):
-            movedSpace += len(group) + 1
-            i = 0
-            for pin in group:
-                pin.y = - (movedSpace - 1) + i
-                i += 1
+        # Calculate the width of the symbol
+        round_up = lambda x, y: (x + y - 1) // y * y
+        pin_name_width = lambda p: len(p.name) * 47
+        pin_group_max_width = lambda g: max(map(pin_name_width, g))
+        left_width = round_up(max(map(pin_group_max_width,
+                leftGroups + movedGroups)), 100)
+        right_width = round_up(max(map(pin_group_max_width, rightGroups)), 100)
+        top_width = len(topPins) * 100
+        bottom_width = len(bottomPins) * 100
+        box_width = (left_width + 100 + max(top_width, bottom_width) +
+                right_width)
 
-        # Arrange y position of left/right pins
-        y = 0
+        # Add the body rectangle
+        self.symbol.drawing.append(DrawingRectangle(Point(0, 0),
+                Point(box_width, box_height), unit_idx=0,
+                fill=ElementFill.FILL_BACKGROUND))
+
+        # Add the moved pins (bottom left)
+        y = 100
+        for group in reversed(movedGroups):
+            for pin in reversed(group):
+                pin.at = Point(-pin_length, y)
+                pin.orientation = DrawingPin.PinOrientation.RIGHT
+                self.symbol.drawing.append(pin)
+                y += 100
+            y += 100
+
+        # Add the left pins (top left)
+        y = box_height - 100
         for group in leftGroups:
             for pin in group:
-                if pin.placed:
-                    continue
-                if pin.y < 0:
-                    pin.y = maxSize + pin.y - 1
-                else:
-                    pin.y = y
-                pin.placed = True
-                self.leftPins.append(pin)
-                y += 1
-            y += 1
+                pin.at = Point(-pin_length, y)
+                pin.orientation = DrawingPin.PinOrientation.RIGHT
+                self.symbol.drawing.append(pin)
+                y -= 100
+            y -= 100
 
-        y = 0
-        for group in rightGroups:
-            for pin in group:
-                if pin.placed:
-                    continue
-                if pin.y < 0:
-                    pin.y = maxSize + pin.y - 1
-                else:
-                    pin.y = y
-                pin.placed = True
-                self.rightPins.append(pin)
-                y += 1
-            y += 1
+        # Add the right pins
+        y = 100
+        for group in reversed(rightGroups):
+            for pin in reversed(group):
+                pin.at = Point(box_width + pin_length, y)
+                pin.orientation = DrawingPin.PinOrientation.LEFT
+                self.symbol.drawing.append(pin)
+                y += 100
+            y += 100
 
-        # Calculate the width needed for the left/right pin texts
-        maxXSize = 0
-        for i in range(maxSize):
-            size = 0
-            for pin in self.pins:
-                if pin.placed and int(pin.y) == i:
-                    size += len(pin.name)
+        # Add the top pins
+        x = (box_width - top_width + 100) // 2 // 100 * 100
+        for pin in sorted(topPins, key=lambda p: p.name):
+            pin.at = Point(x, box_height + pin_length)
+            pin.orientation = DrawingPin.PinOrientation.DOWN
+            self.symbol.drawing.append(pin)
+            x += 100
 
-            if (maxXSize < size):
-                maxXSize = size
+        # Add the bottom pins
+        x = (box_width - bottom_width + 100) // 2 // 100 * 100
+        for pin in sorted(bottomPins, key=lambda p: p.name):
+            pin.at = Point(x, -pin_length)
+            pin.orientation = DrawingPin.PinOrientation.UP
+            self.symbol.drawing.append(pin)
+            x += 100
 
-        # Calculate the height needed for the top pin texts
-        topMaxLen = 0
-        self.topPins = sorted(self.topPins, key=lambda p: p.name)
-        topX = - int(len(self.topPins) / 2)
-        for pin in self.topPins:
-            pin.x = topX
-            topX += 1
-            if len(pin.name) > topMaxLen:
-                topMaxLen = len(pin.name)
+        # Add the NC pins
+        y = 100
+        for pin in ncPins:
+            pin.at = Point(0, y)
+            pin.orientation = DrawingPin.PinOrientation.RIGHT
+            self.symbol.drawing.append(pin)
+            y += 100
+        y += 100
 
-        # Calculate the height needed for the bottom pin texts
-        bottomMaxLen = 0
-        self.bottomPins = sorted(self.bottomPins, key=lambda p: p.name)
-        bottomX = - int(len(self.bottomPins) / 2)
-        for pin in self.bottomPins:
-            pin.x = bottomX
-            bottomX += 1
-            if len(pin.name) > bottomMaxLen:
-                bottomMaxLen = len(pin.name)
+        # Center the symbol
+        translate_center = Point(-box_width//2//100*100,
+                -box_height//2//100*100)
+        self.symbol.drawing.translate(translate_center)
 
-        # Calculate margins
-        self.yTopMargin = math.ceil((topMaxLen * 47 + 75) / 100)
-        self.yBottomMargin = math.ceil((bottomMaxLen * 47 + 75) / 100)
-
-        # Calculate box dimensions
-        self.boxHeight = (maxSize - 2 + self.yTopMargin + self.yBottomMargin) * 100
-        #self.boxHeight = math.floor(self.boxHeight / 100) * 100
-        #if (self.boxHeight / 2) % 100 > 0:
-        #    self.boxHeight += 100
-
-        self.boxWidth = max((maxXSize + 1) * 47 + 200,
-                            100*(len(self.topPins) + 1),
-                            100*(len(self.bottomPins) + 1))
-        self.boxWidth = math.floor(self.boxWidth / 100) * 100
-        if (self.boxWidth / 2) % 100 > 0:
-            self.boxWidth += 100
-
-    def createComponent(self):
-        self.merge_duplicate_pins()
-        self.processPins()
-        
-        if (len(self.pins) < 100):
-            pinlength = 100
-        else:
-            pinlength = 200
-            
-        yOffset = math.ceil(self.boxHeight / 100 / 2) * 100
-
-        # s contains strings that we concatenate to make the component
-        s = []
-        s.append("#\n")
-        s.append(f"# {self.name.upper()}\n")
-        s.append("#\n")
-        s.append(f"DEF {self.name} U 0 40 Y Y 1 L N\n")
-        s.append(f'F0 "U" {-self.boxWidth // 2} {yOffset + 25} 50 H V L B\n')
-        s.append(f'F1 "{self.name}" {self.boxWidth // 2} '
-                 f'{yOffset + 25} 50 H V L B\n')
-        s.append(f'F2 "{self.footprint}" {self.boxWidth // 2} '
-                 f'{yOffset - 25} 50 H I R T\n')
-        s.append('F3 "" 0 0 50 H I C CNN\n')
-        if (len(self.aliases) > 0):
-            s.append(f'ALIAS {" ".join(self.aliases)}\n')
-        s.append("DRAW\n")
-        
-        
-        for pin in self.rightPins:
-            s.append(f"X {pin.name} {pin.pinnumber} "
-                     f"{self.boxWidth // 2 + pinlength} "
-                     f"{yOffset - (pin.y + self.yTopMargin) * 100} "
-                     f"{pinlength} L 50 50 1 1 "
-                     f"{PIN_TYPES_MAPPING[pin.pintype]}\n")
-
-        for pin in self.leftPins:
-            s.append(f"X {pin.name} {pin.pinnumber} "
-                     f"{-self.boxWidth // 2 - pinlength} "
-                     f"{yOffset - (pin.y + self.yTopMargin) * 100} "
-                     f"{pinlength} R 50 50 1 1 "
-                     f"{PIN_TYPES_MAPPING[pin.pintype]}\n")
-
-        for pin in self.topPins:
-            s.append(f"X {pin.name} {pin.pinnumber} "
-                     f"{pin.x * 100} {int(yOffset + pinlength)} "
-                     f"{pinlength} D 50 50 1 1 "
-                     f"{PIN_TYPES_MAPPING[pin.pintype]}\n")
-
-        for pin in self.bottomPins:
-            s.append(f"X {pin.name} {pin.pinnumber} {pin.x * 100} "
-                     f"{yOffset - self.boxHeight - pinlength} "
-                     f"{pinlength} U 50 50 1 1 "
-                     f"{PIN_TYPES_MAPPING[pin.pintype]}\n")
-        
-        s.append(f"S -{self.boxWidth // 2} {yOffset - self.boxHeight} "
-                 f"{self.boxWidth // 2} {yOffset} 0 1 10 f\n")
-        s.append("ENDDRAW\n")
-        s.append("ENDDEF\n")
-
-        self.componentstring = "".join(s)
-        
-    def createDocu(self):
-        pdfprefix = "http://www.st.com/st-web-ui/static/active/en/resource/technical/document/datasheet/"
-        if(self.pdf == "NOSHEET"):
-            pdfprefix = ""
-            self.pdf = ""
-        names = [self.name] + self.aliases
-        s = []
-        for i, name in enumerate(names):
-            f = 0 if len(self.flash) == 1 else i
-            r = 0 if len(self.ram) == 1 else i
-            s.append(f"$CMP {name}\n")
-            s.append(f"D Core: {self.core} Package: {self.package} Flash: "
-                     f"{self.flash[f]}KB Ram: {self.ram[r]}KB ")
-            if self.freq:
-                s.append(f"Frequency: {self.freq}MHz ")
-            if self.voltage:
-                s.append(f"Voltage: {self.voltage[0]}..{self.voltage[1]}V ")
-            s.append(f"IO-pins: {self.io}\n")
-            s.append(f"K {self.core} {self.family} {self.line}\n")
-            s.append(f"F {pdfprefix}{self.pdf}\n")   # TODO: Add docfiles to devices, maybe url to docfiles follows pattern?
-            s.append("$ENDCMP\n")
-            s.append("#\n")
-        self.docustring = "".join(s)
+        # NOTE: more typos for alignment and visibility
+        # Also, when creating the string, vertical and horizontal alignment get
+        # switched, so we switch them here to make the result correct
+        self.symbol.setReference('U',
+                at=Point(0, box_height + 50).translate(translate_center),
+                allignment_vertical=SymbolField.FieldAlligment.LEFT)
+        self.symbol.setValue(value=self.name,
+                at=Point((box_width-top_width+100)//2//100*100+top_width,
+                box_height + 50).translate(translate_center),
+                allignment_vertical=SymbolField.FieldAlligment.LEFT)
+        self.symbol.setDefaultFootprint(value=self.footprint,
+                at=translate_center,
+                allignment_vertical=SymbolField.FieldAlligment.RIGHT,
+                visiblility=SymbolField.FieldVisibility.INVISIBLE)
 
 
 def main():
@@ -566,34 +581,24 @@ def main():
         break
 
     # Load devices from XML, sorted by family
-    devices = {}
+    libraries = {}
     for _, _, filenames in os.walk(args.xmldir):
         filenames.sort()
         for xmlfile in filenames:
+            # Load information about the part(s)
             mcu = Device(os.path.join(args.xmldir, xmlfile), args.pdfdir)
-            if mcu.family not in devices:
-                devices[mcu.family] = []
-            devices[mcu.family].append(mcu)
+            # If there isn't a SymbolGenerator for this family yet, make one
+            if mcu.family not in libraries:
+                libraries[mcu.family] = SymbolGenerator(
+                        lib_name=f"MCU_ST_{mcu.family}")
+            # If the part has a datasheet PDF, make a symbol for it
+            if mcu.pdf is not None:
+                mcu.create_symbol(libraries[mcu.family])
         break
 
     # Write libraries
-    libname_format = "MCU_ST_{}.{}"
-    for family, mcus in devices.items():
-        logging.info(f"{family} {len(mcus)}")
-        # TODO: Add date and time of file generation to header
-        with open(libname_format.format(family, "lib"), "w") as lib:
-            lib.write("EESchema-LIBRARY Version 2.3\n#encoding utf-8\n")
-            for mcu in mcus:
-                if mcu.pdf != "":
-                    lib.write(mcu.componentstring)
-            lib.write("#\n# End Library\n")
-
-        with open(libname_format.format(family, "dcm"), "w") as dcm:
-            dcm.write("EESchema-DOCLIB  Version 2.0\n#\n")
-            for mcu in mcus:
-                if mcu.pdf != "":
-                    dcm.write(mcu.docustring)
-            dcm.write("#\n#End Doc Library")
+    for gen in libraries.values():
+        gen.writeFiles()
 
 if __name__ == "__main__":
     main()
