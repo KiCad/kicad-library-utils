@@ -5,11 +5,11 @@ STM32 devices.
 
 ## Prerequisites
 
-* XML files, taken from STM32CubeMX install (from db/mcu folder)
+* XML files, taken from STM32CubeMX install (from db/mcu folder).
 * Datasheet PDFs, downloaded from ST's website.  A current list as of
-  2016-02-06 can be found in datasheets.txt.  These PDFs can be downloaded all
-  at once with `wget -P datasheets -ci datasheets.txt`
-* [pdfminer](https://github.com/euske/pdfminer) tool
+  2018-02-06 can be found in datasheets.txt.  These PDFs can be downloaded all
+  at once with `wget -P datasheets -ci datasheets.txt`.
+* [pdfminer](https://github.com/euske/pdfminer) tool.
 
 ## Running
 
