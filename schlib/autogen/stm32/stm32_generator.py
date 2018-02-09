@@ -96,8 +96,8 @@ class Device:
         "UFQFPN20": "Package_DFN_QFN:ST_UFQFPN-20_3x3mm_P0.5mm",
         # No footprint "UFQFPN28": "",
         "UFQFPN32": "Package_DFN_QFN:QFN-32-1EP_5x5mm_P0.5mm_EP3.45x3.45mm",
-        "UFQFPN48": "Package_DFN_QFN:QFN-48-1EP_7x7mm_P0.5mm_EP5.15x5.15mm",
-        "VFQFPN36": "Package_DFN_QFN:QFN-36-1EP_6x6mm_P0.5mm_EP3.7x3.7mm",
+        # No footprint with correct EP "UFQFPN48": "Package_DFN_QFN:QFN-48-1EP_7x7mm_P0.5mm_EP5.6x5.6mm",
+        # No footprint with correct EP "VFQFPN36": "Package_DFN_QFN:QFN-36-1EP_6x6mm_P0.5mm_EP4.1x4.1mm",
         # No footprint "WLCSP25": "",
         # No footprint "WLCSP36": "",
         # No footprint "WLCSP49": "",
@@ -113,6 +113,52 @@ class Device:
         # No footprint "WLCSP144": "",
         # No footprint "WLCSP168": "",
         # No footprint "WLCSP180": ""
+    }
+    _FPFILTER_MAPPING = {
+        "EWLCSP49": "WLCSP?49*3.294x3.258mm*Layout7x7*P0.4mm*",
+        "EWLCSP66": "WLCSP?66*3.639x3.971mm*Layout9x9*P0.4mm*",
+        "LFBGA100": "LFBGA?100*10x10mm*Layout10x10*P0.8mm*",
+        "LFBGA144": "LFBGA?144*10x10mm*Layout12x12*P0.8mm*",
+        "LQFP32": "LQFP?32*7x7mm*P0.8mm*",
+        "LQFP48": "LQFP?48*7x7mm*P0.5mm*",
+        "LQFP64": "LQFP?64*10x10mm*P0.5mm*",
+        "LQFP100": "LQFP?100*14x14mm*P0.5mm*",
+        "LQFP144": "LQFP?144*20x20mm*P0.5mm*",
+        "LQFP176": "LQFP?176*24x24mm*P0.5mm*",
+        "LQFP208": "LQFP?208*28x28mm*P0.5mm*",
+        "TFBGA64": "TFBGA?64*5x5mm*Layout8x8*P0.5mm*",
+        "TFBGA100": "TFBGA?100*8x8mm*Layout10x10*P0.8mm*",
+        "TFBGA216": "TFBGA?216*16x16mm*Layout15x15*P0.8mm*",
+        "TFBGA240": "TFBGA?265*14x14mm*Layout17x17*P0.8mm*",
+        "TSSOP14": "TSSOP?14*4.4x5mm*P0.65mm*",
+        "TSSOP20": "TSSOP?20*4.4x6.5mm*P0.65mm*",
+        "UFBGA64": "UFBGA?64*5x5mm*Layout8x8*P0.5mm*",
+        "UFBGA100": "UFBGA?100*7x7mm*Layout12x12*P0.5mm*",
+        "UFBGA132": "UFBGA?132*7x7mm*P0.5mm*",
+        "UFBGA144": ("UFBGA?144*7x7mm*Layout12x12*P0.5mm*",
+            "UFBGA?144*10x10mm*Layout12x12*P0.8mm*"),
+        "UFBGA169": "UFBGA?169*7x7mm*Layout13x13*P0.5mm*",
+        "UFBGA176": "UFBGA?201*10x10mm*Layout15x15*P0.65mm*",
+        "UFQFPN20": "ST*UFQFPN?20*3x3mm*P0.5mm*",
+        "UFQFPN28": "QFN?28*4x4mm*P0.5mm*",
+        "UFQFPN32": "QFN?32*1EP*5x5mm*P0.5mm*EP3.45x3.45mm*",
+        "UFQFPN48": "QFN?48*1EP*7x7mm*P0.5mm*EP5.6x5.6mm*",
+        "VFQFPN36": "QFN?36*1EP*6x6mm*P0.5mm*EP4.1x4.1mm*",
+        "WLCSP25": "WLCSP?25*2.097x2.493mm*Layout5x5*P0.4mm*",
+        "WLCSP36": "WLCSP?36*2.605x2.703mm*Layout6x6*P0.4mm*",
+        "WLCSP49": "WLCSP?49*3.277x3.109mm*Layout7x7*P0.4mm*",
+        "WLCSP63": "WLCSP?63*3.228x4.164mm*Layout7x9*P0.4mm*",
+        "WLCSP64": "WLCSP?64*3.347x3.585mm*Layout8x8*P0.4mm*",
+        "WLCSP66": "WLCSP?66*3.767x4.229mm*Layout8x9*P0.4mm*",
+        "WLCSP72": "WLCSP?72*4.4084x3.7594mm*Layout9x9*P0.4mm*",
+        "WLCSP81": "WLCSP?81*3.693x3.815mm*Layout9x9*P0.4mm*",
+        "WLCSP90": "WLCSP?90*4.223x3.969mm*Layout10x9*P0.4mm*",
+        "WLCSP100": "WLCSP?100*4.775x5.041mm*Layout10x10*P0.4mm*",
+        "WLCSP104": "WLCSP?104*4.095x5.094mm*Layout9x12*P0.4mm*",
+        "WLCSP143": "WLCSP?143*4.539x5.849mm*Layout11x13*P0.4mm*",
+        "WLCSP144": "WLCSP?144*5.24x5.24mm*Layout12x12*P0.4mm*",
+        "WLCSP168": "WLCSP?168*4.891x5.692mm*Layout12x14*P0.4mm*",
+        "WLCSP180": "WLCSP?180*5.537x6.095mm*Layout13x14*P0.4mm*"
     }
 
     pdfinfo = {}
@@ -155,7 +201,7 @@ class Device:
         try:
             self.footprint = Device._FOOTPRINT_MAPPING[self.package]
         except KeyError:
-            self.footprint = self.package
+            self.footprint = ""
 
         # Read the information for each pin
         for child in self.root.xpath("a:Pin", namespaces=self.ns):
@@ -247,6 +293,12 @@ class Device:
                 'description': desc_fmt.format(flash=self.flash[f],
                     ram=self.ram[r]), 'keywords': keywords, 'datasheet':
                 datasheet})
+
+        # Add footprint filters
+        try:
+            self.symbol.addFootprintFilter(Device._FPFILTER_MAPPING[self.package])
+        except KeyError:
+            pass
 
         # Draw the symbol
         self.draw_symbol()
