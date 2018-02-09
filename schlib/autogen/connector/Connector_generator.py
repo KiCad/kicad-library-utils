@@ -454,14 +454,15 @@ def generateSingleSymbol(generator, series_params, num_pins_per_row, lib_params)
     drawing = current_symbol.drawing
     if series_params.enclosing_rectangle:
         if extra_pin == MOUNT_PIN:
+
             drawing.append(DrawingPolyline(
                 points = [
-                    Point({'x':-mp_artwork_radius, 'y':body_bottom_right_corner.y}),
+                    Point({'x':extra_pin_pos.x-mp_artwork_radius, 'y':body_bottom_right_corner.y}),
                     Point({'x':body_top_left_corner.x, 'y':body_bottom_right_corner.y}),
                     body_top_left_corner,
                     Point({'x':body_bottom_right_corner.x, 'y':body_top_left_corner.y}),
                     body_bottom_right_corner,
-                    Point({'x':mp_artwork_radius, 'y':body_bottom_right_corner.y})
+                    Point({'x':extra_pin_pos.x+mp_artwork_radius, 'y':body_bottom_right_corner.y})
                     ],
                 line_width = body_outline_line_width, fill = body_fill))
         else:
