@@ -130,7 +130,7 @@ class Component(object):
     _POLY_KEYS = ['point_count','unit','convert','thickness','points','fill']
     _RECT_KEYS = ['startx','starty','endx','endy','unit','convert','thickness','fill']
     _TEXT_KEYS = ['direction','posx','posy','text_size','text_type','unit','convert','text', 'italic', 'bold', 'hjustify', 'vjustify']
-    _PIN_KEYS = ['name','num','posx','posy','length','direction','name_text_size','num_text_size','unit','convert','electrical_type','pin_type']
+    _PIN_KEYS = ['name','num','posx','posy','length','direction','num_text_size','name_text_size','unit','convert','electrical_type','pin_type']
 
     _DRAW_KEYS = {'A':_ARC_KEYS, 'C':_CIRCLE_KEYS, 'P':_POLY_KEYS, 'S':_RECT_KEYS, 'T':_TEXT_KEYS, 'X':_PIN_KEYS}
     # _DRAW_ELEMS = {'arcs':'A', 'circles':'C', 'polylines':'P', 'rectangles':'S', 'texts':'T', 'pins':'X'}
