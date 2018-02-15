@@ -70,8 +70,8 @@ class Device:
         "VFQFPN36"
     }
     _FOOTPRINT_MAPPING = {
-        # No footprint "EWLCSP49": "",
-        # No footprint "EWLCSP66": "",
+        # No footprint "EWLCSP49-DIE447": "",
+        # No footprint "EWLCSP66-DIE411": "",
         # No footprint "LFBGA100": "",
         # No footprint "LFBGA144": "",
         "LQFP32": "Package_QFP:LQFP-32_7x7mm_P0.8mm",
@@ -98,25 +98,50 @@ class Device:
         "UFQFPN32": "Package_DFN_QFN:QFN-32-1EP_5x5mm_P0.5mm_EP3.45x3.45mm",
         # No footprint with correct EP "UFQFPN48": "Package_DFN_QFN:QFN-48-1EP_7x7mm_P0.5mm_EP5.6x5.6mm",
         # No footprint with correct EP "VFQFPN36": "Package_DFN_QFN:QFN-36-1EP_6x6mm_P0.5mm_EP4.1x4.1mm",
-        # No footprint "WLCSP25": "",
-        # No footprint "WLCSP36": "",
-        # No footprint "WLCSP49": "",
-        # No footprint "WLCSP63": "",
-        # No footprint "WLCSP64": "",
-        # No footprint "WLCSP66": "",
-        # No footprint "WLCSP72": "",
-        # No footprint "WLCSP81": "",
-        # No footprint "WLCSP90": "",
-        # No footprint "WLCSP100": "",
-        # No footprint "WLCSP104": "",
-        # No footprint "WLCSP143": "",
-        # No footprint "WLCSP144": "",
-        # No footprint "WLCSP168": "",
-        # No footprint "WLCSP180": ""
+        # No footprint "WLCSP25-DIE425": "",
+        # No footprint "WLCSP25-DIE444": "",
+        # No footprint "WLCSP25-DIE457": "",
+        # No footprint "WLCSP36-DIE417": "",
+        # No footprint "WLCSP36-DIE440": "",
+        # No footprint "WLCSP36-DIE445": "",
+        # No footprint "WLCSP36-DIE458": "",
+        # No footprint "WLCSP49-DIE423": "",
+        # No footprint "WLCSP49-DIE431": "",
+        # No footprint "WLCSP49-DIE433": "",
+        # No footprint "WLCSP49-DIE435": "",
+        # No footprint "WLCSP49-DIE438": "",
+        # No footprint "WLCSP49-DIE439": "",
+        # No footprint "WLCSP49-DIE447": "",
+        # No footprint "WLCSP49-DIE448": "",
+        # No footprint "WLCSP63-DIE427": "",
+        # No footprint "WLCSP64-DIE414": "",
+        # No footprint "WLCSP64-DIE427": "",
+        # No footprint "WLCSP64-DIE435": "",
+        # No footprint "WLCSP64-DIE436": "",
+        # No footprint "WLCSP64-DIE441": "",
+        # No footprint "WLCSP64-DIE442": "",
+        # No footprint "WLCSP64-DIE462": "",
+        # No footprint "WLCSP66-DIE411": "",
+        # No footprint "WLCSP66-DIE432": "",
+        # No footprint "WLCSP72-DIE415": "",
+        # No footprint "WLCSP81-DIE415": "",
+        # No footprint "WLCSP81-DIE421": "",
+        # No footprint "WLCSP81-DIE463": "",
+        # No footprint "WLCSP90-DIE413": "",
+        # No footprint "WLCSP100-DIE422": "",
+        # No footprint "WLCSP100-DIE446": "",
+        # No footprint "WLCSP100-DIE452": "",
+        # No footprint "WLCSP100-DIE461": "",
+        # No footprint "WLCSP104-DIE437": "",
+        # No footprint "WLCSP143-DIE419": "",
+        # No footprint "WLCSP143-DIE449": "",
+        # No footprint "WLCSP144-DIE470": "",
+        # No footprint "WLCSP168-DIE434": "",
+        # No footprint "WLCSP180-DIE451": ""
     }
     _FPFILTER_MAPPING = {
-        "EWLCSP49": "WLCSP?49*3.294x3.258mm*Layout7x7*P0.4mm*",
-        "EWLCSP66": "WLCSP?66*3.639x3.971mm*Layout9x9*P0.4mm*",
+        "EWLCSP49-DIE447": "ST_WLCSP?49*Die447*",
+        "EWLCSP66-DIE411": "ST_WLCSP?66*Die411*",
         "LFBGA100": "LFBGA?100*10x10mm*Layout10x10*P0.8mm*",
         "LFBGA144": "LFBGA?144*10x10mm*Layout12x12*P0.8mm*",
         "LQFP32": "LQFP?32*7x7mm*P0.8mm*",
@@ -144,21 +169,46 @@ class Device:
         "UFQFPN32": "QFN?32*1EP*5x5mm*P0.5mm*EP3.45x3.45mm*",
         "UFQFPN48": "QFN?48*1EP*7x7mm*P0.5mm*EP5.6x5.6mm*",
         "VFQFPN36": "QFN?36*1EP*6x6mm*P0.5mm*EP4.1x4.1mm*",
-        "WLCSP25": "WLCSP?25*2.097x2.493mm*Layout5x5*P0.4mm*",
-        "WLCSP36": "WLCSP?36*2.605x2.703mm*Layout6x6*P0.4mm*",
-        "WLCSP49": "WLCSP?49*3.277x3.109mm*Layout7x7*P0.4mm*",
-        "WLCSP63": "WLCSP?63*3.228x4.164mm*Layout7x9*P0.4mm*",
-        "WLCSP64": "WLCSP?64*3.347x3.585mm*Layout8x8*P0.4mm*",
-        "WLCSP66": "WLCSP?66*3.767x4.229mm*Layout8x9*P0.4mm*",
-        "WLCSP72": "WLCSP?72*4.4084x3.7594mm*Layout9x9*P0.4mm*",
-        "WLCSP81": "WLCSP?81*3.693x3.815mm*Layout9x9*P0.4mm*",
-        "WLCSP90": "WLCSP?90*4.223x3.969mm*Layout10x9*P0.4mm*",
-        "WLCSP100": "WLCSP?100*4.775x5.041mm*Layout10x10*P0.4mm*",
-        "WLCSP104": "WLCSP?104*4.095x5.094mm*Layout9x12*P0.4mm*",
-        "WLCSP143": "WLCSP?143*4.539x5.849mm*Layout11x13*P0.4mm*",
-        "WLCSP144": "WLCSP?144*5.24x5.24mm*Layout12x12*P0.4mm*",
-        "WLCSP168": "WLCSP?168*4.891x5.692mm*Layout12x14*P0.4mm*",
-        "WLCSP180": "WLCSP?180*5.537x6.095mm*Layout13x14*P0.4mm*"
+        "WLCSP25-DIE425": "ST_WLCSP?25*Die425*",
+        "WLCSP25-DIE444": "ST_WLCSP?25*Die444*",
+        "WLCSP25-DIE457": "ST_WLCSP?25*Die457*",
+        "WLCSP36-DIE417": "ST_WLCSP?36*Die417*",
+        "WLCSP36-DIE440": "ST_WLCSP?36*Die440*",
+        "WLCSP36-DIE445": "ST_WLCSP?36*Die445*",
+        "WLCSP36-DIE458": "ST_WLCSP?36*Die458*",
+        "WLCSP49-DIE423": "ST_WLCSP?49*Die423*",
+        "WLCSP49-DIE431": "ST_WLCSP?49*Die431*",
+        "WLCSP49-DIE433": "ST_WLCSP?49*Die433*",
+        "WLCSP49-DIE435": "ST_WLCSP?49*Die435*",
+        "WLCSP49-DIE438": "ST_WLCSP?49*Die438*",
+        "WLCSP49-DIE439": "ST_WLCSP?49*Die439*",
+        "WLCSP49-DIE447": "ST_WLCSP?49*Die447*",
+        "WLCSP49-DIE448": "ST_WLCSP?49*Die448*",
+        "WLCSP63-DIE427": "ST_WLCSP?63*Die427*",
+        "WLCSP64-DIE414": "ST_WLCSP?64*Die414*",
+        "WLCSP64-DIE427": "ST_WLCSP?64*Die427*",
+        "WLCSP64-DIE435": "ST_WLCSP?64*Die435*",
+        "WLCSP64-DIE436": "ST_WLCSP?64*Die436*",
+        "WLCSP64-DIE441": "ST_WLCSP?64*Die441*",
+        "WLCSP64-DIE442": "ST_WLCSP?64*Die442*",
+        "WLCSP64-DIE462": "ST_WLCSP?64*Die462*",
+        "WLCSP66-DIE411": "ST_WLCSP?66*Die411*",
+        "WLCSP66-DIE432": "ST_WLCSP?66*Die432*",
+        "WLCSP72-DIE415": "ST_WLCSP?72*Die415*",
+        "WLCSP81-DIE415": "ST_WLCSP?81*Die415*",
+        "WLCSP81-DIE421": "ST_WLCSP?81*Die421*",
+        "WLCSP81-DIE463": "ST_WLCSP?81*Die463*",
+        "WLCSP90-DIE413": "ST_WLCSP?90*Die413*",
+        "WLCSP100-DIE422": "ST_WLCSP?100*Die422*",
+        "WLCSP100-DIE446": "ST_WLCSP?100*Die446*",
+        "WLCSP100-DIE452": "ST_WLCSP?100*Die452*",
+        "WLCSP100-DIE461": "ST_WLCSP?100*Die461*",
+        "WLCSP104-DIE437": "ST_WLCSP?104*Die437*",
+        "WLCSP143-DIE419": "ST_WLCSP?143*Die419*",
+        "WLCSP143-DIE449": "ST_WLCSP?143*Die449*",
+        "WLCSP144-DIE470": "ST_WLCSP?144*Die470*",
+        "WLCSP168-DIE434": "ST_WLCSP?168*Die434*",
+        "WLCSP180-DIE451": "ST_WLCSP?180*Die451*"
     }
 
     pdfinfo = {}
@@ -195,12 +245,19 @@ class Device:
         else:
             self.name = name
 
+        # Get the package code
         self.package = self.root.get("Package")
+        if "WLCSP" in self.package:
+            # Differentiate the WLCSP packages by die code
+            die = self.root.xpath("a:Die", namespaces=self.ns)[0].text
+            self.package += f"-{die}"
 
         # Get the footprint for this package
         try:
             self.footprint = Device._FOOTPRINT_MAPPING[self.package]
         except KeyError:
+            logging.warning(f"No footprint found for device {self.name}, "
+                    f"package {self.package}")
             self.footprint = ""
 
         # Read the information for each pin
@@ -298,7 +355,8 @@ class Device:
         try:
             self.symbol.addFootprintFilter(Device._FPFILTER_MAPPING[self.package])
         except KeyError:
-            pass
+            logging.warning(f"No footprint filters found for device "
+                    f"{self.name}, package {self.package}")
 
         # Draw the symbol
         self.draw_symbol()
