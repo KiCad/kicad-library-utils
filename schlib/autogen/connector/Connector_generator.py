@@ -22,9 +22,8 @@ pin_grid = 100
 pin_spacing_y = 100
 pin_lenght = 150
 
-
+mp_artwork_to_body = 30
 extra_pin_grid = 50
-mp_artwork_radius=20
 
 body_width_per_row = 100
 body_fill = ElementFill.FILL_BACKGROUND
@@ -240,27 +239,27 @@ def merge_dicts(*dict_args):
 def draw_mp_end(pin_pos, pin_len):
     artwork = Drawing()
 
-    half_len = mp_artwork_radius/sqrt(2)
+
     center = pin_pos.translate(
         {'x': 0,'y': pin_len},
         apply_on_copy = True, new_grid = None)
-    p1 = center.translate(
-        {'x': -half_len,'y': -half_len},
-        apply_on_copy = True, new_grid = None)
-    p2 = center.translate(
-        {'x': half_len,'y': half_len},
-        apply_on_copy = True, new_grid = None)
-    artwork.append(DrawingPolyline(
-        points = [p1,p2],
-        line_width = inner_graphics_line_width
-        ))
 
-    artwork.append(DrawingCircle(
-        at = center,
-        radius = mp_artwork_radius,
-        line_width = inner_graphics_line_width,
-        fill = body_fill
-        ))
+    xd = body_width_per_row/2 - 10
+
+    artwork.append(DrawingPolyline(
+        points = [
+            Point({'x':center.x - xd, 'y':center.y}),
+            Point({'x':center.x + xd, 'y':center.y})
+            ],
+        line_width = inner_graphics_line_width))
+
+    center_text = center.translate(
+        {'x':0, 'y': mp_artwork_to_body/2},
+        apply_on_copy = True, new_grid = None)
+
+    artwork.append(DrawingText(
+        at=center_text, text="Mounting", size=mp_artwork_to_body-15
+    ))
 
     return artwork
 
@@ -269,17 +268,19 @@ def draw_mp_end(pin_pos, pin_len):
 SHIELD_PIN = {
     "number":"SH",
     "name":"Shield",
-    'deco':None
+    'deco':None,
+    'offset':0
 }
 
 MOUNT_PIN = {
     "number":"MP",
     "name":"MountPin",
-    'deco':draw_mp_end
+    'deco':draw_mp_end,
+    'offset':mp_artwork_to_body
 }
 
 all_symbols = [{
-    'lib_name': 'Connector_Specialized',
+    'lib_name': 'Connector',
     'symbol_def': merge_dicts(conn_screw_terminal, conn_male_female),
     'extra_pin': None,
     'pn_modifier': '_',
@@ -419,12 +420,13 @@ def generateSingleSymbol(generator, series_params, num_pins_per_row, lib_params)
         'y': -pin_spacing_y * num_pins_per_row
         }, apply_on_copy = True)
 
-    extra_pin_pos = body_bottom_right_corner.translate(
-        {'x': -body_width/2,'y': -pin_lenght},
-        apply_on_copy = True, new_grid = extra_pin_grid)
-    extra_pin_lenght = body_bottom_right_corner.y - extra_pin_pos.y
-
     extra_pin=lib_params.get('extra_pin')
+
+    if extra_pin:
+        extra_pin_pos = body_bottom_right_corner.translate(
+            {'x': -body_width/2,'y': -pin_lenght},
+            apply_on_copy = True, new_grid = extra_pin_grid)
+        extra_pin_lenght = body_bottom_right_corner.y - extra_pin_pos.y - extra_pin['offset']
 
     if extra_pin == SHIELD_PIN:
         shield_top_left_corner = body_top_left_corner
@@ -453,22 +455,9 @@ def generateSingleSymbol(generator, series_params, num_pins_per_row, lib_params)
     ############################ artwork #################################
     drawing = current_symbol.drawing
     if series_params.enclosing_rectangle:
-        if extra_pin == MOUNT_PIN:
-
-            drawing.append(DrawingPolyline(
-                points = [
-                    Point({'x':extra_pin_pos.x-mp_artwork_radius, 'y':body_bottom_right_corner.y}),
-                    Point({'x':body_top_left_corner.x, 'y':body_bottom_right_corner.y}),
-                    body_top_left_corner,
-                    Point({'x':body_bottom_right_corner.x, 'y':body_top_left_corner.y}),
-                    body_bottom_right_corner,
-                    Point({'x':extra_pin_pos.x+mp_artwork_radius, 'y':body_bottom_right_corner.y})
-                    ],
-                line_width = body_outline_line_width, fill = body_fill))
-        else:
-            drawing.append(DrawingRectangle(
-                start=body_top_left_corner, end=body_bottom_right_corner,
-                line_width = body_outline_line_width, fill = body_fill))
+        drawing.append(DrawingRectangle(
+            start=body_top_left_corner, end=body_bottom_right_corner,
+            line_width = body_outline_line_width, fill = body_fill))
 
     if extra_pin == SHIELD_PIN:
         drawing.append(DrawingRectangle(
