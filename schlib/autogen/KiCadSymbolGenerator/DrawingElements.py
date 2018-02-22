@@ -191,6 +191,22 @@ class DrawingRectangle:
             line_width = self.line_width, fill = self.fill
         )
 
+    def toPolyline(self):
+        p1 = Point(self.start)
+        p3 = Point(self.end)
+        p2 = Point(p1.x, p3.y)
+        p4 = Point(p3.x, p1.y)
+
+        points = [p1, p2, p3, p4, p1]
+
+        polyline = DrawingPolyline(
+            points=points,
+            unit_idx=self.unit_idx, deMorgan_idx=self.deMorgan_idx,
+            line_width=self.line_width, fill=self.fill
+        )
+
+        return polyline
+
     def translate(self, distance, apply_on_copy = False):
         obj = self if not apply_on_copy else deepcopy(self)
 
@@ -198,10 +214,17 @@ class DrawingRectangle:
         obj.end.translate(distance)
         return obj
 
-    def rotate(self, angle, origin = {'x':0, 'y':0}, apply_on_copy = False):
+    def rotate(self, angle, origin = None, apply_on_copy = False):
         # obj = self if not apply_on_copy else deepcopy(self)
+        if not apply_on_copy:
+            raise NotImplementedError('Rotating the rectangles only implemented for copies -> converts to polyline')
 
-        raise NotImplementedError('Rotating the rectangles is not yet implemented. Use polyline instead.')
+        if origin is None:
+            origin = Point((self.start.x + self.end.x)/2, (self.start.y + self.end.y)/2)
+
+        obj = self.toPolyline()
+        obj.rotate(angle, origin, False)
+        return obj
         # return obj
 
     def mirrorVertical(self, apply_on_copy = False):
@@ -252,7 +275,21 @@ class DrawingPolyline:
             point.translate(distance)
         return obj
 
-    def rotate(self, angle, origin = {'x':0, 'y':0}, apply_on_copy = False):
+    def rotate(self, angle, origin = None, apply_on_copy = False):
+        if origin is None:
+            x = 0
+            y = 0
+            if self.points[0] == self.points[-1]:
+                points = self.points[:-1]
+            else:
+                points = self.points
+
+            for point in points:
+                x += point.x
+                y += point.y
+
+            origin = Point(x/len(point), y/len(point))
+
         obj = self if not apply_on_copy else deepcopy(self)
 
         for point in obj.points:
@@ -381,8 +418,10 @@ class DrawingCircle:
         obj.at.translate(distance)
         return obj
 
-    def rotate(self, angle, origin = {'x':0, 'y':0}, apply_on_copy = False):
+    def rotate(self, angle, origin = None, apply_on_copy = False):
         obj = self if not apply_on_copy else deepcopy(self)
+        if origin is None:
+            return obj
 
         obj.at.rotate(angle, origin)
         return obj
@@ -484,7 +523,7 @@ class DrawingText:
         return obj
 
     def rotate(self, angle, origin = None, apply_on_copy = False):
-        if origin == None:
+        if origin is None:
             origin = self.at
         obj = self if not apply_on_copy else deepcopy(self)
 
