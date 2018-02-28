@@ -19,7 +19,7 @@ class Rule(KLCRule):
 
     def stackStr(self, stack):
         multi_unit = int(self.component.definition['unit_count']) > 1
-        unit_str = " (unit {u})".format(stack['u']) if multi_unit else ""
+        unit_str = " (unit {u})".format(u=stack['u']) if multi_unit else ""
 
         # WHY are pins flipped vertically? Mega sad face :(
         return "Pinstack @ ({x},{y}){u}".format(
