@@ -3,6 +3,7 @@
 from __future__ import print_function
 
 import argparse
+import traceback
 
 import sys,os
 
@@ -90,7 +91,8 @@ for filename in files:
         except Exception as e:
             printer.red('could not parse module: %s' % filename)
             if args.verbose:
-                printer.red("Error: " + str(e))
+                #printer.red("Error: " + str(e))
+                traceback.print_exc()
             exit_code += 1
             continue
 
