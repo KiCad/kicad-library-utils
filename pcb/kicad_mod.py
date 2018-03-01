@@ -430,7 +430,10 @@ class KicadMod(object):
             model_dict = {'file':model[1]}
 
             # position
-            xyz = self._getArray(self._getArray(model, 'at'), 'xyz')[0]
+            offset = self._getArray(model, 'at')
+            if len(offset) < 1:
+                offset = self._getArray(model, 'offset')
+            xyz = self._getArray(offset, 'xyz')[0]
             model_dict['pos'] = {'x':xyz[1], 'y':xyz[2], 'z':xyz[3]}
 
             # scale
