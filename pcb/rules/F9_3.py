@@ -199,9 +199,7 @@ class Rule(KLCRule):
         if not self.tooMany3DModel and (self.model3D_missingSYSMOD or self.model3D_wrongLib or self.model3D_wrongName):
             if not self.args.fixmore:
                 self.info("Fix not supported by --fix, use --fixmore to fix this!")
-                print("hello")
                 return
-            print("wtf?!")
 
         self.info("Fix not supported")
         return
