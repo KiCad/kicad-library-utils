@@ -26,7 +26,7 @@ class Rule(KLCRule):
             error = True
             self.model3D_wrongOffset = True
 
-            self.error("3D model offset different from "\
+            self.error("3D model offset is not "\
                 "{{'x': 0, 'y': 0, 'z': 0}}. "\
                 "Found {{'x': {o[x]:}, 'y': {o[y]:}, 'z': {o[z]:}}}"\
                 .format(o=model['pos']))
@@ -37,7 +37,7 @@ class Rule(KLCRule):
             error = True
             self.model3D_wrongRotation = True
 
-            self.error("3D model rotation different from "\
+            self.error("3D model rotation is not "\
                 "{{'x': 0, 'y': 0, 'z': 0}}. "\
                 "Found {{'x': {r[x]:}, 'y': {r[y]:}, 'z': {r[z]:}}}"\
                 .format(r=model['rotate']))
@@ -48,7 +48,7 @@ class Rule(KLCRule):
             error = True
             self.model3D_wrongScale = True
 
-            self.error("3D model scale different from "\
+            self.error("3D model scale is not "\
                 "{{'x': 1, 'y': 1, 'z': 1}}. "\
                 "Found {{'x': {s[x]:}, 'y': {s[y]:}, 'z': {s[z]:}}}"\
                 .format(s=model['scale']))
@@ -198,7 +198,7 @@ class Rule(KLCRule):
 
         if not self.tooMany3DModel and (self.model3D_missingSYSMOD or self.model3D_wrongLib or self.model3D_wrongName):
             if not self.args.fixmore:
-                self.info("Fix not supported by --fix, use --fixmore to fix this!")
+                self.info("Use --fixmore instead of --fix to correct the 3D model settings!")
                 return
 
         self.info("Fix not supported")
