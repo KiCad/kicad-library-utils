@@ -262,6 +262,9 @@ class Device:
             elif self.name in {"STM32F446ZCHx", "STM32F723ZCIx",
                     "STM32F733ZEIx"}:
                 self.package += "-7X7"
+            else:
+                logging.warning(f"Unable to determine package variant for "
+                        f"device {self.name}, package {self.package}")
 
         # Get the footprint for this package
         try:
