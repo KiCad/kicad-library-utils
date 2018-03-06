@@ -351,7 +351,8 @@ class Device:
                 'description': desc_fmt.format(flash=self.flash[0],
                     ram=self.ram[0]),
                 'keywords': keywords,
-                'datasheet': datasheet})
+                'datasheet': datasheet},
+                offset=20)
 
         # Add aliases
         for i, alias in enumerate(self.aliases):
