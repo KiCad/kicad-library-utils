@@ -64,7 +64,6 @@ class Device:
         "RCC_OSC_OUT": "Clock"
     }
     _POWER_PAD_FIX_PACKAGES = {
-        "UFQFPN28",
         "UFQFPN32",
         "UFQFPN48",
         "VFQFPN36"
