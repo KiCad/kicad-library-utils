@@ -54,7 +54,7 @@ class Rule(KLCRule):
                 .format(s=model['scale']))
 
         # Allowed model types
-        extensions = ["step", "stp", "wrl"]
+        extensions = ["wrl"]
 
         model = model['file']
 
@@ -87,7 +87,7 @@ class Rule(KLCRule):
         model_ext = fn[-1]
 
         if not model_ext.lower() in extensions:
-            self.error("Model '{mod}' is incompatible format (must be STEP or WRL file)".format(mod=model))
+            self.error("Model '{mod}' is incompatible format (must be WRL file)".format(mod=model))
             self.model3D_wrongFiletype = True
             self.needsFixMore = True
             return True
