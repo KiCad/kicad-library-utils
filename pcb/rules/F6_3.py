@@ -50,6 +50,49 @@ class Rule(KLCRule):
                     if lyr in layers:
                         present = True
 
+                # If there's a missing paste layer, try to figure out if
+                # there's at least one stencil opening that's inside this pad's
+                # area.
+                #
+                # TODO: Support non-rectangular and rotated pads.
+                if (not present and layer == 'Paste' and pad['shape'] == 'rect'
+                        and pad['pos']['orientation'] == 0):
+                    # Get the size of the pad
+                    p_x = pad['pos']['x']
+                    p_y = pad['pos']['y']
+                    p_w = pad['size']['x']
+                    p_h = pad['size']['y']
+                    p_left = p_x - p_w/2.
+                    p_right = p_x + p_w/2.
+                    p_bottom = p_y - p_h/2.
+                    p_top = p_y + p_h/2.
+                    # Look for a stencil pad
+                    for stencil_pad in pads:
+                        # TODO: Support non-rectangular and rotated stencil
+                        # openings.
+                        if (stencil_pad['shape'] != 'rect'
+                                or stencil_pad['pos']['orientation'] != 0):
+                            continue
+                        # If stencil_pad is a real stencil pad
+                        if all([lyr.endswith('.Paste') for lyr in
+                                stencil_pad['layers']]):
+                            # Get the size of the stencil pad
+                            s_x = stencil_pad['pos']['x']
+                            s_y = stencil_pad['pos']['y']
+                            s_w = stencil_pad['size']['x']
+                            s_h = stencil_pad['size']['y']
+                            s_left = s_x - s_w/2.
+                            s_right = s_x + s_w/2.
+                            s_bottom = s_y - s_h/2.
+                            s_top = s_y + s_h/2.
+                            # If the stencil pad is entirely within the copper
+                            # pad, mark the layer as present
+                            if (p_left <= s_left
+                                    and p_right >= s_right
+                                    and p_bottom <= s_bottom
+                                    and p_top >= s_top):
+                                present = True
+
                 if not present:
                     missing_layer_errors.append("Pad '{n}' missing layer '{lyr}'".format(
                         n=pad['number'],
