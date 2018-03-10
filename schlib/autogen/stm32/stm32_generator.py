@@ -574,24 +574,6 @@ class Device:
             movedGroups.append(groupToMove)
             rightGroups.pop()
 
-        # Stack the top pins, counting how many visible ones there are
-        topPins = sorted(topPins, key=lambda p: p.name)
-        top_pin_count = len(topPins)
-        for pin, prevpin in zip(topPins[1:], topPins[:-1]):
-            if pin.name == prevpin.name:
-                pin.el_type = DrawingPin.PinElectricalType.EL_TYPE_PASSIVE
-                pin.visiblility = DrawingPin.PinVisibility.INVISIBLE
-                top_pin_count -= 1
-
-        # Stack the bottom pins, counting how many visible ones there are
-        bottomPins = sorted(bottomPins, key=lambda p: p.name)
-        bottom_pin_count = len(bottomPins)
-        for pin, prevpin in zip(bottomPins[1:], bottomPins[:-1]):
-            if pin.name == prevpin.name:
-                pin.el_type = DrawingPin.PinElectricalType.EL_TYPE_PASSIVE
-                pin.visiblility = DrawingPin.PinVisibility.INVISIBLE
-                bottom_pin_count -= 1
-
         # Calculate height of the symbol
         box_height = max(leftSpace, rightSpace) * 100
 
@@ -602,8 +584,8 @@ class Device:
         left_width = round_up(max(map(pin_group_max_width,
                 leftGroups + movedGroups)), 100)
         right_width = round_up(max(map(pin_group_max_width, rightGroups)), 100)
-        top_width = top_pin_count * 100
-        bottom_width = bottom_pin_count * 100
+        top_width = len(topPins) * 100
+        bottom_width = len(bottomPins) * 100
         box_width = (left_width + 100 + max(top_width, bottom_width) +
                 right_width)
 
@@ -644,9 +626,7 @@ class Device:
 
         # Add the top pins
         x = (box_width - top_width + 100) // 2 // 100 * 100
-        for pin in topPins:
-            if pin.visiblility == DrawingPin.PinVisibility.INVISIBLE:
-                x -= 100
+        for pin in sorted(topPins, key=lambda p: p.name):
             pin.at = Point(x, box_height + pin_length)
             pin.orientation = DrawingPin.PinOrientation.DOWN
             self.symbol.drawing.append(pin)
@@ -654,9 +634,7 @@ class Device:
 
         # Add the bottom pins
         x = (box_width - bottom_width + 100) // 2 // 100 * 100
-        for pin in bottomPins:
-            if pin.visiblility == DrawingPin.PinVisibility.INVISIBLE:
-                x -= 100
+        for pin in sorted(bottomPins, key=lambda p: p.name):
             pin.at = Point(x, -pin_length)
             pin.orientation = DrawingPin.PinOrientation.UP
             self.symbol.drawing.append(pin)
