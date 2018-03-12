@@ -40,7 +40,7 @@ def pinTypeToStr(pinType):
         return pinMap[pinType]
     else:
         return "INVALID"
-        
+
 def backgroundFillToStr(bgFill):
     bgMap={
     "F":"FOREGROUND",
@@ -50,7 +50,7 @@ def backgroundFillToStr(bgFill):
         return bgMap[bgFill]
     else:
         return "INVALID"
-        
+
 def pinString(pin, loc=True, unit=None, convert=None):
     return "Pin {name} ({num}){loc}{unit}".format(
         name = pin['name'],
@@ -73,10 +73,8 @@ class KLCRule(KLCRuleBase):
 
     verbosity = 0
 
-    def __init__(self, component, name, description):
-    
-        KLCRuleBase.__init__(self, name, description)
-        
+    def __init__(self, component, description):
+
+        KLCRuleBase.__init__(self, description)
+
         self.component = component
-        
-    

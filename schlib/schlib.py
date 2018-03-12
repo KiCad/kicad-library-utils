@@ -130,7 +130,7 @@ class Component(object):
     _POLY_KEYS = ['point_count','unit','convert','thickness','points','fill']
     _RECT_KEYS = ['startx','starty','endx','endy','unit','convert','thickness','fill']
     _TEXT_KEYS = ['direction','posx','posy','text_size','text_type','unit','convert','text', 'italic', 'bold', 'hjustify', 'vjustify']
-    _PIN_KEYS = ['name','num','posx','posy','length','direction','name_text_size','num_text_size','unit','convert','electrical_type','pin_type']
+    _PIN_KEYS = ['name','num','posx','posy','length','direction','num_text_size','name_text_size','unit','convert','electrical_type','pin_type']
 
     _DRAW_KEYS = {'A':_ARC_KEYS, 'C':_CIRCLE_KEYS, 'P':_POLY_KEYS, 'S':_RECT_KEYS, 'T':_TEXT_KEYS, 'X':_PIN_KEYS}
     # _DRAW_ELEMS = {'arcs':'A', 'circles':'C', 'polylines':'P', 'rectangles':'S', 'texts':'T', 'pins':'X'}
@@ -157,6 +157,9 @@ class Component(object):
             s.commenters = ''
             s.quotes = '"'
             line = list(s)
+
+            if len(line) == 0:
+                continue
 
             if line[0] in self._KEYS:
                 key_list = self._KEYS[line[0]]
@@ -297,6 +300,24 @@ class Component(object):
 
     def isGraphicSymbol(self):
         return self.isNonBOMSymbol() and len(self.pins)==0
+
+    # heuristics, which tries to determine whether this is a "small" component (resistor, capacitor, LED, diode, transistor, ...)
+    def isSmallComponentHeuristics(self):
+        if len(self.pins)<=2:
+            return True;
+
+        # If there is only a single filled rectangle, we assume that it is the
+        # main symbol outline.
+        drawing = self.draw
+        filled_rects = [rect for rect in drawing['rectangles']
+                        if rect['fill'] == 'f']
+        
+        # if there is no filled rectangle as symbol outline and we have 3 or 4 pins, we assume this 
+        # is a small symbol
+        if len(self.pins)>=3 and len(self.pins)<=4 and len(filled_rects) == 0:
+            return True;
+        
+        return False;
 
 
 

@@ -133,7 +133,7 @@ class SymbolField:
     def __str__(self):
         # Fn "value" X Y Size H V C CNN "name"
         # (name only for n >3)
-        return 'F{idx:d} "{value:s}" {at:s} {size:d} {orientation:s} {visiblility:s} {allign_h:s} {allign_v:s}{style:s}{weight:s}{name:s}\n'.format(
+        return 'F{idx:d} "{value:s}" {at:s} {size:d} {orientation:s} {visiblility:s} {allign_v:s} {allign_h:s}{style:s}{weight:s}{name:s}\n'.format(
             name = '' if self.idx < 4 else ' "{name}"'.format(name = self.name),
             idx = self.idx, value = self.value, at = self.at,
             size = self.fontsize, weight = self.fontweight, style = self.fontstyle,
