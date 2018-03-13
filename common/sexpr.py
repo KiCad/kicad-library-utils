@@ -35,7 +35,7 @@ def parse_sexp(sexp):
             if v.is_integer(): v = int(v)
             out.append(v)
         elif term == 'sq':
-            out.append(value[1:-1])
+            out.append(value[1:-1].replace(r'\"', '"'))
         elif term == 's':
             out.append(value)
         else:
@@ -188,7 +188,7 @@ def build_sexp(exp, key=None):
         out += '('+ ' '.join(build_sexp(x) for x in exp) + ')'
         return out
     elif type(exp) == type('') and re.search(r'[\s()]', exp):
-        out += '"%s"' % repr(exp)[1:-1].replace('"', '\"')
+        out += '"%s"' % repr(exp)[1:-1].replace('"', r'\"')
     elif type(exp) in [int,float]:
         out += float_render % exp
     else:
@@ -235,6 +235,7 @@ def format_sexp(sexp, indentation_size=2, max_nesting=2):
 
 if __name__ == '__main__':
     sexp = ''' ( ( data "quoted data" 123 4.5)
+         (data "with \\"escaped quotes\\"")
          (data (123 (4.5) "(more" "data)")))'''
 
     print('Input S-expression: %r' % (sexp, ))
