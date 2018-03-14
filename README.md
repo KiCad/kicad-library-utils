@@ -6,11 +6,11 @@ KiCad utilities
 
 **checklib.py**: Script for checking [KLC][] compliance of schematic symbol libraries.
 
-**schlib.py**: A Python module for parsing KiCad's Schematic Libraries Files Format.
+**schlib.py**: A Python module for parsing KiCad's schematic library file format.
 
 **test_schlib.sh**: A shell script used to validate the generation of files of the schlib module.
 
-**fix-pins.py**: A script created to help adapt existing library files to the [KiCad Library Convention][KLC] by testing some cases of x/y "wrong" pin positions and trying to fix them. The description of the cases are explained in the head of the script file.
+**fix-pins.py**: A script created to help adapt existing library files to the [KiCad Library Convention][KLC] by testing some cases of x/y "wrong" pin positions and trying to fix them. The description of the cases are explained in the header of the script file.
 
 **move_part.py**: Script to move components between libraries.
 
@@ -18,21 +18,21 @@ KiCad utilities
 
 ## sch directory
 
-**sch.py**: A Python module for parsing KiCad's Schematic Files Format.
+**sch.py**: A Python module for parsing KiCad's schematic file format.
 
 **test_sch.sh**: A shell script used to validate the generation of files of the sch module.
 
 **add_part_number.py**: This script is used to add/edit part number fields in the schematic files.
 
-**update_footprints.py**: This script updates the footprint fields of sch files using a csv file as input.
+**update_footprints.py**: This script updates the footprint fields of `.sch` files using a `.csv` file as input.
 
 ## pcb directory
 
 **check_kicad_mod.py**: Script for checking [KLC][] compliance of footprint files.
 
-**kicad_mod.py**: A Python module for working with KiCad footprint files.
+**kicad_mod.py**: A Python module for loading, editing, and saving KiCad footprint files.
 
-**check_3d_coverage.py**: Script for checking which KiCad footprint files have references to 3D models that exist in the associated `3dshapes` folder in the KiCad library. It also shows unused 3D model files.
+**check_3d_coverage.py**: Script for checking which KiCad footprints in a `.pretty` library have 3D models. It also shows unused 3D model files.
 
 [KLC]: http://kicad-pcb.org/libraries/klc/
 
