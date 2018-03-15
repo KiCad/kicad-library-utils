@@ -14,7 +14,7 @@ KiCad utilities
 
 **move_part.py**: Script to move components between libraries.
 
-**autogen/stm32/**: Automatic STM32 library generation from pin files provided by ST. Detailed information can be found in [autogen/stm32/README.md](schlib/autogen/stm32/README.md)
+**autogen/**: Scripts for automatically generating schematic symbol libraries.
 
 ## sch directory
 
