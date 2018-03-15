@@ -44,11 +44,11 @@ class Rule(KLCRule):
         if not font['width'] == font['height']:
             errors.append("Reference label font aspect ratio should be 1:1")
         if font['height'] !=  KLC_TEXT_SIZE:
-            errors.append("Reference label has a height of {1}mm (expected: {0}mm).\n".format(KLC_TEXT_SIZE,font['height']))
+            errors.append("Reference label has a height of {1}mm (expected: {0}mm).".format(KLC_TEXT_SIZE,font['height']))
         if font['width'] != KLC_TEXT_SIZE:
-            errors.append("Reference label has a width of {1}mm (expected: {0}mm).\n".format(KLC_TEXT_SIZE,font['width']))
+            errors.append("Reference label has a width of {1}mm (expected: {0}mm).".format(KLC_TEXT_SIZE,font['width']))
         if font['thickness'] != KLC_TEXT_THICKNESS:
-            errors.append("Reference label has a thickness of {1}mm (expected: {0}mm).\n".format(KLC_TEXT_THICKNESS,font['thickness']))
+            errors.append("Reference label has a thickness of {1}mm (expected: {0}mm).".format(KLC_TEXT_THICKNESS,font['thickness']))
 
         self.refDesError = len(errors) > 0
 
