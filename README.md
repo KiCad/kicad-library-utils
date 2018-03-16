@@ -4,42 +4,37 @@ KiCad utilities
 
 ## schlib directory
 
-**schlib.py**: A python class to parse Schematic Libraries Files Format of the KiCad.
+**checklib.py**: Script for checking [KLC][] compliance of schematic symbol libraries.
 
+**schlib.py**: A Python module for parsing KiCad's schematic library file format.
 
-**checklib.py**: Such script invokes each checkrule script testing the requested libraries.
+**test_schlib.sh**: A shell script used to validate the generation of files of the schlib module.
 
-
-**checkrule3_x.py**: Each checkrule script checks your correspondent rule and prints out a report informing what is in disagreement with the [KiCad Library Convention](https://github.com/KiCad/kicad-library/wiki/Kicad-Library-Convention).
-
-
-**fix-pins.py**: Such script was created in order to help the adaptation of the already existing library files to the KiCad Library Convention. It tests some cases of x/y "wrong" pins positions and try to fix them if they pass in the checking of some prerequisites. The description of the cases are explained in the head of the script file.
-
-**test_schlib.sh**: A shell script used to validate the generation of files of the schlib class.
+**fix-pins.py**: A script created to help adapt existing library files to the [KiCad Library Convention][KLC] by testing some cases of x/y "wrong" pin positions and trying to fix them. The description of the cases are explained in the header of the script file.
 
 **move_part.py**: Script to move components between libraries.
 
-**autogen/stm32**: Automatic STM32 library generation from pin files provided by ST. Detailed information can be found in **autogen/stm32/README.md**
+**autogen/**: Scripts for automatically generating schematic symbol libraries.
 
 ## sch directory
 
-**sch.py**: A python class to parse Schematic Files Format of the KiCad.
+**sch.py**: A Python module for parsing KiCad's schematic file format.
 
-**test_sch.sh**: A shell script used to validate the generation of files of the sch class.
+**test_sch.sh**: A shell script used to validate the generation of files of the sch module.
 
-**add_part_number.py**: This script is used to add/edit part numbers fields in the schematic files.
+**add_part_number.py**: This script is used to add/edit part number fields in the schematic files.
 
-**update_footprints.py**: This script updates the footprints fields of sch files using a csv as input.
+**update_footprints.py**: This script updates the footprint fields of `.sch` files using a `.csv` file as input.
 
 ## pcb directory
 
-**kicad_mod.py**: A python class to handle KiCad footprint files, as know as kicad_mod.
+**check_kicad_mod.py**: Script for checking [KLC][] compliance of footprint files.
 
-**check_kicad_mod.py**: Such script invokes each checkrule script testing the requested module file.
+**kicad_mod.py**: A Python module for loading, editing, and saving KiCad footprint files.
 
-**checkruleX_Y.py**: Each checkrule script checks your correspondent rule and prints out a report informing what is in disagreement with the [KiCad Library Convention](https://github.com/KiCad/kicad-library/wiki/Kicad-Library-Convention).
+**check_3d_coverage.py**: Script for checking which KiCad footprints in a `.pretty` library have 3D models. It also shows unused 3D model files.
 
-**check_3d_coverage.py**: This script checks which KiCad footprint files have references to 3D models that exist in the associated `3dshapes` folder in the KiCad library. It also shows unused 3D model files.
+[KLC]: http://kicad-pcb.org/libraries/klc/
 
 How to use
 ==========
