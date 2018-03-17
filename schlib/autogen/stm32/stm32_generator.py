@@ -586,8 +586,8 @@ class Device:
         right_width = round_up(max(map(pin_group_max_width, rightGroups)), 100)
         top_width = len(topPins) * 100
         bottom_width = len(bottomPins) * 100
-        box_width = (left_width + 100 + max(top_width, bottom_width) +
-                right_width)
+        middle_width = 100 + max(top_width, bottom_width)
+        box_width = left_width + middle_width + right_width
 
         # Add the body rectangle
         self.symbol.drawing.append(DrawingRectangle(Point(0, 0),
@@ -625,15 +625,16 @@ class Device:
             y += 100
 
         # Add the top pins
-        x = (box_width - top_width + 100) // 2 // 100 * 100
+        x = (left_width + (100 + middle_width) // 2 - top_width // 2) // 100 * 100
         for pin in sorted(topPins, key=lambda p: p.name):
             pin.at = Point(x, box_height + pin_length)
             pin.orientation = DrawingPin.PinOrientation.DOWN
             self.symbol.drawing.append(pin)
             x += 100
+        last_top_x = x
 
         # Add the bottom pins
-        x = (box_width - bottom_width + 100) // 2 // 100 * 100
+        x = (left_width + (100 + middle_width) // 2 - bottom_width // 2) // 100 * 100
         for pin in sorted(bottomPins, key=lambda p: p.name):
             pin.at = Point(x, -pin_length)
             pin.orientation = DrawingPin.PinOrientation.UP
@@ -661,7 +662,7 @@ class Device:
                 at=Point(0, box_height + 50).translate(translate_center),
                 allignment_vertical=SymbolField.FieldAlligment.LEFT)
         self.symbol.setValue(value=self.name,
-                at=Point((box_width-top_width+100)//2//100*100+top_width,
+                at=Point(last_top_x,
                 box_height + 50).translate(translate_center),
                 allignment_vertical=SymbolField.FieldAlligment.LEFT)
         self.symbol.setDefaultFootprint(value=self.footprint,
