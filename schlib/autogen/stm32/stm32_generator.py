@@ -469,7 +469,7 @@ class Device:
         # Get pin length
         # NOTE: there is a typo in the library making it so we have to call
         # this "pin_lenght" when making the drawing pin.  Whoops!
-        pin_length = 100 if len(self.pins) < 100 else 200
+        pin_length = 100 if all(len(pin.num) < 3 for pin in self.pins) else 200
 
         # Classify pins
         for pin in self.pins:
