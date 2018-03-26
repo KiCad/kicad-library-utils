@@ -191,6 +191,22 @@ class DrawingRectangle:
             line_width = self.line_width, fill = self.fill
         )
 
+    def toPolyline(self):
+        p1 = Point(self.start)
+        p3 = Point(self.end)
+        p2 = Point(p1.x, p3.y)
+        p4 = Point(p3.x, p1.y)
+
+        points = [p1, p2, p3, p4, p1]
+
+        polyline = DrawingPolyline(
+            points=points,
+            unit_idx=self.unit_idx, deMorgan_idx=self.deMorgan_idx,
+            line_width=self.line_width, fill=self.fill
+        )
+
+        return polyline
+
     def translate(self, distance, apply_on_copy = False):
         obj = self if not apply_on_copy else deepcopy(self)
 
@@ -198,10 +214,17 @@ class DrawingRectangle:
         obj.end.translate(distance)
         return obj
 
-    def rotate(self, angle, origin = {'x':0, 'y':0}, apply_on_copy = False):
+    def rotate(self, angle, origin = None, apply_on_copy = False):
         # obj = self if not apply_on_copy else deepcopy(self)
+        if not apply_on_copy:
+            raise NotImplementedError('Rotating the rectangles only implemented for copies -> converts to polyline')
 
-        raise NotImplementedError('Rotating the rectangles is not yet implemented. Use polyline instead.')
+        if origin is None:
+            origin = Point((self.start.x + self.end.x)/2, (self.start.y + self.end.y)/2)
+
+        obj = self.toPolyline()
+        obj.rotate(angle, origin, False)
+        return obj
         # return obj
 
     def mirrorVertical(self, apply_on_copy = False):
@@ -252,7 +275,21 @@ class DrawingPolyline:
             point.translate(distance)
         return obj
 
-    def rotate(self, angle, origin = {'x':0, 'y':0}, apply_on_copy = False):
+    def rotate(self, angle, origin = None, apply_on_copy = False):
+        if origin is None:
+            x = 0
+            y = 0
+            if self.points[0] == self.points[-1]:
+                points = self.points[:-1]
+            else:
+                points = self.points
+
+            for point in points:
+                x += point.x
+                y += point.y
+
+            origin = Point(x/len(point), y/len(point))
+
         obj = self if not apply_on_copy else deepcopy(self)
 
         for point in obj.points:
@@ -381,8 +418,10 @@ class DrawingCircle:
         obj.at.translate(distance)
         return obj
 
-    def rotate(self, angle, origin = {'x':0, 'y':0}, apply_on_copy = False):
+    def rotate(self, angle, origin = None, apply_on_copy = False):
         obj = self if not apply_on_copy else deepcopy(self)
+        if origin is None:
+            return obj
 
         obj.at.rotate(angle, origin)
         return obj
@@ -400,23 +439,110 @@ class DrawingCircle:
         return obj
 
 class DrawingText:
-    def __init__(self, at, radius, **kwargs):
-        raise NotImplementedError('Text is not yet implementd')
+    class FontType(Enum):
+        ITALIC = 'Italic'
+        NORMAL = 'Normal'
+
+        def __str__(self):
+            return self.value
+
+    class FontWeight(Enum):
+        BOLD = '1'
+        NORMAL = '0'
+
+        def __str__(self):
+            return self.value
+
+    class VerticalAligment(Enum):
+        CENTER = 'C'
+        TOP = 'T'
+        BOTTOM ='B'
+
+        def __str__(self):
+            return self.value
+
+    class HorizontalAligment(Enum):
+        CENTER = 'C'
+        LEFT = 'L'
+        RIGHT = 'R'
+
+        def __str__(self):
+            return self.value
+
+    def __init__(self, at, text, **kwargs):
+        self.at = at
+        self.text = text
+        self.angle = kwargs.get("angle", 0)
+        self.size = int(kwargs.get("size", 50))
+
+        self.unit_idx = int(kwargs.get('unit_idx', 1))
+        self.deMorgan_idx = int(kwargs.get('deMorgan_idx', 1))
+
+        self.hidden = int(kwargs.get('hidden', 0))
+        if self.hidden not in [0,1]:
+            raise TypeError('hidden needs to be 0 or 1')
+
+        font_type = kwargs.get('font_type', DrawingText.FontType.NORMAL)
+        if isinstance(font_type, DrawingText.FontType):
+            self.font_type = font_type
+        else:
+            raise TypeError('font_type needs to be of type DrawingText.FontType')
+
+        font_weight = kwargs.get('font_type', DrawingText.FontWeight.NORMAL)
+        if isinstance(font_weight, DrawingText.FontWeight):
+            self.font_weight = font_weight
+        else:
+            raise TypeError('font_weight needs to be of type DrawingText.FontWeight')
+
+        valign = kwargs.get('valign', DrawingText.VerticalAligment.CENTER)
+        if isinstance(valign, DrawingText.VerticalAligment):
+            self.valign = valign
+        else:
+            raise TypeError('valign needs to be of type DrawingText.VerticalAligment')
+
+        halign = kwargs.get('halign', DrawingText.HorizontalAligment.CENTER)
+        if isinstance(halign, DrawingText.HorizontalAligment):
+            self.halign = halign
+        else:
+            raise TypeError('halign needs to be of type DrawingText.HorizontalAligment')
 
     def __str__(self):
-        raise NotImplementedError('Text is not yet implementd')
+        # T angle X Y size hidden part dmg text italic bold Halign Valign
+        return 'T {angle:d} {at:s} {size:d} {hidden:d} {unit_idx:d} {deMorgan_idx:d}'\
+            ' "{text:s}" {italic:s} {bold:s} {Halign:s} {Valign:s}\n'.format(
+                angle=int(self.angle*10), at=self.at, size=self.size,
+                hidden=self.hidden, unit_idx=self.unit_idx, deMorgan_idx=self.deMorgan_idx,
+                text=self.text, italic=self.font_type, bold=self.font_weight,
+                Halign=self.halign, Valign=self.valign
+            )
 
     def translate(self, distance, apply_on_copy = False):
-        raise NotImplementedError('Text is not yet implementd')
+        obj = self if not apply_on_copy else deepcopy(self)
 
-    def rotate(self, angle, origin = {'x':0, 'y':0}, apply_on_copy = False):
-        raise NotImplementedError('Text is not yet implementd')
+        obj.at.translate(distance)
+        return obj
+
+    def rotate(self, angle, origin = None, apply_on_copy = False):
+        if origin is None:
+            origin = self.at
+        obj = self if not apply_on_copy else deepcopy(self)
+
+        obj.at.rotate(angle, origin)
+        obj.angle += angle
+        return obj
 
     def mirrorHorizontal(self, apply_on_copy = False):
-        raise NotImplementedError('Text is not yet implementd')
+        obj = self if not apply_on_copy else deepcopy(self)
+
+        obj.at.mirrorHorizontal()
+        return obj
 
     def mirrorVertical(self, apply_on_copy = False):
-        raise NotImplementedError('Text is not yet implementd')
+        obj = self if not apply_on_copy else deepcopy(self)
+
+        obj.at.mirrorVertical()
+        return obj
+
 
 
 class Drawing:
