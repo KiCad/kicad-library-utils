@@ -49,6 +49,7 @@ class Device:
     _number_findall = re.compile(r"\d+")
     _pincount_search = re.compile(r"^[a-zA-Z]+([0-9]+)$")
     _pinname_split = re.compile('[ /-]+')
+    _pkgname_sub = re.compile(r"([a-zA-Z]+)([0-9]+)(-.*|)")
 
     _SPECIAL_PIN_MAPPING = {
         "PC14OSC32_IN": ["PC14"],
@@ -338,11 +339,12 @@ class Device:
 
     def create_symbol(self, gen):
         # Make strings for DCM entries
-        freqstr = f"Frequency: {self.freq}MHz " if self.freq else ""
-        voltstr = f"Voltage: {self.voltage[0]}..{self.voltage[1]}V " if self.voltage else ""
-        desc_fmt = (f"Core: {self.core} Package: {self.package} Flash: "
-                f"{{flash}}KB Ram: {{ram}}KB {freqstr}{voltstr}"
-                f"IO-pins: {self.io}")
+        freqstr = f"{self.freq}MHz, " if self.freq else ""
+        voltstr = f"{self.voltage[0]}-{self.voltage[1]}V, " if self.voltage else ""
+        pkgstr = self._pkgname_sub.sub(r'\1-\2', self.package)
+        desc_fmt = (f"{self.core} MCU, {{flash}}KB flash, "
+                f"{{ram}}KB RAM, {freqstr}{voltstr}{self.io} GPIO, "
+                f"{pkgstr}")
         keywords = f"{self.core} {self.family} {self.line}"
         datasheet = "" if self.pdf is None else (f"http://www.st.com/"
                 f"st-web-ui/static/active/en/resource/technical/document/"
