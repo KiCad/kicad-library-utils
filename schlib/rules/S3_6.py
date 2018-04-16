@@ -32,8 +32,7 @@ class Rule(KLCRule):
         """
         Proceeds the fixing of the rule, if possible.
         """
-        self.info("Fixing...")
-        self.component.draw['rectangles'][0]['thickness'] = '10'
-        self.component.draw['rectangles'][0]['fill'] = 'f'
+        self.info("Fixing, assuming typical symbol geometry...")
+        self.component.definition['text_offset'] = '20'
 
         self.recheck()
