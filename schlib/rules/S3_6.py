@@ -22,7 +22,7 @@ class Rule(KLCRule):
             self.warningExtra("Pin offset ({o}) should not be below 20mils".format(o=offset))
             return True
         elif offset > 20:
-            self.warning("Pin offset is not preferred value")
+            self.warning("Pin offset not preferred value")
             self.warningExtra("Pin offset ({o}) should be 20mils unless"
                     " required by symbol geometry".format(o=offset))
 
