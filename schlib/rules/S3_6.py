@@ -13,7 +13,12 @@ class Rule(KLCRule):
 
         offset = int(self.component.definition['text_offset'])
 
-        if offset > 50:
+        if offset == 0:
+            # An offset of 0 means the text is placed next to the pin, not
+            # inside the symbol.  As the offset only applies when the text is
+            # inside the symbol, this case is perfectly OK.
+            return False
+        elif offset > 50:
             self.error("Pin offset outside allowed range")
             self.errorExtra("Pin offset ({o}) must not be above 50mils".format(o=offset))
             return True
