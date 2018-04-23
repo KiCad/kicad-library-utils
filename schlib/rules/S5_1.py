@@ -88,10 +88,13 @@ class Rule(KLCRule):
                 if len(filters)>1:
                     self.error("Symbol has a footprint defined in the footprint field, but several ({fpcnt}) footprint filters set. If the symbol is for a single default footprint, remove the surplus filters. If the symbol is meant for multiple different footprints, empty the footprint field.".format(fpcnt=len(filters)))
                     fails=True
-            else:
-                if len(filters)==1:
-                    self.error("Symbol has a single fooprint filter string '"+filters[0]+"' (i.e. it seems to be intended for a single default footprint only), but the footprint field is empty. Fill footprint field with the correct footprint in the form LIBRARY:FOOTPRINT.")
-                    fails=True
+            elif len(filters)==1:
+                self.warning("Symbol possibly missing default footprint")
+                self.warningExtra("Symbol has a single footprint filter "
+                        "string '{fil}' (i.e. it may be intended for a single "
+                        "default footprint only), but the footprint field is "
+                        "empty.".format(fil=filters[0]))
+                fails=True
 
 
         return fail
