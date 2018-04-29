@@ -419,6 +419,72 @@ class KicadMod(object):
             a = self._getArray(pad, 'thermal_gap')
             if a: pad_dict['thermal_gap'] = a[0][1]
 
+            # Custom pad shape settings
+            if pad_dict['shape'] == 'custom':
+                # Get options
+                pad_dict['options'] = {'clearance': {}, 'anchor': {}}
+                a = self._getArray(pad, 'options')
+                c = self._getArray(a, 'clearance')
+                if c:
+                    pad_dict['options']['clearance'] = c[0][1]
+                c = self._getArray(a, 'anchor')
+                if c:
+                    pad_dict['options']['anchor'] = c[0][1]
+
+                # Get primitives
+                pad_dict['primitives'] = []
+                a = self._getArray(pad, 'primitives')
+                if a:
+                    for primitive in a[0][1:]:
+                        p = {}
+                        # Everything has a width
+                        p['width'] = {}
+                        w = self._getArray(primitive, 'width')
+                        if w: p['width'] = w[0][1]
+                        # Set primitive type
+                        p['type'] = primitive[0]
+                        if primitive[0] == 'gr_poly':
+                            # Read the polygon's points
+                            p['pts'] = []
+                            pts = self._getArray(primitive, 'pts')
+                            for pt in pts[0][1:]:
+                                p['pts'].append({
+                                    'x': pt[1],
+                                    'y': pt[2]})
+                        elif primitive[0] == 'gr_line':
+                            # Read the line's start
+                            p['start'] = {}
+                            s = self._getArray(primitive, 'start')
+                            if s: p['start'] = {'x': s[0][1], 'y': s[0][2]}
+                            # Read the line's end
+                            p['end'] = {}
+                            e = self._getArray(primitive, 'end')
+                            if e: p['end'] = {'x': e[0][1], 'y': e[0][2]}
+                        elif primitive[0] == 'gr_arc':
+                            # Read the arc's start
+                            p['start'] = {}
+                            s = self._getArray(primitive, 'start')
+                            if s: p['start'] = {'x': s[0][1], 'y': s[0][2]}
+                            # Read the arc's end
+                            p['end'] = {}
+                            e = self._getArray(primitive, 'end')
+                            if e: p['end'] = {'x': e[0][1], 'y': e[0][2]}
+                            # Read the arc's angle
+                            p['angle'] = {}
+                            n = self._getArray(primitive, 'angle')
+                            if n: p['angle'] = n[0][1]
+                        elif primitive[0] == 'gr_circle':
+                            # Read the line's start
+                            p['center'] = {}
+                            c = self._getArray(primitive, 'center')
+                            if c: p['center'] = {'x': c[0][1], 'y': c[0][2]}
+                            # Read the line's end
+                            p['end'] = {}
+                            e = self._getArray(primitive, 'end')
+                            if e: p['end'] = {'x': e[0][1], 'y': e[0][2]}
+
+                        pad_dict['primitives'].append(p)
+
             pads.append(pad_dict)
 
         return pads
@@ -705,7 +771,7 @@ class KicadMod(object):
             sx = pad['size']['x']
             sy = pad['size']['y']
 
-            angle = pad['pos']['orientation']
+            angle = -pad['pos']['orientation']
 
             # Add each "corner" of the pad (even for oval shapes)
 
@@ -715,6 +781,41 @@ class KicadMod(object):
             p4 = _rotatePoint({'x': +sx/2, 'y': -sy/2}, angle)
 
             points = [p1, p2, p3, p4]
+
+            # Add more points for custom pad shapes
+            if pad['shape'] == 'custom':
+                for p in pad['primitives']:
+                    if p['type'] == 'gr_poly':
+                        # Add polygon points
+                        for point in p['pts']:
+                            points.append(_rotatePoint(point, angle))
+                    elif p['type'] == 'gr_line':
+                        # Add line points
+                        s = _rotatePoint(p['start'], angle)
+                        e = _rotatePoint(p['end'], angle)
+                        w = p['width']
+                        points.append(_movePoint(s, {'x': -w/2, 'y': -w/2}))
+                        points.append(_movePoint(s, {'x': -w/2, 'y': +w/2}))
+                        points.append(_movePoint(s, {'x': +w/2, 'y': +w/2}))
+                        points.append(_movePoint(s, {'x': +w/2, 'y': -w/2}))
+                        points.append(_movePoint(e, {'x': -w/2, 'y': -w/2}))
+                        points.append(_movePoint(e, {'x': -w/2, 'y': +w/2}))
+                        points.append(_movePoint(e, {'x': +w/2, 'y': +w/2}))
+                        points.append(_movePoint(e, {'x': +w/2, 'y': -w/2}))
+                    elif p['type'] == 'gr_arc':
+                        # Add arc points
+                        # TODO
+                        pass
+                    elif p['type'] == 'gr_circle':
+                        # Add circle points
+                        c = _rotatePoint(p['center'], angle)
+                        e = _rotatePoint(p['end'], angle)
+                        r = math.sqrt((e['x']-c['x'])**2 + (e['y']-c['y'])**2)
+                        w = p['width']
+                        points.append(_movePoint(c, {'x': -r-w/2, 'y': 0}))
+                        points.append(_movePoint(c, {'x': +r+w/2, 'y': 0}))
+                        points.append(_movePoint(c, {'x': 0, 'y': -r-w/2}))
+                        points.append(_movePoint(c, {'x': 0, 'y': +r+w/2}))
 
             for p in points:
                 x = px + p['x']
@@ -882,6 +983,8 @@ class KicadMod(object):
         # thermal gap
         if pad['thermal_gap']:
             extras.append({'thermal_gap': pad['thermal_gap']})
+
+        # TODO: properly format custom pad shapes
 
         if len(extras) > 0:
             se.addItems(extras, newline=True, indent=True)
