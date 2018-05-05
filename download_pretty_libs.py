@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+#
+# Download script for KiCad version 4 libraries. 
+# KiCad version 5 does not need such a script as all footprint libs 
+# are consolitated into one repository (https://github.com/KiCad/kicad-footprints)
 
 from __future__ import print_function
 
@@ -22,7 +26,7 @@ else:
     import urllib.request as urlrequest
 
 
-parser = argparse.ArgumentParser(description="Download KiCad footprint libraries, and keep them up to date")
+parser = argparse.ArgumentParser(description="Download KiCad version 4 footprint libraries, and keep them up to date")
 parser.add_argument("-p", "--path", help="Directory to download libs. Current directory is used if unspecified", action="store")
 parser.add_argument("-l", "--lib", help="Select which libraries to download (regex filter)", action="store")
 parser.add_argument("-i", "--ignore", help="Select which libraries to ignore (regex filter)", action="store")
