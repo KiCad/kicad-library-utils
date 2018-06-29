@@ -103,7 +103,7 @@ class Rule(KLCRule):
 
         if not model_file == fp_name:
             # Exception for footprints that have additions e.g. "_ThermalPad"
-            if fp_name.startswith(model_file) or model_file in fp_name or fp_name in model_file:
+            if model_file in fp_name or fp_name in model_file:
                 self.warning("3D model name is different from footprint name (found '{n1}', expected '{n2}'), but this might be intentional!".format(n1=model_file, n2=fp_name))
                 self.needsFixMore = True
                 self.model3D_wrongName = True
