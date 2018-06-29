@@ -53,9 +53,6 @@ class Rule(KLCRule):
                 "Found {{'x': {s[x]:}, 'y': {s[y]:}, 'z': {s[z]:}}}"\
                 .format(s=model['scale']))
 
-        # Allowed model types
-        extensions = ["wrl"]
-
         model = model['file']
 
         self.model3D_missingSYSMOD = False
@@ -85,6 +82,9 @@ class Rule(KLCRule):
         fn = filename.split(".")
         model_file = ".".join(fn[:-1])
         model_ext = fn[-1]
+
+        # Allowed model types
+        extensions = {"wrl"}
 
         if not model_ext.lower() in extensions:
             self.error("Model '{mod}' is incompatible format (must be WRL file)".format(mod=model))
