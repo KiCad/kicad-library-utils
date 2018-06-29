@@ -20,9 +20,9 @@ class Rule(KLCRule):
         self.model3D_wrongRotation = False
         self.model3D_wrongScale = False
 
-        if model['pos']['x'] != 0 or\
-                model['pos']['y'] != 0 or\
-                model['pos']['z'] != 0:
+        if (model['pos']['x'] != 0
+                or model['pos']['y'] != 0
+                or model['pos']['z'] != 0):
             error = True
             self.model3D_wrongOffset = True
 
@@ -31,9 +31,9 @@ class Rule(KLCRule):
                 "Found {{'x': {o[x]:}, 'y': {o[y]:}, 'z': {o[z]:}}}"\
                 .format(o=model['pos']))
 
-        if model['rotate']['x'] != 0 or\
-                model['rotate']['y'] != 0 or\
-                model['rotate']['z'] != 0:
+        if (model['rotate']['x'] != 0
+                or model['rotate']['y'] != 0
+                or model['rotate']['z'] != 0):
             error = True
             self.model3D_wrongRotation = True
 
@@ -42,9 +42,9 @@ class Rule(KLCRule):
                 "Found {{'x': {r[x]:}, 'y': {r[y]:}, 'z': {r[z]:}}}"\
                 .format(r=model['rotate']))
 
-        if model['scale']['x'] != 1 or\
-                model['scale']['y'] != 1 or\
-                model['scale']['z'] != 1:
+        if (model['scale']['x'] != 1
+                or model['scale']['y'] != 1
+                or model['scale']['z'] != 1):
             error = True
             self.model3D_wrongScale = True
 
@@ -86,7 +86,7 @@ class Rule(KLCRule):
         # Allowed model types
         extensions = {"wrl"}
 
-        if not model_ext.lower() in extensions:
+        if model_ext.lower() not in extensions:
             self.error("Model '{mod}' is incompatible format (must be WRL file)".format(mod=model))
             self.model3D_wrongFiletype = True
             self.needsFixMore = True
@@ -95,13 +95,13 @@ class Rule(KLCRule):
         fp_dir = self.module_dir[0] + ".3dshapes"
         fp_name = self.module.name
 
-        if not model_dir == fp_dir:
+        if model_dir != fp_dir:
             self.error("3D model directory is different from footprint directory (found '{n1}', should be '{n2}')".format(n1=model_dir, n2=fp_dir))
             self.model3D_wrongLib = True
             self.needsFixMore = True
             error = True
 
-        if not model_file == fp_name:
+        if model_file != fp_name:
             # Exception for footprints that have additions e.g. "_ThermalPad"
             if model_file in fp_name or fp_name in model_file:
                 self.warning("3D model name is different from footprint name (found '{n1}', expected '{n2}'), but this might be intentional!".format(n1=model_file, n2=fp_name))
