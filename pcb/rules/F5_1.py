@@ -63,10 +63,13 @@ class Rule(KLCRule):
     def checkSilkscreenWidth(self):
         # check the width
         self.bad_width = []
+        self.non_nominal_width = []
 
         for graph in (self.f_silk + self.b_silk):
             if graph['width'] not in KLC_SILK_WIDTH_ALLOWED:
                 self.bad_width.append(graph)
+            elif graph['width'] != KLC_SILK_WIDTH:
+                self.non_nominal_width.append(graph)
 
     """
     Check if any of the silkscreen intersects
@@ -204,6 +207,7 @@ class Rule(KLCRule):
             * f_silk
             * b_silk
             * bad_width
+            * non_nominal_width
         """
         module = self.module
         self.f_silk = module.filterGraphs('F.SilkS')
@@ -220,9 +224,16 @@ class Rule(KLCRule):
 
         # Display message if bad silkscreen width was found
         if self.bad_width:
-            self.error("Some silkscreen lines have incorrect width: Allowed = {allowed}(mm))".format(allowed=KLC_SILK_WIDTH_ALLOWED))
+            self.error("Some silkscreen lines have incorrect width: Allowed "
+                       "= {allowed} mm".format(allowed=KLC_SILK_WIDTH_ALLOWED))
             for g in self.bad_width:
                 self.errorExtra(graphItemString(g, layer=True, width=True))
+
+        if self.non_nominal_width:
+            self.warning("Some silkscreen lines are not using the nominal "
+                         "width of {width} mm".format(width=KLC_SILK_WIDTH))
+            for g in self.non_nominal_width:
+                self.warningExtra(graphItemString(g, layer=True, width=True))
 
         # Display message if silkscreen was found intersecting with pad
         if self.intersections:

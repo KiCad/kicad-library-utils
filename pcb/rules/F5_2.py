@@ -149,19 +149,32 @@ class Rule(KLCRule):
     # Check fab line widths
     def checkIncorrectWidth(self):
         self.bad_fabrication_width = []
+        self.non_nominal_width = []
         for graph in (self.f_fabrication_all + self.b_fabrication_all):
-            if graph['width'] < KLC_FAB_WIDTH_MIN or graph['width'] > KLC_FAB_WIDTH_MAX:
+            if (graph['width'] < KLC_FAB_WIDTH_MIN
+                    or graph['width'] > KLC_FAB_WIDTH_MAX):
                 self.bad_fabrication_width.append(graph)
+            elif graph['width'] != KLC_FAB_WIDTH:
+                self.non_nominal_width.append(graph)
 
         msg = False
 
-        if len(self.bad_fabrication_width) > 0:
-            self.error("Some fabrication layer lines have a width outside allowed range of [{x}mm - {y}mm]".format(
-                x = KLC_FAB_WIDTH_MIN,
-                y = KLC_FAB_WIDTH_MAX))
+        if self.bad_fabrication_width:
+            self.error("Some fabrication layer lines have a width outside "
+                       "allowed range of [{min}mm - {max}mm]".format(
+                       min = KLC_FAB_WIDTH_MIN,
+                       max = KLC_FAB_WIDTH_MAX))
 
             for g in self.bad_fabrication_width:
                 self.errorExtra(graphItemString(g, layer=True, width=True))
+
+        if self.non_nominal_width:
+            self.warning("Some fabrication layer lines are not using the "
+                       "nominal width of {width} mm".format(
+                       width = KLC_FAB_WIDTH))
+
+            for g in self.non_nominal_width:
+                self.warningExtra(graphItemString(g, layer=True, width=True))
 
         return len(self.bad_fabrication_width) > 0
 
@@ -174,6 +187,7 @@ class Rule(KLCRule):
             * f_fabrication_lines
             * b_fabrication_lines
             * bad_fabrication_width
+            * non_nominal_width
         """
 
         self.missing_value = False
