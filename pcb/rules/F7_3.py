@@ -10,6 +10,7 @@ class Rule(KLCRule):
         super(Rule, self).__init__(module, args, 'Pad 1 should be denoted by rectangular pad')
 
         self.names = ['1', 'A', 'A1', 'P1', 'PAD1']
+        self.pad_1_shapes = ['rect', 'roundrect']
 
     def check(self):
 
@@ -25,14 +26,14 @@ class Rule(KLCRule):
 
             # Pin 1!
             if str(num).upper() in self.names:
-                if not pad['shape'] == 'rect':
+                if not pad['shape'] in self.pad_1_shapes:
                     pad_1_rectangular = False
 
             else:
-                if pad['shape'] == 'rect':
+                if pad['shape'] in self.pad_1_shapes:
                     other_pads_rectangular = True
 
-        if not pad_1_rectangular and len(self.module.pads) > 2:
+        if not pad_1_rectangular and len(self.module.pads) >= 2:
             self.warning("Pad 1 should be rectangular")
             self.warningExtra("Ignore for non-polarized devices")
 
@@ -50,4 +51,3 @@ class Rule(KLCRule):
         for pad in module.filterPads('thru_hole'):
             self.info("Pad {n} - Setting required layers for THT pad".format(n=pad['number']))
             pad['layers'] = self.required_layers
-
