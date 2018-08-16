@@ -33,7 +33,7 @@ class Rule(KLCRule):
                 if pad['shape'] in self.pad_1_shapes:
                     other_pads_rectangular = True
 
-        if not pad_1_rectangular and len(self.module.pads) > 2:
+        if not pad_1_rectangular and len(self.module.pads) >= 2:
             self.warning("Pad 1 should be rectangular")
             self.warningExtra("Ignore for non-polarized devices")
 
