@@ -2,6 +2,7 @@
 
 from rules.rule import *
 import os
+import re
 
 SYSMOD_PREFIX = "${KISYS3DMOD}/"
 
@@ -9,6 +10,17 @@ class Rule(KLCRule):
     """
     Create the methods check and fix to use with the kicad_mod files.
     """
+
+    # Regular expression for suffixes that shouldn't be in the model file
+    suffix_re = (
+        '('
+        '_ThermalVias'
+        '|_Pad[0-9.]*x[0-9.]*mm'
+        '|_HandSolder'
+        '|_CircularHoles'
+        ')'
+    )
+
     def __init__(self, module, args):
         super(Rule, self).__init__(module, args, '3D model settings')
 
@@ -20,9 +32,9 @@ class Rule(KLCRule):
         self.model3D_wrongRotation = False
         self.model3D_wrongScale = False
 
-        if model['pos']['x'] != 0 or\
-                model['pos']['y'] != 0 or\
-                model['pos']['z'] != 0:
+        if (model['pos']['x'] != 0
+                or model['pos']['y'] != 0
+                or model['pos']['z'] != 0):
             error = True
             self.model3D_wrongOffset = True
 
@@ -31,9 +43,9 @@ class Rule(KLCRule):
                 "Found {{'x': {o[x]:}, 'y': {o[y]:}, 'z': {o[z]:}}}"\
                 .format(o=model['pos']))
 
-        if model['rotate']['x'] != 0 or\
-                model['rotate']['y'] != 0 or\
-                model['rotate']['z'] != 0:
+        if (model['rotate']['x'] != 0
+                or model['rotate']['y'] != 0
+                or model['rotate']['z'] != 0):
             error = True
             self.model3D_wrongRotation = True
 
@@ -42,9 +54,9 @@ class Rule(KLCRule):
                 "Found {{'x': {r[x]:}, 'y': {r[y]:}, 'z': {r[z]:}}}"\
                 .format(r=model['rotate']))
 
-        if model['scale']['x'] != 1 or\
-                model['scale']['y'] != 1 or\
-                model['scale']['z'] != 1:
+        if (model['scale']['x'] != 1
+                or model['scale']['y'] != 1
+                or model['scale']['z'] != 1):
             error = True
             self.model3D_wrongScale = True
 
@@ -52,9 +64,6 @@ class Rule(KLCRule):
                 "{{'x': 1, 'y': 1, 'z': 1}}. "\
                 "Found {{'x': {s[x]:}, 'y': {s[y]:}, 'z': {s[z]:}}}"\
                 .format(s=model['scale']))
-
-        # Allowed model types
-        extensions = ["wrl"]
 
         model = model['file']
 
@@ -86,7 +95,10 @@ class Rule(KLCRule):
         model_file = ".".join(fn[:-1])
         model_ext = fn[-1]
 
-        if not model_ext.lower() in extensions:
+        # Allowed model types
+        extensions = {"wrl"}
+
+        if model_ext.lower() not in extensions:
             self.error("Model '{mod}' is incompatible format (must be WRL file)".format(mod=model))
             self.model3D_wrongFiletype = True
             self.needsFixMore = True
@@ -95,25 +107,34 @@ class Rule(KLCRule):
         fp_dir = self.module_dir[0] + ".3dshapes"
         fp_name = self.module.name
 
-        if not model_dir == fp_dir:
+        if model_dir != fp_dir:
             self.error("3D model directory is different from footprint directory (found '{n1}', should be '{n2}')".format(n1=model_dir, n2=fp_dir))
             self.model3D_wrongLib = True
             self.needsFixMore = True
             error = True
 
-        if not model_file == fp_name:
-            # Exception for footprints that have additions e.g. "_ThermalPad"
-            if fp_name.startswith(model_file) or model_file in fp_name or fp_name in model_file:
+        if model_file != fp_name:
+            # Exception for footprints that have known suffixes
+            if re.sub(self.suffix_re, '', fp_name) == model_file:
+                error = False
+            # Exception for footprints that have unknown additions
+            elif model_file in fp_name or fp_name in model_file:
                 self.warning("3D model name is different from footprint name (found '{n1}', expected '{n2}'), but this might be intentional!".format(n1=model_file, n2=fp_name))
                 self.needsFixMore = True
                 self.model3D_wrongName = True
                 error = False
-                pass
             else:
                 self.warning("3D model name is different from footprint name (found '{n1}', expected '{n2}')".format(n1=model_file, n2=fp_name))
                 self.needsFixMore = True
                 self.model3D_wrongName = True
                 error = True
+
+        # Warn if the model filename has suffixes in it
+        for match in re.finditer(self.suffix_re, model_file):
+            self.warning("3D model name contains field that does not change 3D representation (found '{}')".format(match.groups()[0]))
+            self.needsFixMore = True
+            self.model3D_wrongName = True
+            error = True
 
         if not isValidName(model_file):
             error = True
@@ -140,8 +161,9 @@ class Rule(KLCRule):
         self.no3DModel = False
         fp_dir = self.module_dir[0] + ".3dshapes"
         fp_name = self.module.name
+        fp_name_no_suffixes = re.sub(self.suffix_re, '', fp_name)
         self.model3D_expectedDir = SYSMOD_PREFIX+fp_dir+'/';
-        self.model3D_expectedName = fp_name+'.wrl';
+        self.model3D_expectedName = fp_name_no_suffixes+'.wrl';
         self.model3D_expectedFullPath = self.model3D_expectedDir+self.model3D_expectedName;
 
 
