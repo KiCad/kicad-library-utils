@@ -127,16 +127,10 @@ def makeR_Pack_SIP(lib, dcm, count):
 
 def makeR_Pack(lib, dcm, count):
     name = "R_Pack{:02d}_DIP".format(count)
-    namea = "R_PACK{0}".format(count)
     refdes = "RN"
 
     dcm.write("#\n")
     dcm.write("$CMP {0}\n".format(name))
-    dcm.write("D {0} Resistor network, parallel topology, DIP package\n".format(count))
-    dcm.write("K R Network parallel topology\n")
-    dcm.write("$ENDCMP\n")
-    dcm.write("#\n")
-    dcm.write("$CMP {0}\n".format(namea))
     dcm.write("D {0} Resistor network, parallel topology, DIP package\n".format(count))
     dcm.write("K R Network parallel topology\n")
     dcm.write("$ENDCMP\n")
@@ -164,7 +158,6 @@ def makeR_Pack(lib, dcm, count):
     lib.write(("F1 \"{0}\" {1} 0 50 V V C CNN\n").format(name, int(l_box + w_box + 50)))
     lib.write("F2 \"\" {0} 0 50 V I C CNN\n".format(int(l_box + w_box + 50 + 75)))
     lib.write("F3 \"\" 0 0 50 H V C CNN\n")
-    lib.write("ALIAS {namea}\n".format(namea))
     lib.write("$FPLIST\n")
     lib.write(" DIP*\n")
     lib.write(" SOIC*\n")
