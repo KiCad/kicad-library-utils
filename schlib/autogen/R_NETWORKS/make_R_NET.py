@@ -19,8 +19,8 @@ def makeR_Network(lib, dcm, count):
 
     dcm.write("#\n")
     dcm.write("$CMP {0}\n".format(name))
-    dcm.write("D {0} Resistor network, star topology, bussed resistors, small symbol\n".format(count))
-    dcm.write("K R Network star-topology\n")
+    dcm.write("D {0} resistor network, star topology, bussed resistors, small symbol\n".format(count))
+    dcm.write("K R network star-topology\n")
     dcm.write("F http://www.vishay.com/docs/31509/csc.pdf\n")
     dcm.write("$ENDCMP\n")
 
@@ -78,8 +78,8 @@ def makeR_Pack_SIP(lib, dcm, count):
 
     dcm.write("#\n")
     dcm.write("$CMP {0}\n".format(name))
-    dcm.write("D {0} Resistor network, parallel topology, SIP package\n".format(count))
-    dcm.write("K R Network parallel topology\n")
+    dcm.write("D {0} resistor network, parallel topology, SIP package\n".format(count))
+    dcm.write("K R network parallel topology isolated\n")
     dcm.write("F http://www.vishay.com/docs/31509/csc.pdf\n")
     dcm.write("$ENDCMP\n")
 
@@ -131,8 +131,9 @@ def makeR_Pack(lib, dcm, count):
 
     dcm.write("#\n")
     dcm.write("$CMP {0}\n".format(name))
-    dcm.write("D {0} Resistor network, parallel topology, DIP package\n".format(count))
-    dcm.write("K R Network parallel topology\n")
+    dcm.write("D {0} resistor network, parallel topology, DIP package\n".format(count))
+    dcm.write("K R network parallel topology isolated\n")
+    dcm.write("F ~\n");
     dcm.write("$ENDCMP\n")
 
     dp = 100
@@ -186,8 +187,8 @@ def makeR_Network_Dividers_SIP(lib, dcm, count):
 
     dcm.write("#\n")
     dcm.write("$CMP {0}\n".format(name))
-    dcm.write("D {0} Voltage Dividers network, Dual Terminator, SIP package\n".format(count))
-    dcm.write("K R Network divider topology\n")
+    dcm.write("D {0} voltage divider network, dual terminator, SIP package\n".format(count))
+    dcm.write("K R network divider topology\n")
     dcm.write("F http://www.vishay.com/docs/31509/csc.pdf\n")
     dcm.write("$ENDCMP\n")
 
