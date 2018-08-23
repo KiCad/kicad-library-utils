@@ -43,38 +43,6 @@ def parse_sexp(sexp):
     assert not stack, "Trouble with nesting of brackets"
     return out[0]
     
-class SexprBuilder(object):
-    def __init__(self, key, *arg, **kwarg):
-        
-        self.key = key
-        self.indent = kwargs.get('indent', 0)
-    
-        self.indent = kwargs.get('indent', 0)
-        self.key = None
-        self.output = ''
-        self.items = []
-        
-    # Move to new line (optionally indent)
-    def newline(self, indent=False):
-        self.output += "\n"
-        if indent:
-            self.indent += 1
-        self.output += 2 * self.indent * ' '
-        
-    def begin(self, key=None):
-        self.key = key
-        self.items = []
-        
-        self.output += '('
-        if key:
-            self.output += str(key)
-        
-    def add(self, item):
-        self.items.append(item)
-        
-    def end(self, newline=False):
-        self.output.append()
-    
 # Form a valid sexpr (single line)
 def SexprItem(val, key=None):
     if key:
