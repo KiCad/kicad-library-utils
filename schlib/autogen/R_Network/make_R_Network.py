@@ -126,7 +126,7 @@ def makeR_Pack_SIP(lib, dcm, count):
     lib.write("ENDDEF\n")
 
 def makeR_Pack(lib, dcm, count):
-    name = "R_Pack{:02d}_DIP".format(count)
+    name = "R_Pack{:02d}".format(count)
     refdes = "RN"
 
     dcm.write("#\n")
