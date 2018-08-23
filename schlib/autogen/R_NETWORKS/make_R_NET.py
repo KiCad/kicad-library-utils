@@ -18,7 +18,7 @@ def makeR_NET(lib, dcm, count):
     refdes = "RN"
 
     dcm.write("#\n")
-    dcm.write("$CMP " + name + "\n")
+    dcm.write("$CMP {0}\n".format(name))
     dcm.write("D {0} Resistor network, star topology, bussed resistors, small symbol\n".format(count))
     dcm.write("K R Network star-topology\n")
     dcm.write("F http://www.vishay.com/docs/31509/csc.pdf\n")
@@ -40,11 +40,11 @@ def makeR_NET(lib, dcm, count):
     bottom = 200
 
     lib.write("#\n")
-    lib.write("# " + name + "\n")
+    lib.write("# {0}\n".format(name))
     lib.write("#\n")
-    lib.write("DEF " + name + " " + refdes + " 0 0 N N 1 F N\n")
-    lib.write(("F0 \"" + refdes + "\" {0} 0 50 V V C CNN\n").format(int(l_box - 50)))
-    lib.write(("F1 \"" + name + "\" {0} 0 50 V V C CNN\n").format(int(l_box + w_box + 50)))
+    lib.write("DEF {0} {1} 0 0 N N 1 F N\n".format(name, refdes))
+    lib.write(("F0 \"{0}\" {1} 0 50 V V C CNN\n").format(refdes, int(l_box - 50)))
+    lib.write(("F1 \"{0}\" {1} 0 50 V V C CNN\n").format(name, int(l_box + w_box + 50)))
     lib.write("F2 \"Resistors_ThroughHole:Resistor_Array_SIP{0}\" {1} 0 50 V I C CNN\n".format(count + 1, int(l_box + w_box + 50 + 75)))
     lib.write("F3 \"\" 0 0 50 H V C CNN\n")
     lib.write("$FPLIST\n")
@@ -77,7 +77,7 @@ def makeR_NET_PAR_SIP(lib, dcm, count):
     refdes = "RN"
 
     dcm.write("#\n")
-    dcm.write("$CMP " + name + "\n")
+    dcm.write("$CMP {0}\n".format(name))
     dcm.write("D {0} Resistor network, parallel topology, SIP package\n".format(count))
     dcm.write("K R Network parallel topology\n")
     dcm.write("F http://www.vishay.com/docs/31509/csc.pdf\n")
@@ -99,11 +99,11 @@ def makeR_NET_PAR_SIP(lib, dcm, count):
     bottom = 200
 
     lib.write("#\n")
-    lib.write("# " + name + "\n")
+    lib.write("# {0}\n".format(name))
     lib.write("#\n")
-    lib.write("DEF " + name + " " + refdes + " 0 0 Y N 1 F N\n")
-    lib.write(("F0 \"" + refdes + "\" {0} 0 50 V V C CNN\n").format(int(l_box - 50)))
-    lib.write(("F1 \"" + name + "\" {0} 0 50 V V C CNN\n").format(int(l_box + w_box + 50)))
+    lib.write("DEF {0} {1} 0 0 Y N 1 F N\n".format(name, refdes))
+    lib.write(("F0 \"{0}\" {1} 0 50 V V C CNN\n").format(refdes, int(l_box - 50)))
+    lib.write(("F1 \"{0}\" {1} 0 50 V V C CNN\n").format(name, int(l_box + w_box + 50)))
     lib.write("F2 \"Resistors_ThroughHole:Resistor_Array_SIP{0}\" {1} 0 50 V I C CNN\n".format(2 * count, int(l_box + w_box + 50 + 75)))
     lib.write("F3 \"\" 0 0 50 H V C CNN\n")
     lib.write("$FPLIST\n")
@@ -131,12 +131,12 @@ def makeR_NET_PAR_DIP(lib, dcm, count):
     refdes = "RN"
 
     dcm.write("#\n")
-    dcm.write("$CMP " + name + "\n")
+    dcm.write("$CMP {0}\n".format(name))
     dcm.write("D {0} Resistor network, parallel topology, DIP package\n".format(count))
     dcm.write("K R Network parallel topology\n")
     dcm.write("$ENDCMP\n")
     dcm.write("#\n")
-    dcm.write("$CMP " + namea + "\n")
+    dcm.write("$CMP {0}\n".format(namea))
     dcm.write("D {0} Resistor network, parallel topology, DIP package\n".format(count))
     dcm.write("K R Network parallel topology\n")
     dcm.write("$ENDCMP\n")
@@ -157,14 +157,14 @@ def makeR_NET_PAR_DIP(lib, dcm, count):
     bottom = 200
 
     lib.write("#\n")
-    lib.write("# " + name + "\n")
+    lib.write("# {0}\n".format(name))
     lib.write("#\n")
-    lib.write("DEF " + name + " " + refdes + " 0 0 Y N 1 F N\n")
-    lib.write(("F0 \"" + refdes + "\" {0} 0 50 V V C CNN\n").format(int(l_box - 50)))
-    lib.write(("F1 \"" + name + "\" {0} 0 50 V V C CNN\n").format(int(l_box + w_box + 50)))
+    lib.write("DEF {0} {1} 0 0 Y N 1 F N\n".format(name, refdes))
+    lib.write(("F0 \"{0}\" {1} 0 50 V V C CNN\n").format(refdes, int(l_box - 50)))
+    lib.write(("F1 \"{0}\" {1} 0 50 V V C CNN\n").format(name, int(l_box + w_box + 50)))
     lib.write("F2 \"\" {0} 0 50 V I C CNN\n".format(int(l_box + w_box + 50 + 75)))
     lib.write("F3 \"\" 0 0 50 H V C CNN\n")
-    lib.write("ALIAS " + namea + "\n")
+    lib.write("ALIAS {namea}\n".format(namea))
     lib.write("$FPLIST\n")
     lib.write(" DIP*\n")
     lib.write(" SOIC*\n")
@@ -192,7 +192,7 @@ def makeR_NET_DIV_SIP(lib, dcm, count):
     refdes = "RN"
 
     dcm.write("#\n")
-    dcm.write("$CMP " + name + "\n")
+    dcm.write("$CMP {0}\n".format(name))
     dcm.write("D {0} Voltage Dividers network, Dual Terminator, SIP package\n".format(count))
     dcm.write("K R Network divider topology\n")
     dcm.write("F http://www.vishay.com/docs/31509/csc.pdf\n")
@@ -215,11 +215,11 @@ def makeR_NET_DIV_SIP(lib, dcm, count):
     R_dist = (h_box - 2 * R_len) / 3
 
     lib.write("#\n")
-    lib.write("# " + name + "\n")
+    lib.write("# {0}\n".format(name))
     lib.write("#\n")
-    lib.write("DEF " + name + " " + refdes + " 0 0 Y N 1 F N\n")
-    lib.write(("F0 \"" + refdes + "\" {0} 0 50 V V C CNN\n").format(int(l_box - 50)))
-    lib.write(("F1 \"" + name + "\" {0} 0 50 V V C CNN\n").format(int(l_box + w_box + 50)))
+    lib.write("DEF {0} {1} 0 0 Y N 1 F N\n".format(name, refdes))
+    lib.write(("F0 \"{0}\" {1} 0 50 V V C CNN\n").format(refdes, int(l_box - 50)))
+    lib.write(("F1 \"{0}\" {1} 0 50 V V C CNN\n").format(name, int(l_box + w_box + 50)))
     lib.write("F2 \"Resistors_ThroughHole:Resistor_Array_SIP{0}\" {1} 0 50 V I C CNN\n".format(count + 2, int(l_box + w_box + 50 + 75)))
     lib.write("F3 \"\" 0 0 50 H V C CNN\n")
     lib.write("$FPLIST\n")
