@@ -277,4 +277,4 @@ if __name__ == '__main__':
         makeR_Pack(lib, dcm, i)
 
     dcm.write("#End Doc Library\n")
-    lib.write("#End Library\n")
+    lib.write("#\n#End Library\n")
