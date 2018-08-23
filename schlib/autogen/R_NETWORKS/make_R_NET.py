@@ -13,8 +13,8 @@ def roundG(x, g):
 def roundCrt(x):
     return roundG(x, 0.05)
 
-def makeR_NET(lib, dcm, count):
-    name = "R_NET{0}".format(count)
+def makeR_Network(lib, dcm, count):
+    name = "R_Network{:02d}".format(count)
     refdes = "RN"
 
     dcm.write("#\n")
@@ -72,8 +72,8 @@ def makeR_NET(lib, dcm, count):
     lib.write("ENDDRAW\n")
     lib.write("ENDDEF\n")
 
-def makeR_NET_PAR_SIP(lib, dcm, count):
-    name = "R_NET{0}_PAR_SIP".format(count)
+def makeR_Pack_SIP(lib, dcm, count):
+    name = "R_Pack{:02d}_SIP".format(count)
     refdes = "RN"
 
     dcm.write("#\n")
@@ -125,8 +125,8 @@ def makeR_NET_PAR_SIP(lib, dcm, count):
     lib.write("ENDDRAW\n")
     lib.write("ENDDEF\n")
 
-def makeR_NET_PAR_DIP(lib, dcm, count):
-    name = "R_NET{0}_PAR_DIP".format(count)
+def makeR_Pack(lib, dcm, count):
+    name = "R_Pack{:02d}_DIP".format(count)
     namea = "R_PACK{0}".format(count)
     refdes = "RN"
 
@@ -187,8 +187,8 @@ def makeR_NET_PAR_DIP(lib, dcm, count):
     lib.write("ENDDRAW\n")
     lib.write("ENDDEF\n")
 
-def makeR_NET_DIV_SIP(lib, dcm, count):
-    name = "R_NET{0}_DIV_SIP".format(count)
+def makeR_Network_Dividers_SIP(lib, dcm, count):
+    name = "R_Network_Dividers_x{:02d}_SIP".format(count)
     refdes = "RN"
 
     dcm.write("#\n")
@@ -263,24 +263,24 @@ def makeR_NET_DIV_SIP(lib, dcm, count):
     lib.write("ENDDEF\n")
 
 if __name__ == '__main__':
-    lib = open("R_NET.lib", 'w')
-    lib.write("EESchema-LIBRARY Version 2.3\n")
+    lib = open("R_Network.lib", 'w')
+    lib.write("EESchema-LIBRARY Version 2.4\n")
     lib.write("#encoding utf-8\n")
 
-    dcm = open("R_NET.dcm", 'w')
+    dcm = open("R_Network.dcm", 'w')
     dcm.write("EESchema-DOCLIB  Version 2.0\n")
 
     for i in range(3, 14):
-        makeR_NET(lib, dcm, i)
-
-    for i in range(2, 8):
-        makeR_NET_PAR_SIP(lib, dcm, i)
-
-    for i in [2, 3, 4, 5, 6, 7, 8, 9, 10, 11]:
-        makeR_NET_PAR_DIP(lib, dcm, i)
+        makeR_Network(lib, dcm, i)
 
     for i in range(2, 12):
-        makeR_NET_DIV_SIP(lib, dcm, i)
+        makeR_Network_Dividers_SIP(lib, dcm, i)
+
+    for i in range(2, 8):
+        makeR_Pack_SIP(lib, dcm, i)
+
+    for i in [2, 3, 4, 5, 6, 7, 8, 9, 10, 11]:
+        makeR_Pack(lib, dcm, i)
 
     dcm.write("#End Doc Library\n")
     lib.write("#End Library\n")
