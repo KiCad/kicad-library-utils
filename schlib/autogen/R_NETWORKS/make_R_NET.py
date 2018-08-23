@@ -39,7 +39,7 @@ def makeR_NET(file_lib, file_cmp, R):
     w_box=(R-1)*dp+2*box_l_offset
     top=-200
     bottom=200
-    
+
     file_lib.write("#\n")
     file_lib.write("# "+name+"\n")
     file_lib.write("#\n")
@@ -77,7 +77,7 @@ def makeR_NET_PAR_SIP(file_lib, file_cmp, R):
     file_cmp.write("K R Network parallel topology\n")
     file_cmp.write("F http://www.vishay.com/docs/31509/csc.pdf\n")
     file_cmp.write("$ENDCMP\n")
-    
+
     dp = 100
     dR = 300
     pinlen = 150
@@ -92,7 +92,7 @@ def makeR_NET_PAR_SIP(file_lib, file_cmp, R):
     w_box = ((R - 1) * dR + dp) + 2 * box_l_offset
     top = -200
     bottom = 200
-    
+
     file_lib.write("#\n")
     file_lib.write("# " + name + "\n")
     file_lib.write("#\n")
@@ -156,7 +156,7 @@ def makeR_NET_PAR_DIP(file_lib, file_cmp, R):
     w_box = ((R - 1) * dp) + 2 * box_l_offset
     top = -200
     bottom = 200
-    
+
     file_lib.write("#\n")
     file_lib.write("# " + name + "\n")
     file_lib.write("#\n")
@@ -234,10 +234,10 @@ def makeR_NET_DIV_SIP(file_lib, file_cmp, R):
     file_lib.write("X COM1 1 {0} {1} {2} D 50 50 1 1 P\n".format(int(pinl), -int(top), int(pinlen)))
     file_lib.write("X COM2 {0} {1} {2} {3} D 50 50 1 1 P\n".format(int(R + 2), int(left+(R-1)*dp+dp/2), -int(top), int(pinlen)))
     file_lib.write("P 2 0 1 0 {0} {1} {0} {2} N\n".format(int(left+(R-1)*dp+dp/2), -int(bottom - pinlen - R_dist / 2), -int(top+pinlen)))
-    
+
     for s in range(1, R + 1):
         file_lib.write("X R{0} {1} {2} {3} {4} U 50 50 1 1 P\n".format(int(s), int(s + 1), int(pinl), -int(bottom), int(pinlen)))
-        
+
         file_lib.write("S {0} {1} {2} {3} 0 1 10 N\n".format(int(pinl - R_w / 2), -int(top+pinlen+R_dist), int(pinl + R_w / 2), -int(top+pinlen+R_dist+R_len)))
         file_lib.write("S {0} {1} {2} {3} 0 1 10 N\n".format(int(pinl + 3*R_w/2 - R_w / 2), -int(bottom-pinlen-R_dist), int(pinl + 3*R_w/2 + R_w / 2), -int(bottom-pinlen-R_dist-R_len)))
         file_lib.write("P 3 0 1 0 {0} {1} {0} {2} {3} {2} N\n".format(int(pinl+3*R_w/2), -int(bottom-pinlen-R_dist), -int(bottom-pinlen-R_dist/2), int(left+(R-1)*dp+dp/2)))
@@ -245,7 +245,7 @@ def makeR_NET_DIV_SIP(file_lib, file_cmp, R):
             file_lib.write("P 2 0 1 0 {0} {1} {0} {2} N\n".format(int(pinl), -int(top + pinlen), -int(top + pinlen + R_dist)))
         if s>1:
             file_lib.write("P 3 0 1 0 {0} {1} {2} {1} {2} {3} N\n".format(int(pinl-dp), -int(top + pinlen+R_dist/2), int(pinl), -int(top + pinlen + R_dist)))
-            
+
 
         file_lib.write("P 2 0 1 0 {0} {1} {0} {2} N\n".format(int(pinl), -int(bottom - pinlen), -int(top+pinlen+R_dist+R_len)))
         file_lib.write("P 3 0 1 0 {0} {1} {2} {1} {2} {3} N\n".format(int(pinl), -int(top+pinlen+R_dist+R_len+R_dist/2), int(pinl+3*R_w/2), -int(bottom-pinlen-R_dist-R_len)))
@@ -256,8 +256,8 @@ def makeR_NET_DIV_SIP(file_lib, file_cmp, R):
         pinl = pinl + dp
     file_lib.write("ENDDRAW\n")
     file_lib.write("ENDDEF\n")
-    
-    
+
+
 if __name__ == '__main__':
     file_lib = open("R_NET.lib", 'w')
     file_lib.write("EESchema-LIBRARY Version 2.3\n")
