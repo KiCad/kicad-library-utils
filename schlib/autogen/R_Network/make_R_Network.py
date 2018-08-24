@@ -344,11 +344,11 @@ if __name__ == '__main__':
     for i in range(2, 12):
         makeR_Network_Dividers_SIP(lib, dcm, i)
 
-    for i in range(2, 8):
-        makeR_Pack_SIP(lib, dcm, i)
-
     for i in [2, 3, 4, 5, 6, 7, 8, 9, 10, 11]:
         makeR_Pack(lib, dcm, i)
+
+    for i in range(2, 8):
+        makeR_Pack_SIP(lib, dcm, i)
 
     # Documentation footer
     dcm.write("#End Doc Library\n")
