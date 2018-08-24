@@ -10,9 +10,6 @@ def roundG(x, g):
     else:
         return math.floor(x / g) * g
 
-def roundCrt(x):
-    return roundG(x, 0.05)
-
 def makeR_Network(lib, dcm, count):
     name = "R_Network{:02d}".format(count)
     refdes = "RN"
