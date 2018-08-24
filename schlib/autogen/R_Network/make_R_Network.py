@@ -86,145 +86,6 @@ def makeR_Network(lib, dcm, count):
     lib.write("ENDDRAW\n")
     lib.write("ENDDEF\n")
 
-def makeR_Pack_SIP(lib, dcm, count):
-    name = "R_Pack{:02d}_SIP".format(count)
-    refdes = "RN"
-
-    # Documentation entry
-    dcm.write("#\n")
-    dcm.write("$CMP {0}\n".format(name))
-    dcm.write("D {0} resistor network, parallel topology, SIP package\n".format(count))
-    dcm.write("K R network parallel topology isolated\n")
-    dcm.write("F http://www.vishay.com/docs/31509/csc.pdf\n")
-    dcm.write("$ENDCMP\n")
-
-    dp = 100
-    dR = 300
-    pinlen = 150
-    R_len = 160
-    R_w = 60
-    W_dist = 30
-    box_l_offset = 50
-    left = -roundG(((count - 1) * dR) / 2, 100)
-    l_box = left - box_l_offset
-    t_box = -75
-    h_box = 250
-    w_box = ((count - 1) * dR + dp) + 2 * box_l_offset
-    top = -200
-    bottom = 200
-
-    # Symbol definition header
-    lib.write("#\n")
-    lib.write("# {0}\n".format(name))
-    lib.write("#\n")
-    # Symbol definition
-    lib.write("DEF {0} {1} 0 0 Y N 1 F N\n".format(name, refdes))
-    # Refdes
-    lib.write(("F0 \"{0}\" {1} 0 50 V V C CNN\n").format(refdes, int(l_box - 50)))
-    # Symbol name
-    lib.write(("F1 \"{0}\" {1} 0 50 V V C CNN\n").format(name, int(l_box + w_box + 50)))
-    # Footprint
-    lib.write("F2 \"Resistor_THT:R_Array_SIP{0}\" {1} 0 50 V I C CNN\n".format(2 * count, int(l_box + w_box + 50 + 75)))
-    # Datasheet (unused)
-    lib.write("F3 \"\" 0 0 50 H I C CNN\n")
-    # Footprint filter
-    lib.write("$FPLIST\n")
-    lib.write(" R?Array?SIP*\n")
-    lib.write("$ENDFPLIST\n")
-    lib.write("DRAW\n")
-
-    # Symbol body
-    lib.write("S {0} {1} {2} {3} 0 1 10 f\n".format(int(l_box), int(t_box), int(l_box + w_box), int(t_box + h_box)))
-
-    pinl = left
-    y = top
-
-    for s in range(1, count + 1):
-        # Resistor short pins
-        lib.write("X R{0}.1 {1} {2} {3} {4} U 50 50 1 1 P\n".format(int(s), int(2 * s - 1), int(pinl), -int(bottom), int(pinlen)))
-        # Resistor long pins
-        lib.write("X R{0}.2 {1} {2} {3} {4} U 50 50 1 1 P\n".format(int(s), int(2 * s), int(pinl + dp), -int(bottom), int(pinlen)))
-        # Resistor bodies
-        lib.write("S {0} {1} {2} {3} 0 1 10 N\n".format(int(pinl - R_w / 2), -int(bottom - pinlen - R_len), int(pinl + R_w / 2), -int(bottom - pinlen)))
-        # Resistor long leads
-        lib.write("P 4 0 1 0 {0} {1} {0} {2} {3} {2} {3} {4} N\n".format(int(pinl), -int(bottom - pinlen - R_len), -int(bottom - pinlen - R_len - W_dist), int(pinl + dp), -int(bottom - pinlen)))
-
-        pinl = pinl + dR
-
-    lib.write("ENDDRAW\n")
-    lib.write("ENDDEF\n")
-
-def makeR_Pack(lib, dcm, count):
-    name = "R_Pack{:02d}".format(count)
-    refdes = "RN"
-
-    # Documentation entry
-    dcm.write("#\n")
-    dcm.write("$CMP {0}\n".format(name))
-    dcm.write("D {0} resistor network, parallel topology, DIP package\n".format(count))
-    dcm.write("K R network parallel topology isolated\n")
-    dcm.write("F ~\n");
-    dcm.write("$ENDCMP\n")
-
-    dp = 100
-    pinlen = 100
-    R_len = 150
-    R_w = 50
-    W_dist = 30
-    box_l_offset = 50
-    box_t_offset = 20
-    left = -roundG(((count - 1) * dp) / 2, 100)
-    l_box = left - box_l_offset
-    h_box = R_len + 2 * box_t_offset
-    t_box = -h_box / 2
-    w_box = ((count - 1) * dp) + 2 * box_l_offset
-    top = -200
-    bottom = 200
-
-    # Symbol definition header
-    lib.write("#\n")
-    lib.write("# {0}\n".format(name))
-    lib.write("#\n")
-    # Symbol definition
-    lib.write("DEF {0} {1} 0 0 Y N 1 F N\n".format(name, refdes))
-    # Refdes
-    lib.write(("F0 \"{0}\" {1} 0 50 V V C CNN\n").format(refdes, int(l_box - 50)))
-    # Symbol name
-    lib.write(("F1 \"{0}\" {1} 0 50 V V C CNN\n").format(name, int(l_box + w_box + 50)))
-    # Footprint
-    lib.write("F2 \"\" {0} 0 50 V I C CNN\n".format(int(l_box + w_box + 50 + 75)))
-    # Datasheet (unused)
-    lib.write("F3 \"\" 0 0 50 H I C CNN\n")
-    # Footprint filter
-    lib.write("$FPLIST\n")
-    lib.write(" DIP*\n")
-    lib.write(" SOIC*\n")
-    lib.write("$ENDFPLIST\n")
-    lib.write("DRAW\n")
-
-    # Symbol body
-    lib.write("S {0} {1} {2} {3} 0 1 10 f\n".format(int(l_box), int(t_box), int(l_box + w_box), int(t_box + h_box)))
-
-    pinl = left
-    y = top
-
-    for s in range(1, count + 1):
-        # Resistor bottom pins
-        lib.write("X R{0}.1 {1} {2} {3} {4} U 50 50 1 1 P\n".format(int(s), int(s), int(pinl), -int(bottom), int(pinlen)))
-        # Resistor top pins
-        lib.write("X R{0}.2 {1} {2} {3} {4} D 50 50 1 1 P\n".format(int(s), int(2 * count - s + 1), int(pinl), -int(top), int(pinlen)))
-        # Resistor bodies
-        lib.write("S {0} {1} {2} {3} 0 1 10 N\n".format(int(pinl - R_w / 2), -int(-R_len / 2), int(pinl + R_w / 2), -int(R_len / 2)))
-        # Resistor bottom leads
-        lib.write("P 2 0 1 0 {0} {1} {0} {2} N\n".format(int(pinl), -int(bottom - pinlen), -int(R_len / 2)))
-        # Resistor top leads
-        lib.write("P 2 0 1 0 {0} {1} {0} {2} N\n".format(int(pinl), -int(-R_len / 2), -int(top + pinlen)))
-
-        pinl = pinl + dp
-
-    lib.write("ENDDRAW\n")
-    lib.write("ENDDEF\n")
-
 def makeR_Network_Dividers_SIP(lib, dcm, count):
     name = "R_Network_Dividers_x{:02d}_SIP".format(count)
     refdes = "RN"
@@ -322,6 +183,145 @@ def makeR_Network_Dividers_SIP(lib, dcm, count):
         pinl = pinl + dp
 
     # Symbol definition footer
+    lib.write("ENDDRAW\n")
+    lib.write("ENDDEF\n")
+
+def makeR_Pack(lib, dcm, count):
+    name = "R_Pack{:02d}".format(count)
+    refdes = "RN"
+
+    # Documentation entry
+    dcm.write("#\n")
+    dcm.write("$CMP {0}\n".format(name))
+    dcm.write("D {0} resistor network, parallel topology, DIP package\n".format(count))
+    dcm.write("K R network parallel topology isolated\n")
+    dcm.write("F ~\n");
+    dcm.write("$ENDCMP\n")
+
+    dp = 100
+    pinlen = 100
+    R_len = 150
+    R_w = 50
+    W_dist = 30
+    box_l_offset = 50
+    box_t_offset = 20
+    left = -roundG(((count - 1) * dp) / 2, 100)
+    l_box = left - box_l_offset
+    h_box = R_len + 2 * box_t_offset
+    t_box = -h_box / 2
+    w_box = ((count - 1) * dp) + 2 * box_l_offset
+    top = -200
+    bottom = 200
+
+    # Symbol definition header
+    lib.write("#\n")
+    lib.write("# {0}\n".format(name))
+    lib.write("#\n")
+    # Symbol definition
+    lib.write("DEF {0} {1} 0 0 Y N 1 F N\n".format(name, refdes))
+    # Refdes
+    lib.write(("F0 \"{0}\" {1} 0 50 V V C CNN\n").format(refdes, int(l_box - 50)))
+    # Symbol name
+    lib.write(("F1 \"{0}\" {1} 0 50 V V C CNN\n").format(name, int(l_box + w_box + 50)))
+    # Footprint
+    lib.write("F2 \"\" {0} 0 50 V I C CNN\n".format(int(l_box + w_box + 50 + 75)))
+    # Datasheet (unused)
+    lib.write("F3 \"\" 0 0 50 H I C CNN\n")
+    # Footprint filter
+    lib.write("$FPLIST\n")
+    lib.write(" DIP*\n")
+    lib.write(" SOIC*\n")
+    lib.write("$ENDFPLIST\n")
+    lib.write("DRAW\n")
+
+    # Symbol body
+    lib.write("S {0} {1} {2} {3} 0 1 10 f\n".format(int(l_box), int(t_box), int(l_box + w_box), int(t_box + h_box)))
+
+    pinl = left
+    y = top
+
+    for s in range(1, count + 1):
+        # Resistor bottom pins
+        lib.write("X R{0}.1 {1} {2} {3} {4} U 50 50 1 1 P\n".format(int(s), int(s), int(pinl), -int(bottom), int(pinlen)))
+        # Resistor top pins
+        lib.write("X R{0}.2 {1} {2} {3} {4} D 50 50 1 1 P\n".format(int(s), int(2 * count - s + 1), int(pinl), -int(top), int(pinlen)))
+        # Resistor bodies
+        lib.write("S {0} {1} {2} {3} 0 1 10 N\n".format(int(pinl - R_w / 2), -int(-R_len / 2), int(pinl + R_w / 2), -int(R_len / 2)))
+        # Resistor bottom leads
+        lib.write("P 2 0 1 0 {0} {1} {0} {2} N\n".format(int(pinl), -int(bottom - pinlen), -int(R_len / 2)))
+        # Resistor top leads
+        lib.write("P 2 0 1 0 {0} {1} {0} {2} N\n".format(int(pinl), -int(-R_len / 2), -int(top + pinlen)))
+
+        pinl = pinl + dp
+
+    lib.write("ENDDRAW\n")
+    lib.write("ENDDEF\n")
+
+def makeR_Pack_SIP(lib, dcm, count):
+    name = "R_Pack{:02d}_SIP".format(count)
+    refdes = "RN"
+
+    # Documentation entry
+    dcm.write("#\n")
+    dcm.write("$CMP {0}\n".format(name))
+    dcm.write("D {0} resistor network, parallel topology, SIP package\n".format(count))
+    dcm.write("K R network parallel topology isolated\n")
+    dcm.write("F http://www.vishay.com/docs/31509/csc.pdf\n")
+    dcm.write("$ENDCMP\n")
+
+    dp = 100
+    dR = 300
+    pinlen = 150
+    R_len = 160
+    R_w = 60
+    W_dist = 30
+    box_l_offset = 50
+    left = -roundG(((count - 1) * dR) / 2, 100)
+    l_box = left - box_l_offset
+    t_box = -75
+    h_box = 250
+    w_box = ((count - 1) * dR + dp) + 2 * box_l_offset
+    top = -200
+    bottom = 200
+
+    # Symbol definition header
+    lib.write("#\n")
+    lib.write("# {0}\n".format(name))
+    lib.write("#\n")
+    # Symbol definition
+    lib.write("DEF {0} {1} 0 0 Y N 1 F N\n".format(name, refdes))
+    # Refdes
+    lib.write(("F0 \"{0}\" {1} 0 50 V V C CNN\n").format(refdes, int(l_box - 50)))
+    # Symbol name
+    lib.write(("F1 \"{0}\" {1} 0 50 V V C CNN\n").format(name, int(l_box + w_box + 50)))
+    # Footprint
+    lib.write("F2 \"Resistor_THT:R_Array_SIP{0}\" {1} 0 50 V I C CNN\n".format(2 * count, int(l_box + w_box + 50 + 75)))
+    # Datasheet (unused)
+    lib.write("F3 \"\" 0 0 50 H I C CNN\n")
+    # Footprint filter
+    lib.write("$FPLIST\n")
+    lib.write(" R?Array?SIP*\n")
+    lib.write("$ENDFPLIST\n")
+    lib.write("DRAW\n")
+
+    # Symbol body
+    lib.write("S {0} {1} {2} {3} 0 1 10 f\n".format(int(l_box), int(t_box), int(l_box + w_box), int(t_box + h_box)))
+
+    pinl = left
+    y = top
+
+    for s in range(1, count + 1):
+        # Resistor short pins
+        lib.write("X R{0}.1 {1} {2} {3} {4} U 50 50 1 1 P\n".format(int(s), int(2 * s - 1), int(pinl), -int(bottom), int(pinlen)))
+        # Resistor long pins
+        lib.write("X R{0}.2 {1} {2} {3} {4} U 50 50 1 1 P\n".format(int(s), int(2 * s), int(pinl + dp), -int(bottom), int(pinlen)))
+        # Resistor bodies
+        lib.write("S {0} {1} {2} {3} 0 1 10 N\n".format(int(pinl - R_w / 2), -int(bottom - pinlen - R_len), int(pinl + R_w / 2), -int(bottom - pinlen)))
+        # Resistor long leads
+        lib.write("P 4 0 1 0 {0} {1} {0} {2} {3} {2} {3} {4} N\n".format(int(pinl), -int(bottom - pinlen - R_len), -int(bottom - pinlen - R_len - W_dist), int(pinl + dp), -int(bottom - pinlen)))
+
+        pinl = pinl + dR
+
     lib.write("ENDDRAW\n")
     lib.write("ENDDEF\n")
 
