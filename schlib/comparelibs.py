@@ -45,7 +45,7 @@ if not args.old:
     ExitError("Original file(s) not supplied")
 
 def KLCCheck(lib, component):
-    
+
     # Wrap library in "quotes" if required
     if " " in lib and '"' not in lib:
         lib = '"' + lib + '"'
@@ -55,11 +55,11 @@ def KLCCheck(lib, component):
                 cmp = component,
                 nocolor = "--nocolor" if args.nocolor else ""
                 )
-                
+
     # Pass extra arguments to checklib script
     if len(extra) > 0:
         call += ' '.join([str(e) for e in extra])
-        
+
     return os.system(call)
 
 printer = PrintColor(use_color = not args.nocolor)
@@ -69,77 +69,77 @@ old_libs = {}
 
 for lib in args.new:
     libs = glob(lib)
-    
+
     for l in libs:
         if l.endswith('.lib') and os.path.exists(l):
             new_libs[os.path.basename(l)] = os.path.abspath(l)
-            
+
 for lib in args.old:
     libs = glob(lib)
-    
+
     for l in libs:
         if l.endswith('.lib') and os.path.exists(l):
             old_libs[os.path.basename(l)] = os.path.abspath(l)
-    
-errors = 0            
-            
+
+errors = 0
+
 for lib_name in new_libs:
 
     lib_path = new_libs[lib_name]
     new_lib = SchLib(lib_path)
-    
+
 
     # New library has been created!
     if not lib_name in old_libs:
 
         if args.verbose:
             printer.light_green("Created library '{lib}'".format(lib=lib_name))
-        
+
         # Check all the components!
         for cmp in new_lib.components:
-            
+
             if args.check:
                 if not KLCCheck(lib_path, cmp.name) == 0:
                     errors += 1
-                    
-    
+
+
         continue
-        
+
     # Library has been updated - check each component to see if it has been changed
     old_lib_path = old_libs[lib_name]
     old_lib = SchLib(old_lib_path)
-    
+
     # If library checksums match, we can skip entire library check
     if new_lib.compareChecksum(old_lib):
         if args.verbose:
             printer.yellow("No changes to library '{lib}'".format(lib=lib_name))
         continue
-    
+
     new_cmp = {}
     old_cmp = {}
-    
+
     for cmp in new_lib.components:
         new_cmp[cmp.name] = cmp
-        
+
     for cmp in old_lib.components:
         old_cmp[cmp.name] = cmp
-        
+
     for cmp in new_cmp:
         # Component is 'new' (not in old library)
         if not cmp in old_cmp:
-            
+
             if args.verbose:
                 printer.light_green("New symbol '{lib}:{name}'".format(lib=lib_name, name=cmp))
-            
+
             if args.check:
                 if not KLCCheck(lib_path, cmp) == 0:
                     errors += 1
-        
+
             continue
-            
+
         chk_new = new_cmp[cmp].checksum
         chk_old = old_cmp[cmp].checksum
-        
+
         if not chk_old == chk_new:
 
             if args.verbose:
@@ -147,15 +147,15 @@ for lib_name in new_libs:
             if args.check:
                 if not KLCCheck(lib_path, cmp) == 0:
                     errors += 1
-                    
-            
-        
+
+
+
     for cmp in old_cmp:
         # Component has been deleted from library
         if not cmp in new_cmp:
             if args.verbose:
                 printer.red("Removed symbol '{lib}:{name}'".format(lib=lib_name, name=cmp))
-            
+
 # Entire lib has been deleted?
 for lib_name in old_libs:
     if not lib_name in new_libs:
