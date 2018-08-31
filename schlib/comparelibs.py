@@ -35,6 +35,7 @@ parser.add_argument("--old", help="Old (original) .lib file(s) for comparison", 
 parser.add_argument("-v", "--verbose", help="Enable extra verbose output", action="store_true")
 parser.add_argument("--check", help="Perform KLC check on updated/added components", action='store_true')
 parser.add_argument("--nocolor", help="Does not use colors to show the output", action='store_true')
+parser.add_argument("--design_breaking_changes", help="Checks if there have been changes made that would break existing designs using a particular symbol.", action='store_true')
 
 args,extra = parser.parse_known_args()
 
@@ -82,6 +83,7 @@ for lib in args.old:
             old_libs[os.path.basename(l)] = os.path.abspath(l)
 
 errors = 0
+design_breaking_changes = 0
 
 for lib_name in new_libs:
 
@@ -144,23 +146,57 @@ for lib_name in new_libs:
 
             if args.verbose:
                 printer.yellow("Changed symbol '{lib}:{name}'".format(lib=lib_name, name=cmp))
+            if args.design_breaking_changes:
+                pins_moved = 0
+                nc_pins_moved = 0
+                pins_missing = 0
+                nc_pins_missing = 0
+                for pin_old in old_cmp[cmp].pins:
+                    pin_new = new_cmp[cmp].getPinByNumber(pin_old['num'])
+                    if pin_new is None:
+                        if pin_old['electrical_type'] == 'N' and pin_new['electrical_type'] == 'N':
+                            nc_pins_missing +=1
+                        else:
+                            pins_missing += 1
+                        continue
+
+                    if pin_old['posx'] != pin_new['posx']:
+                        if pin_old['electrical_type'] == 'N' and pin_new['electrical_type'] == 'N':
+                            nc_pins_moved +=1
+                        else:
+                            pins_moved += 1
+                    elif pin_old['posy'] != pin_new['posy']:
+                        if pin_old['electrical_type'] == 'N' and pin_new['electrical_type'] == 'N':
+                            nc_pins_moved +=1
+                        else:
+                            pins_moved += 1
+
+                if pins_moved > 0 or pins_missing > 0:
+                    design_breaking_changes += 1
+                    printer.light_purple("Pins have been moved, renumbered or removed in symbol '{lib}:{name}'".format(lib=lib_name, name=cmp))
+                elif nc_pins_moved > 0 or nc_pins_missing > 0:
+                    design_breaking_changes += 1
+                    printer.purple("Normal pins ok but NC pins have been moved, renumbered or removed in symbol '{lib}:{name}'".format(lib=lib_name, name=cmp))
+
             if args.check:
                 if not KLCCheck(lib_path, cmp) == 0:
                     errors += 1
-
-
 
     for cmp in old_cmp:
         # Component has been deleted from library
         if not cmp in new_cmp:
             if args.verbose:
                 printer.red("Removed symbol '{lib}:{name}'".format(lib=lib_name, name=cmp))
+            if args.design_breaking_changes:
+                design_breaking_changes += 1
 
 # Entire lib has been deleted?
 for lib_name in old_libs:
     if not lib_name in new_libs:
         if args.verbose:
             printer.red("Removed library '{lib}'".format(lib=lib_name))
+        if args.design_breaking_changes:
+            design_breaking_changes += 1
 
 # Return the number of errors found ( zero if --check is not set )
-sys.exit(errors)
+sys.exit(errors + design_breaking_changes)
