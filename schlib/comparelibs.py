@@ -35,6 +35,7 @@ parser.add_argument("--old", help="Old (original) .lib file(s) for comparison", 
 parser.add_argument("-v", "--verbose", help="Enable extra verbose output", action="store_true")
 parser.add_argument("--check", help="Perform KLC check on updated/added components", action='store_true')
 parser.add_argument("--nocolor", help="Does not use colors to show the output", action='store_true')
+parser.add_argument("--shownochanges", help="Show libraries that have not changed", action="store_true")
 
 args,extra = parser.parse_known_args()
 
@@ -111,7 +112,7 @@ for lib_name in new_libs:
     
     # If library checksums match, we can skip entire library check
     if new_lib.compareChecksum(old_lib):
-        if args.verbose:
+        if args.verbose and args.shownochanges:
             printer.yellow("No changes to library '{lib}'".format(lib=lib_name))
         continue
     
