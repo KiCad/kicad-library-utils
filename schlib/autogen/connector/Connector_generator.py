@@ -21,7 +21,7 @@ reference_designator = 'J'
 
 pin_grid = 100
 pin_spacing_y = 100
-pin_lenght = 150
+pin_length = 150
 
 mp_artwork_to_body = 30
 extra_pin_grid = 50
@@ -435,18 +435,18 @@ def generateSingleSymbol(generator, series_params, num_pins_per_row, lib_params)
     num_pins_left_side = num_pins_per_row + (1 if series_params.odd_count else 0)
 
     top_left_pin_position = Point({
-        'x': -pin_lenght - body_width_per_row,
+        'x': -pin_length - body_width_per_row,
         'y': pin_spacing_y * (num_pins_left_side - 1) / 2.0
         }, grid = pin_grid)
 
     if series_params.num_rows == 2:
         top_right_pin_position = top_left_pin_position.translate({
-            'x': 2*pin_lenght + 2*body_width_per_row,
+            'x': 2*pin_length + 2*body_width_per_row,
             'y': 0
             }, apply_on_copy = True)
 
     body_top_left_corner = top_left_pin_position.translate({
-        'x': pin_lenght,
+        'x': pin_length,
         'y': pin_spacing_y/2
         }, apply_on_copy = True, new_grid = None)
 
@@ -460,9 +460,9 @@ def generateSingleSymbol(generator, series_params, num_pins_per_row, lib_params)
 
     if extra_pin:
         extra_pin_pos = body_bottom_right_corner.translate(
-            {'x': -body_width/2,'y': -pin_lenght},
+            {'x': -body_width/2,'y': -pin_length},
             apply_on_copy = True, new_grid = extra_pin_grid)
-        extra_pin_lenght = body_bottom_right_corner.y - extra_pin_pos.y - extra_pin['offset']
+        extra_pin_length = body_bottom_right_corner.y - extra_pin_pos.y - extra_pin['offset']
 
     if extra_pin == SHIELD_PIN:
         shield_top_left_corner = body_top_left_corner
@@ -486,7 +486,7 @@ def generateSingleSymbol(generator, series_params, num_pins_per_row, lib_params)
         apply_on_copy = True)
 
     current_symbol.setValue(at = value_pos, fontsize = ref_fontsize,
-        allignment_vertical = SymbolField.FieldAlligment.LEFT if extra_pin else SymbolField.FieldAlligment.CENTER)
+        alignment_vertical = SymbolField.FieldAlignment.LEFT if extra_pin else SymbolField.FieldAlignment.CENTER)
 
     ############################ artwork #################################
     drawing = current_symbol.drawing
@@ -504,11 +504,11 @@ def generateSingleSymbol(generator, series_params, num_pins_per_row, lib_params)
         drawing.append(DrawingPin(
             at=extra_pin_pos,
             number = extra_pin['number'], name = extra_pin['name'],
-            pin_lenght = extra_pin_lenght,
+            pin_length = extra_pin_length,
             orientation = DrawingPin.PinOrientation.UP
             ))
         if extra_pin['deco']:
-            drawing.append(extra_pin['deco'](extra_pin_pos, extra_pin_lenght))
+            drawing.append(extra_pin['deco'](extra_pin_pos, extra_pin_length))
 
     repeated_drawing = [innerArtwork(series_params.graphic_type)]
 
@@ -523,7 +523,7 @@ def generateSingleSymbol(generator, series_params, num_pins_per_row, lib_params)
     repeated_drawing[0].append(DrawingPin(
         at=top_left_pin_position,
         number = pin_number_0, name = pin_name_0,
-        pin_lenght = pin_lenght + (10 if extra_pin==SHIELD_PIN else 0),
+        pin_length = pin_length + (10 if extra_pin==SHIELD_PIN else 0),
         orientation = DrawingPin.PinOrientation.RIGHT
         ))
 
@@ -533,7 +533,7 @@ def generateSingleSymbol(generator, series_params, num_pins_per_row, lib_params)
         repeated_drawing[1].append(DrawingPin(
             at = top_right_pin_position,
             number = pin_number_1, name = pin_name_1,
-            pin_lenght = pin_lenght + (10 if extra_pin==SHIELD_PIN else 0),
+            pin_length = pin_length + (10 if extra_pin==SHIELD_PIN else 0),
             orientation = DrawingPin.PinOrientation.LEFT
             ))
 

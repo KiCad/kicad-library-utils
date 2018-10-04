@@ -52,7 +52,7 @@ class SymbolField:
         def __str__(self):
             return self.value
 
-    class FieldAlligment(Enum):
+    class FieldAlignment(Enum):
         CENTER = 'C'
         LEFT = 'L'
         RIGHT = 'R'
@@ -99,24 +99,24 @@ class SymbolField:
         else:
             raise TypeError('orientation needs to be of type FieldOrientation')
 
-        visiblility = kwargs.get('visiblility',
+        visibility = kwargs.get('visibility',
             SymbolField.FieldVisibility.VISIBLE if self.idx < 2 else SymbolField.FieldVisibility.INVISIBLE)
-        if isinstance(visiblility, SymbolField.FieldVisibility):
-            self.visiblility = visiblility
+        if isinstance(visibility, SymbolField.FieldVisibility):
+            self.visibility = visibility
         else:
-            raise TypeError('visiblility needs to be of type FieldVisibility')
+            raise TypeError('visibility needs to be of type FieldVisibility')
 
-        allignment_horizontal = kwargs.get('allignment_horizontal', SymbolField.FieldAlligment.CENTER)
-        if isinstance(allignment_horizontal, SymbolField.FieldAlligment):
-            self.allignment_horizontal = allignment_horizontal
+        alignment_horizontal = kwargs.get('alignment_horizontal', SymbolField.FieldAlignment.CENTER)
+        if isinstance(alignment_horizontal, SymbolField.FieldAlignment):
+            self.alignment_horizontal = alignment_horizontal
         else:
-            raise TypeError('allignment_horizontal needs to be of type FieldAlligment')
+            raise TypeError('alignment_horizontal needs to be of type FieldAlignment')
 
-        allignment_vertical = kwargs.get('allignment_vertical', SymbolField.FieldAlligment.CENTER)
-        if isinstance(allignment_vertical, SymbolField.FieldAlligment):
-            self.allignment_vertical = allignment_vertical
+        alignment_vertical = kwargs.get('alignment_vertical', SymbolField.FieldAlignment.CENTER)
+        if isinstance(alignment_vertical, SymbolField.FieldAlignment):
+            self.alignment_vertical = alignment_vertical
         else:
-            raise TypeError('allignment_horizontal needs to be of type FieldAlligment')
+            raise TypeError('alignment_horizontal needs to be of type FieldAlignment')
 
         fontweight = kwargs.get('fontweight', SymbolField.FieldFontWeight.NORMAL)
         if isinstance(fontweight, SymbolField.FieldFontWeight):
@@ -133,12 +133,12 @@ class SymbolField:
     def __str__(self):
         # Fn "value" X Y Size H V C CNN "name"
         # (name only for n >3)
-        return 'F{idx:d} "{value:s}" {at:s} {size:d} {orientation:s} {visiblility:s} {allign_v:s} {allign_h:s}{style:s}{weight:s}{name:s}\n'.format(
+        return 'F{idx:d} "{value:s}" {at:s} {size:d} {orientation:s} {visibility:s} {align_v:s} {align_h:s}{style:s}{weight:s}{name:s}\n'.format(
             name = '' if self.idx < 4 else ' "{name}"'.format(name = self.name),
             idx = self.idx, value = self.value, at = self.at,
             size = self.fontsize, weight = self.fontweight, style = self.fontstyle,
-            orientation = self.orientation, visiblility = self.visiblility,
-            allign_h = self.allignment_horizontal, allign_v = self.allignment_vertical
+            orientation = self.orientation, visibility = self.visibility,
+            align_h = self.alignment_horizontal, align_v = self.alignment_vertical
         )
 
 
@@ -243,8 +243,8 @@ class Symbol:
         if self.is_power_symbol is Symbol.PowerSymbol.POWER_SYMBOL:
             if not self.ref_des.startswidth('#'):
                 self.ref_des = '#' + self.ref_des
-            if 'visiblility' not in kwargs:
-                kwargs['visiblility'] = SymbolField.FieldVisibility.INVISIBLE
+            if 'visibility' not in kwargs:
+                kwargs['visibility'] = SymbolField.FieldVisibility.INVISIBLE
         self.fields[0] = SymbolField(idx = 0, value = ref_des, **kwargs)
 
     def setValue(self, **kwargs):
