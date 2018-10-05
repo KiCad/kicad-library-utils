@@ -453,7 +453,7 @@ class DrawingText:
         def __str__(self):
             return self.value
 
-    class VerticalAligment(Enum):
+    class VerticalAlignment(Enum):
         CENTER = 'C'
         TOP = 'T'
         BOTTOM ='B'
@@ -461,7 +461,7 @@ class DrawingText:
         def __str__(self):
             return self.value
 
-    class HorizontalAligment(Enum):
+    class HorizontalAlignment(Enum):
         CENTER = 'C'
         LEFT = 'L'
         RIGHT = 'R'
@@ -494,17 +494,17 @@ class DrawingText:
         else:
             raise TypeError('font_weight needs to be of type DrawingText.FontWeight')
 
-        valign = kwargs.get('valign', DrawingText.VerticalAligment.CENTER)
-        if isinstance(valign, DrawingText.VerticalAligment):
+        valign = kwargs.get('valign', DrawingText.VerticalAlignment.CENTER)
+        if isinstance(valign, DrawingText.VerticalAlignment):
             self.valign = valign
         else:
-            raise TypeError('valign needs to be of type DrawingText.VerticalAligment')
+            raise TypeError('valign needs to be of type DrawingText.VerticalAlignment')
 
-        halign = kwargs.get('halign', DrawingText.HorizontalAligment.CENTER)
-        if isinstance(halign, DrawingText.HorizontalAligment):
+        halign = kwargs.get('halign', DrawingText.HorizontalAlignment.CENTER)
+        if isinstance(halign, DrawingText.HorizontalAlignment):
             self.halign = halign
         else:
-            raise TypeError('halign needs to be of type DrawingText.HorizontalAligment')
+            raise TypeError('halign needs to be of type DrawingText.HorizontalAlignment')
 
     def __str__(self):
         # T angle X Y size hidden part dmg text italic bold Halign Valign
