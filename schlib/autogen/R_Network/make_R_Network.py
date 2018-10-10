@@ -42,7 +42,7 @@ def makeR_Network(lib, dcm, count):
     lib.write("# {0}\n".format(name))
     lib.write("#\n")
     # Symbol definition
-    lib.write("DEF {0} {1} 0 0 N N 1 F N\n".format(name, refdes))
+    lib.write("DEF {0} {1} 0 0 Y N 1 F N\n".format(name, refdes))
     # Refdes
     lib.write(("F0 \"{0}\" {1} 0 50 V V C CNN\n").format(refdes, int(l_box - 50)))
     # Symbol name
