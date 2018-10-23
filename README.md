@@ -2,6 +2,12 @@
 KiCad utilities
 ===============
 
+## / directory
+
+**check_lib_table.py**: Checks the validity of a library table against given libraries
+
+**download_pretty_libs.py**: Download or update KiCad version 4 footprint libraries
+
 ## schlib directory
 
 **checklib.py**: Script for checking [KLC][] compliance of schematic symbol libraries.
