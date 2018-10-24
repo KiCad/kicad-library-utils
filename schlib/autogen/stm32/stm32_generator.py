@@ -33,15 +33,13 @@ class DataPin:
         # Get the el_type for the DrawingPin
         el_type = DataPin._PIN_TYPES_MAPPING[self.pintype]
         # Get visibility based on el_type
-        # NOTE: due to a typo, we have to call this "visiblility" when creating
-        # the pin.  Whoops.
         if el_type == DrawingPin.PinElectricalType.EL_TYPE_NC:
             visibility = DrawingPin.PinVisibility.INVISIBLE
         else:
             visibility = DrawingPin.PinVisibility.VISIBLE
         # Make the DrawingPin
         return DrawingPin(Point(0, 0), self.num, name=self.name,
-                el_type=el_type, visiblility=visibility, **kwargs)
+                el_type=el_type, visibility=visibility, **kwargs)
 
 
 class Device:
@@ -438,7 +436,7 @@ class Device:
                 logging.warning(f"Datasheet could not be determined for "
                         f"device {self.name}")
             return None
-    
+
     def merge_duplicate_pins(self):
         pinNumMap = {}
         removePins = []
@@ -450,10 +448,10 @@ class Device:
                 removePins.append(pin)
             else:
                 pinNumMap[pin.num] = pin
-            
+
         for pin in removePins:
             self.pins.remove(pin)
-    
+
     def draw_symbol(self):
         resetPins = []
         bootPins = []
@@ -462,7 +460,7 @@ class Device:
         ncPins = []
         otherPins = []
         ports = {}
-        
+
         leftPins = []
         rightPins = []
         topPins = []
@@ -482,48 +480,48 @@ class Device:
                 pin_num = int(Device._number_findall.findall(pin.name)[0])
                 try:
                     ports[port][pin_num] = pin.to_drawing_pin(
-                            pin_lenght=pin_length)
+                            pin_length=pin_length)
                 except KeyError:
                     ports[port] = {}
                     ports[port][pin_num] = pin.to_drawing_pin(
-                            pin_lenght=pin_length)
+                            pin_length=pin_length)
             # Clock pins go on the left
             elif pin.pintype == "Clock":
-                clockPins.append(pin.to_drawing_pin(pin_lenght=pin_length,
+                clockPins.append(pin.to_drawing_pin(pin_length=pin_length,
                         orientation=DrawingPin.PinOrientation.RIGHT))
             # Power pins
             elif pin.pintype == "Power" or pin.name.startswith("VREF"):
                 # Positive pins go on the top
                 if pin.name.startswith("VDD") or pin.name.startswith("VBAT"):
                     topPins.append(pin.to_drawing_pin(
-                            pin_lenght=pin_length,
+                            pin_length=pin_length,
                             orientation=DrawingPin.PinOrientation.DOWN))
                 # Negative pins go on the bottom
                 elif pin.name.startswith("VSS"):
                     bottomPins.append(pin.to_drawing_pin(
-                            pin_lenght=pin_length,
+                            pin_length=pin_length,
                             orientation=DrawingPin.PinOrientation.UP))
                 # Other pins go on the left
                 else:
-                    powerPins.append(pin.to_drawing_pin(pin_lenght=pin_length,
+                    powerPins.append(pin.to_drawing_pin(pin_length=pin_length,
                             orientation=DrawingPin.PinOrientation.RIGHT))
             # Reset pins go on the left
             elif pin.pintype == "Reset":
-                resetPins.append(pin.to_drawing_pin(pin_lenght=pin_length,
+                resetPins.append(pin.to_drawing_pin(pin_length=pin_length,
                         orientation=DrawingPin.PinOrientation.RIGHT))
             # Boot pins go on the left
             elif pin.pintype == "Boot":
-                bootPins.append(pin.to_drawing_pin(pin_lenght=pin_length,
+                bootPins.append(pin.to_drawing_pin(pin_length=pin_length,
                         orientation=DrawingPin.PinOrientation.RIGHT))
             # NC pins go in their own group
             elif pin.pintype == "NC":
-                ncPins.append(pin.to_drawing_pin(pin_lenght=pin_length,
+                ncPins.append(pin.to_drawing_pin(pin_length=pin_length,
                         orientation=DrawingPin.PinOrientation.RIGHT))
             # Other pins go on the left
             else:
-                otherPins.append(pin.to_drawing_pin(pin_lenght=pin_length,
+                otherPins.append(pin.to_drawing_pin(pin_length=pin_length,
                         orientation=DrawingPin.PinOrientation.RIGHT))
-        
+
         # Apply pins to sides
         leftGroups = []
         rightGroups = []
@@ -657,20 +655,19 @@ class Device:
                 -box_height//2//100*100)
         self.symbol.drawing.translate(translate_center)
 
-        # NOTE: more typos for alignment and visibility
-        # Also, when creating the string, vertical and horizontal alignment get
+        # when creating the string, vertical and horizontal alignment get
         # switched, so we switch them here to make the result correct
         self.symbol.setReference('U',
                 at=Point(0, box_height + 50).translate(translate_center),
-                allignment_vertical=SymbolField.FieldAlligment.LEFT)
+                alignment_vertical=SymbolField.FieldAlignment.LEFT)
         self.symbol.setValue(value=self.name,
                 at=Point(last_top_x,
                 box_height + 50).translate(translate_center),
-                allignment_vertical=SymbolField.FieldAlligment.LEFT)
+                alignment_vertical=SymbolField.FieldAlignment.LEFT)
         self.symbol.setDefaultFootprint(value=self.footprint,
                 at=translate_center,
-                allignment_vertical=SymbolField.FieldAlligment.RIGHT,
-                visiblility=SymbolField.FieldVisibility.INVISIBLE)
+                alignment_vertical=SymbolField.FieldAlignment.RIGHT,
+                visibility=SymbolField.FieldVisibility.INVISIBLE)
 
 
 def main():
