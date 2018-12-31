@@ -76,7 +76,7 @@ def generateResistorNetwork(count):
         name = 'common',
         number = 1,
         orientation = DrawingPin.PinOrientation.DOWN,
-        pin_lenght = pinlen
+        pin_length = pinlen
     ))
 
     # First top resistor lead
@@ -96,7 +96,7 @@ def generateResistorNetwork(count):
             name = 'R{0}'.format(s),
             number = s + 1,
             orientation = DrawingPin.PinOrientation.UP,
-            pin_lenght = pinlen
+            pin_length = pinlen
         ))
         # Resistor bodies
         symbol.drawing.append(DrawingRectangle(
@@ -192,7 +192,7 @@ def generateSIPNetworkDividers(count):
         name = 'COM1',
         number = 1,
         orientation = DrawingPin.PinOrientation.DOWN,
-        pin_lenght = pinlen
+        pin_length = pinlen
     ))
     # Common 2 pin
     symbol.drawing.append(DrawingPin(
@@ -200,7 +200,7 @@ def generateSIPNetworkDividers(count):
         name = 'COM2',
         number = count + 2,
         orientation = DrawingPin.PinOrientation.DOWN,
-        pin_lenght = pinlen
+        pin_length = pinlen
     ))
     # Vertical COM2 lead
     symbol.drawing.append(DrawingPolyline(
@@ -219,7 +219,7 @@ def generateSIPNetworkDividers(count):
             name = 'R{0}'.format(s),
             number = s + 1,
             orientation = DrawingPin.PinOrientation.UP,
-            pin_lenght = pinlen
+            pin_length = pinlen
         ))
         # Top resistor bodies
         symbol.drawing.append(DrawingRectangle(
@@ -381,7 +381,7 @@ def generateResistorPack(count):
             name = 'R{0}.1'.format(s),
             number = s,
             orientation = DrawingPin.PinOrientation.UP,
-            pin_lenght = pinlen
+            pin_length = pinlen
         ))
         # Resistor top pins
         symbol.drawing.append(DrawingPin(
@@ -389,7 +389,7 @@ def generateResistorPack(count):
             name = 'R{0}.2'.format(s),
             number = 2 * count - s + 1,
             orientation = DrawingPin.PinOrientation.DOWN,
-            pin_lenght = pinlen
+            pin_length = pinlen
         ))
         # Resistor bodies
         symbol.drawing.append(DrawingRectangle(
@@ -482,7 +482,7 @@ def generateSIPResistorPack(count):
             name = 'R{0}.1'.format(s),
             number = 2 * s - 1,
             orientation = DrawingPin.PinOrientation.UP,
-            pin_lenght = pinlen
+            pin_length = pinlen
         ))
         # Resistor long pins
         symbol.drawing.append(DrawingPin(
@@ -490,7 +490,7 @@ def generateSIPResistorPack(count):
             name = 'R{0}.2'.format(s),
             number = 2 * s,
             orientation = DrawingPin.PinOrientation.UP,
-            pin_lenght = pinlen
+            pin_length = pinlen
         ))
         # Resistor bodies
         symbol.drawing.append(DrawingRectangle(
