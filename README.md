@@ -2,6 +2,12 @@
 KiCad utilities
 ===============
 
+## / directory
+
+**check_lib_table.py**: Checks the validity of a library table against given libraries
+
+**download_pretty_libs.py**: Download or update KiCad version 4 footprint libraries
+
 ## schlib directory
 
 **checklib.py**: Script for checking [KLC][] compliance of schematic symbol libraries.
@@ -42,7 +48,7 @@ How to use
 ## Schematic Library Checker
 
     # first get into schlib directory
-    cd schlib
+    cd kicad-library-utils/schlib
 
     # run the script passing the files to be checked
     ./checklib.py path_to_lib1 path_to_lib2
@@ -50,13 +56,13 @@ How to use
     # to check a specific component you can use the -c flag
     ./checklib.py -c component_name path_to_lib1
 
-    # run the following command to see other options
+    # run the following 'h'elp command to see other options
     ./checklib.py -h
 
 ## Adding Part Number (PN) to Schematic Files
 
     # first get into sch directory
-    cd sch
+    cd kicad-library-utils/sch
 
     # use the following command to add empty "MPN" fields in the schematic files
     ./add_part_number.py path_to_sch1 path_to_sch2
@@ -67,26 +73,29 @@ How to use
     # manually add the MPN field in the Collated Components section (for example)
     ./add_part_number.py --bom-csv=path_to_bom_csv path_to_sch_files/*.sch
 
-    # run the following command to see other options
+    # run the following 'h'elp command to see other options
     ./add_part_number.py -h
 
 
 ## Footprint Checker
 
     # first get into pcb directory
-    cd pcb
+    cd kicad-library-utils/pcb
 
     # run the script passing the files to be checked
-    ./check_kicad_mod.py path_to_fp1 path_to_fp2
+    ./check_kicad_mod.py path_to_fp1.kicad_mod path_to_fp2.kicad_mod
+    
+    # Add `-v`, `-vv`, or `-vvv` for extra verbose output. The most useful is `-vv`, which explains in details the violations. Ex: 
+    ./check_kicad_mod.py path_to_fp1.kicad_mod path_to_fp2.kicad_mod -vv
 
-    # run the following command to see other options
+    # run the following 'h'elp command to see other options
     ./check_kicad_mod.py -h
 
 
 ## 3D Coverage Checker
 
     # first get into pcb directory
-    cd pcb
+    cd kicad-library-utils/pcb
 
     # run the script to check all footprints
     ./check_3d_coverage.py
@@ -94,7 +103,7 @@ How to use
     # run the script to check only the specified .pretty folder
     ./check_3d_coverage.py --prettty Housings_SOIC
 
-    # run the following command to see other options
+    # run the following 'h'elp command to see other options
     ./check_3d_coverage.py -h
 
 

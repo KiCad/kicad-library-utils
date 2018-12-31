@@ -80,7 +80,7 @@ class DrawingPin:
         self.name = str(kwargs.get('name', self.num))
         self.unit_idx = int(kwargs.get('unit_idx', 1))
         self.deMorgan_idx = int(kwargs.get('deMorgan_idx', 1))
-        self.pin_lenght = int(kwargs.get('pin_lenght', 100))
+        self.pin_length = int(kwargs.get('pin_length', 100))
         self.fontsize_pinnumber = int(kwargs.get('sizenumber', 50))
         self.fontsize_pinname = int(kwargs.get('sizename', self.fontsize_pinnumber))
 
@@ -90,11 +90,11 @@ class DrawingPin:
         else:
             raise TypeError('el_type needs to be of type PinElectricalType')
 
-        visiblility = kwargs.get('visiblility', DrawingPin.PinVisibility.VISIBLE)
-        if isinstance(visiblility, DrawingPin.PinVisibility):
-            self.visiblility = visiblility
+        visibility = kwargs.get('visibility', DrawingPin.PinVisibility.VISIBLE)
+        if isinstance(visibility, DrawingPin.PinVisibility):
+            self.visibility = visibility
         else:
-            raise TypeError('visiblility needs to be of type PinVisibility')
+            raise TypeError('visibility needs to be of type PinVisibility')
 
         style = kwargs.get('style', DrawingPin.PinStyle.SHAPE_LINE)
         if isinstance(style, DrawingPin.PinStyle):
@@ -114,9 +114,9 @@ class DrawingPin:
         self.name = pinname_update_function(self.name, self.num)
 
     def __pinShapeRender(self):
-        if self.visiblility is DrawingPin.PinVisibility.INVISIBLE or self.style is not DrawingPin.PinStyle.SHAPE_LINE:
-            return ' {visiblility:s}{style:s}'.format(
-                visiblility = self.visiblility, style = self.style)
+        if self.visibility is DrawingPin.PinVisibility.INVISIBLE or self.style is not DrawingPin.PinStyle.SHAPE_LINE:
+            return ' {visibility:s}{style:s}'.format(
+                visibility = self.visibility, style = self.style)
         else:
             return ''
 
@@ -124,7 +124,7 @@ class DrawingPin:
         # X name pin X Y length PinOrientation sizenum sizename part dmg type shape
         return 'X {name:s} {num:s} {at:s} {pin_length:d} {orientation:s} {sizenumber:d} {sizename:d} {unit_idx:d} {deMorgan_idx:d} {el_type:s}{shape}\n'.format(
             name = self.name, num = str(self.num),
-            at = self.at, pin_length = self.pin_lenght, orientation = self.orientation,
+            at = self.at, pin_length = self.pin_length, orientation = self.orientation,
             sizenumber = self.fontsize_pinnumber, sizename = self.fontsize_pinname,
             unit_idx = self.unit_idx, deMorgan_idx = self.deMorgan_idx,
             el_type = self.el_type, shape = self.__pinShapeRender()
@@ -453,7 +453,7 @@ class DrawingText:
         def __str__(self):
             return self.value
 
-    class VerticalAligment(Enum):
+    class VerticalAlignment(Enum):
         CENTER = 'C'
         TOP = 'T'
         BOTTOM ='B'
@@ -461,7 +461,7 @@ class DrawingText:
         def __str__(self):
             return self.value
 
-    class HorizontalAligment(Enum):
+    class HorizontalAlignment(Enum):
         CENTER = 'C'
         LEFT = 'L'
         RIGHT = 'R'
@@ -494,17 +494,17 @@ class DrawingText:
         else:
             raise TypeError('font_weight needs to be of type DrawingText.FontWeight')
 
-        valign = kwargs.get('valign', DrawingText.VerticalAligment.CENTER)
-        if isinstance(valign, DrawingText.VerticalAligment):
+        valign = kwargs.get('valign', DrawingText.VerticalAlignment.CENTER)
+        if isinstance(valign, DrawingText.VerticalAlignment):
             self.valign = valign
         else:
-            raise TypeError('valign needs to be of type DrawingText.VerticalAligment')
+            raise TypeError('valign needs to be of type DrawingText.VerticalAlignment')
 
-        halign = kwargs.get('halign', DrawingText.HorizontalAligment.CENTER)
-        if isinstance(halign, DrawingText.HorizontalAligment):
+        halign = kwargs.get('halign', DrawingText.HorizontalAlignment.CENTER)
+        if isinstance(halign, DrawingText.HorizontalAlignment):
             self.halign = halign
         else:
-            raise TypeError('halign needs to be of type DrawingText.HorizontalAligment')
+            raise TypeError('halign needs to be of type DrawingText.HorizontalAlignment')
 
     def __str__(self):
         # T angle X Y size hidden part dmg text italic bold Halign Valign
