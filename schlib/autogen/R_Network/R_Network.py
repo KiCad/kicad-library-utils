@@ -51,24 +51,24 @@ def generateResistorNetwork(count):
         pin_name_visibility = Symbol.PinMarkerVisibility.INVISIBLE
     )
     symbol.setReference(refdes,
-        at = {'x': body_x - 50, 'y': 0},
+        at = Point(body_x - 50, 0),
         orientation = SymbolField.FieldOrientation.VERTICAL
     )
     symbol.setValue(
-        at = {'x': body_x + body_width + 50, 'y': 0},
+        at = Point(body_x + body_width + 50, 0),
         orientation = SymbolField.FieldOrientation.VERTICAL
     )
     symbol.setDefaultFootprint(
-        at = {'x': body_x + body_width + 50 + 75, 'y': 0},
+        at = Point(body_x + body_width + 50 + 75, 0),
         orientation = SymbolField.FieldOrientation.VERTICAL,
         value = footprint
     )
 
     # Symbol body
     symbol.drawing.append(DrawingRectangle(
-        end = {'x': body_x + body_width, 'y': body_y + body_height},
+        end = Point(body_x + body_width, body_y + body_height),
         fill = ElementFill.FILL_BACKGROUND,
-        start = {'x': body_x, 'y': body_y},
+        start = Point(body_x, body_y),
         unit_idx = 0
     ))
 
@@ -76,7 +76,7 @@ def generateResistorNetwork(count):
 
     # Common pin
     symbol.drawing.append(DrawingPin(
-        at = {'x': pin_left, 'y': -top},
+        at = Point(pin_left, -top),
         name = 'common',
         number = 1,
         orientation = DrawingPin.PinOrientation.DOWN,
@@ -87,8 +87,8 @@ def generateResistorNetwork(count):
     symbol.drawing.append(DrawingPolyline(
         line_width = 0,
         points = [
-            {'x': pin_left, 'y': -(top + pin_length)},
-            {'x': pin_left, 'y': -(bottom - pin_length - resistor_length)}
+            Point(pin_left, -(top + pin_length)),
+            Point(pin_left, -(bottom - pin_length - resistor_length))
         ],
         unit_idx = 0
     ))
@@ -96,7 +96,7 @@ def generateResistorNetwork(count):
     for s in range(1, count + 1):
         # Resistor pins
         symbol.drawing.append(DrawingPin(
-            at = {'x': pin_left, 'y': -bottom},
+            at = Point(pin_left, -bottom),
             name = 'R{0}'.format(s),
             number = s + 1,
             orientation = DrawingPin.PinOrientation.UP,
@@ -104,8 +104,8 @@ def generateResistorNetwork(count):
         ))
         # Resistor bodies
         symbol.drawing.append(DrawingRectangle(
-            end = {'x': pin_left + resistor_width / 2, 'y': -(bottom - pin_length)},
-            start = {'x': pin_left - resistor_width / 2, 'y': -(bottom - pin_length - resistor_length)},
+            end = Point(pin_left + resistor_width / 2, -(bottom - pin_length)),
+            start = Point(pin_left - resistor_width / 2, -(bottom - pin_length - resistor_length)),
             unit_idx = 0
         ))
 
@@ -114,16 +114,16 @@ def generateResistorNetwork(count):
             symbol.drawing.append(DrawingPolyline(
                 line_width = 0,
                 points = [
-                    {'x': pin_left, 'y': -(bottom - pin_length - resistor_length)},
-                    {'x': pin_left, 'y': -(bottom - pin_length - resistor_length - W_dist)},
-                    {'x': pin_left + dp, 'y': -(bottom - pin_length - resistor_length - W_dist)},
-                    {'x': pin_left + dp, 'y': -(bottom - pin_length - resistor_length)}
+                    Point(pin_left, -(bottom - pin_length - resistor_length)),
+                    Point(pin_left, -(bottom - pin_length - resistor_length - W_dist)),
+                    Point(pin_left + dp, -(bottom - pin_length - resistor_length - W_dist)),
+                    Point(pin_left + dp, -(bottom - pin_length - resistor_length))
                 ],
                 unit_idx = 0
             ))
             # Junctions
             symbol.drawing.append(DrawingCircle(
-                at = {'x': pin_left, 'y': -(bottom - pin_length - resistor_length - W_dist)},
+                at = Point(pin_left, -(bottom - pin_length - resistor_length - W_dist)),
                 fill = ElementFill.FILL_FOREGROUND,
                 line_width = 0,
                 radius = junction_diameter / 2,
@@ -167,24 +167,24 @@ def generateSIPNetworkDividers(count):
         pin_name_visibility = Symbol.PinMarkerVisibility.INVISIBLE
     )
     symbol.setReference(refdes,
-        at = {'x': body_x - 50, 'y': 0},
+        at = Point(body_x - 50, 0),
         orientation = SymbolField.FieldOrientation.VERTICAL
     )
     symbol.setValue(
-        at = {'x': body_x + body_width + 50, 'y': 0},
+        at = Point(body_x + body_width + 50, 0),
         orientation = SymbolField.FieldOrientation.VERTICAL
     )
     symbol.setDefaultFootprint(
-        at = {'x': body_x + body_width + 50 + 75, 'y': 0},
+        at = Point(body_x + body_width + 50 + 75, 0),
         orientation = SymbolField.FieldOrientation.VERTICAL,
         value = footprint
     )
 
     # Symbol body
     symbol.drawing.append(DrawingRectangle(
-        end = {'x': body_x + body_width, 'y': body_y + body_height},
+        end = Point(body_x + body_width, body_y + body_height),
         fill = ElementFill.FILL_BACKGROUND,
-        start = {'x': body_x, 'y': body_y},
+        start = Point(body_x, body_y),
         unit_idx = 0
     ))
 
@@ -192,7 +192,7 @@ def generateSIPNetworkDividers(count):
 
     # Common 1 pin
     symbol.drawing.append(DrawingPin(
-        at = {'x': pin_left, 'y': -top},
+        at = Point(pin_left, -top),
         name = 'COM1',
         number = 1,
         orientation = DrawingPin.PinOrientation.DOWN,
@@ -200,7 +200,7 @@ def generateSIPNetworkDividers(count):
     ))
     # Common 2 pin
     symbol.drawing.append(DrawingPin(
-        at = {'x': left + (count - 1) * dp + dp / 2, 'y': -top},
+        at = Point(left + (count - 1) * dp + dp / 2, -top),
         name = 'COM2',
         number = count + 2,
         orientation = DrawingPin.PinOrientation.DOWN,
@@ -210,8 +210,8 @@ def generateSIPNetworkDividers(count):
     symbol.drawing.append(DrawingPolyline(
         line_width = 0,
         points = [
-            {'x': left + (count - 1) * dp + dp / 2, 'y': -(bottom - pin_length - R_dist / 2)},
-            {'x': left + (count - 1) * dp + dp / 2, 'y': -(top + pin_length)}
+            Point(left + (count - 1) * dp + dp / 2, -(bottom - pin_length - R_dist / 2)),
+            Point(left + (count - 1) * dp + dp / 2, -(top + pin_length))
         ],
         unit_idx = 0
     ))
@@ -219,7 +219,7 @@ def generateSIPNetworkDividers(count):
     for s in range(1, count + 1):
         # Voltage divider center pins
         symbol.drawing.append(DrawingPin(
-            at = {'x': pin_left, 'y': -bottom},
+            at = Point(pin_left, -bottom),
             name = 'R{0}'.format(s),
             number = s + 1,
             orientation = DrawingPin.PinOrientation.UP,
@@ -227,23 +227,23 @@ def generateSIPNetworkDividers(count):
         ))
         # Top resistor bodies
         symbol.drawing.append(DrawingRectangle(
-            end = {'x': pin_left + resistor_width / 2, 'y': -(top + pin_length + R_dist + resistor_length)},
-            start = {'x': pin_left - resistor_width / 2, 'y': -(top + pin_length + R_dist)},
+            end = Point(pin_left + resistor_width / 2, -(top + pin_length + R_dist + resistor_length)),
+            start = Point(pin_left - resistor_width / 2, -(top + pin_length + R_dist)),
             unit_idx = 0
         ))
         # Bottom resistor bodies
         symbol.drawing.append(DrawingRectangle(
-            end = {'x': pin_left + 3 * resistor_width / 2 + resistor_width / 2, 'y': -(bottom - pin_length - R_dist - resistor_length)},
-            start = {'x': pin_left + 3 * resistor_width / 2 - resistor_width / 2, 'y': -(bottom - pin_length - R_dist)},
+            end = Point(pin_left + 3 * resistor_width / 2 + resistor_width / 2, -(bottom - pin_length - R_dist - resistor_length)),
+            start = Point(pin_left + 3 * resistor_width / 2 - resistor_width / 2, -(bottom - pin_length - R_dist)),
             unit_idx = 0
         ))
         # Horizontal COM2 leads
         symbol.drawing.append(DrawingPolyline(
             line_width = 0,
             points = [
-                {'x': pin_left + 3 * resistor_width / 2, 'y': -(bottom - pin_length - R_dist)},
-                {'x': pin_left + 3 * resistor_width / 2, 'y': -(bottom - pin_length - R_dist / 2)},
-                {'x': left + (count - 1) * dp + dp / 2, 'y': -(bottom - pin_length - R_dist / 2)}
+                Point(pin_left + 3 * resistor_width / 2, -(bottom - pin_length - R_dist)),
+                Point(pin_left + 3 * resistor_width / 2, -(bottom - pin_length - R_dist / 2)),
+                Point(left + (count - 1) * dp + dp / 2, -(bottom - pin_length - R_dist / 2))
             ],
             unit_idx = 0
         ))
@@ -253,8 +253,8 @@ def generateSIPNetworkDividers(count):
             symbol.drawing.append(DrawingPolyline(
                 line_width = 0,
                 points = [
-                    {'x': pin_left, 'y': -(top + pin_length)},
-                    {'x': pin_left, 'y': -(top + pin_length + R_dist)}
+                    Point(pin_left, -(top + pin_length)),
+                    Point(pin_left, -(top + pin_length + R_dist))
                 ],
                 unit_idx = 0
             ))
@@ -264,9 +264,9 @@ def generateSIPNetworkDividers(count):
             symbol.drawing.append(DrawingPolyline(
                 line_width = 0,
                 points = [
-                    {'x': pin_left - dp, 'y': -(top + pin_length + R_dist / 2)},
-                    {'x': pin_left, 'y': -(top + pin_length + R_dist / 2)},
-                    {'x': pin_left, 'y': -(top + pin_length + R_dist)}
+                    Point(pin_left - dp, -(top + pin_length + R_dist / 2)),
+                    Point(pin_left, -(top + pin_length + R_dist / 2)),
+                    Point(pin_left, -(top + pin_length + R_dist))
                 ],
                 unit_idx = 0
             ))
@@ -275,8 +275,8 @@ def generateSIPNetworkDividers(count):
         symbol.drawing.append(DrawingPolyline(
             line_width = 0,
             points = [
-                {'x': pin_left, 'y': -(bottom - pin_length)},
-                {'x': pin_left, 'y': -(top + pin_length + R_dist + resistor_length)}
+                Point(pin_left, -(bottom - pin_length)),
+                Point(pin_left, -(top + pin_length + R_dist + resistor_length))
             ],
             unit_idx = 0
         ))
@@ -284,15 +284,15 @@ def generateSIPNetworkDividers(count):
         symbol.drawing.append(DrawingPolyline(
             line_width = 0,
             points = [
-                {'x': pin_left, 'y': -(top + pin_length + R_dist + resistor_length + R_dist / 2)},
-                {'x': pin_left + 3 * resistor_width / 2, 'y': -(top + pin_length + R_dist + resistor_length + R_dist / 2)},
-                {'x': pin_left + 3 * resistor_width / 2, 'y': -(bottom - pin_length - R_dist - resistor_length)}
+                Point(pin_left, -(top + pin_length + R_dist + resistor_length + R_dist / 2)),
+                Point(pin_left + 3 * resistor_width / 2, -(top + pin_length + R_dist + resistor_length + R_dist / 2)),
+                Point(pin_left + 3 * resistor_width / 2, -(bottom - pin_length - R_dist - resistor_length))
             ],
             unit_idx = 0
         ))
         # Center junctions
         symbol.drawing.append(DrawingCircle(
-            at = {'x': pin_left, 'y': 0},
+            at = Point(pin_left, 0),
             fill = ElementFill.FILL_FOREGROUND,
             line_width = 0,
             radius = junction_diameter / 2,
@@ -302,7 +302,7 @@ def generateSIPNetworkDividers(count):
         if s > 1:
             # Bottom junctions
             symbol.drawing.append(DrawingCircle(
-                at = {'x': pin_left + 3 * resistor_width / 2, 'y': -(bottom - pin_length - R_dist / 2)},
+                at = Point(pin_left + 3 * resistor_width / 2, -(bottom - pin_length - R_dist / 2)),
                 fill = ElementFill.FILL_FOREGROUND,
                 line_width = 0,
                 radius = junction_diameter / 2,
@@ -312,7 +312,7 @@ def generateSIPNetworkDividers(count):
         if s < count:
             # Top junctions
             symbol.drawing.append(DrawingCircle(
-                at = {'x': pin_left, 'y': -(top + pin_length + R_dist / 2)},
+                at = Point(pin_left, -(top + pin_length + R_dist / 2)),
                 fill = ElementFill.FILL_FOREGROUND,
                 line_width = 0,
                 radius = junction_diameter / 2,
@@ -355,24 +355,24 @@ def generateResistorPack(count):
         pin_name_visibility = Symbol.PinMarkerVisibility.INVISIBLE
     )
     symbol.setReference(refdes,
-        at = {'x': body_x - 50, 'y': 0},
+        at = Point(body_x - 50, 0),
         orientation = SymbolField.FieldOrientation.VERTICAL
     )
     symbol.setValue(
-        at = {'x': body_x + body_width + 50, 'y': 0},
+        at = Point(body_x + body_width + 50, 0),
         orientation = SymbolField.FieldOrientation.VERTICAL
     )
     symbol.setDefaultFootprint(
-        at = {'x': body_x + body_width + 50 + 75, 'y': 0},
+        at = Point(body_x + body_width + 50 + 75, 0),
         orientation = SymbolField.FieldOrientation.VERTICAL,
         value = footprint
     )
 
     # Symbol body
     symbol.drawing.append(DrawingRectangle(
-        end = {'x': body_x + body_width, 'y': body_y + body_height},
+        end = Point(body_x + body_width, body_y + body_height),
         fill = ElementFill.FILL_BACKGROUND,
-        start = {'x': body_x, 'y': body_y},
+        start = Point(body_x, body_y),
         unit_idx = 0
     ))
 
@@ -381,7 +381,7 @@ def generateResistorPack(count):
     for s in range(1, count + 1):
         # Resistor bottom pins
         symbol.drawing.append(DrawingPin(
-            at = {'x': pin_left, 'y': -bottom},
+            at = Point(pin_left, -bottom),
             name = 'R{0}.1'.format(s),
             number = s,
             orientation = DrawingPin.PinOrientation.UP,
@@ -389,7 +389,7 @@ def generateResistorPack(count):
         ))
         # Resistor top pins
         symbol.drawing.append(DrawingPin(
-            at = {'x': pin_left, 'y': -top},
+            at = Point(pin_left, -top),
             name = 'R{0}.2'.format(s),
             number = 2 * count - s + 1,
             orientation = DrawingPin.PinOrientation.DOWN,
@@ -397,16 +397,16 @@ def generateResistorPack(count):
         ))
         # Resistor bodies
         symbol.drawing.append(DrawingRectangle(
-            end = {'x': pin_left + resistor_width / 2, 'y': -(resistor_length / 2)},
-            start = {'x': pin_left - resistor_width / 2, 'y': -(-resistor_length / 2)},
+            end = Point(pin_left + resistor_width / 2, -(resistor_length / 2)),
+            start = Point(pin_left - resistor_width / 2, -(-resistor_length / 2)),
             unit_idx = 0
         ))
         # Resistor bottom leads
         symbol.drawing.append(DrawingPolyline(
             line_width = 0,
             points = [
-                {'x': pin_left, 'y': -(bottom - pin_length)},
-                {'x': pin_left, 'y': -(resistor_length / 2)}
+                Point(pin_left, -(bottom - pin_length)),
+                Point(pin_left, -(resistor_length / 2))
             ],
             unit_idx = 0
         ))
@@ -414,8 +414,8 @@ def generateResistorPack(count):
         symbol.drawing.append(DrawingPolyline(
             line_width = 0,
             points = [
-                {'x': pin_left, 'y': -(-resistor_length / 2)},
-                {'x': pin_left, 'y': -(top + pin_length)}
+                Point(pin_left, -(-resistor_length / 2)),
+                Point(pin_left, -(top + pin_length))
             ],
             unit_idx = 0
         ))
@@ -456,24 +456,24 @@ def generateSIPResistorPack(count):
         pin_name_visibility = Symbol.PinMarkerVisibility.INVISIBLE
     )
     symbol.setReference(refdes,
-        at = {'x': body_x - 50, 'y': 0},
+        at = Point(body_x - 50, 0),
         orientation = SymbolField.FieldOrientation.VERTICAL
     )
     symbol.setValue(
-        at = {'x': body_x + body_width + 50, 'y': 0},
+        at = Point(body_x + body_width + 50, 0),
         orientation = SymbolField.FieldOrientation.VERTICAL
     )
     symbol.setDefaultFootprint(
-        at = {'x': body_x + body_width + 50 + 75, 'y': 0},
+        at = Point(body_x + body_width + 50 + 75, 0),
         orientation = SymbolField.FieldOrientation.VERTICAL,
         value = footprint
     )
 
     # Symbol body
     symbol.drawing.append(DrawingRectangle(
-        end = {'x': body_x + body_width, 'y': body_y + body_height},
+        end = Point(body_x + body_width, body_y + body_height),
         fill = ElementFill.FILL_BACKGROUND,
-        start = {'x': body_x, 'y': body_y},
+        start = Point(body_x, body_y),
         unit_idx = 0
     ))
 
@@ -482,7 +482,7 @@ def generateSIPResistorPack(count):
     for s in range(1, count + 1):
         # Resistor short pins
         symbol.drawing.append(DrawingPin(
-            at = {'x': pin_left, 'y': -bottom},
+            at = Point(pin_left, -bottom),
             name = 'R{0}.1'.format(s),
             number = 2 * s - 1,
             orientation = DrawingPin.PinOrientation.UP,
@@ -490,7 +490,7 @@ def generateSIPResistorPack(count):
         ))
         # Resistor long pins
         symbol.drawing.append(DrawingPin(
-            at = {'x': pin_left + dp, 'y': -bottom},
+            at = Point(pin_left + dp, -bottom),
             name = 'R{0}.2'.format(s),
             number = 2 * s,
             orientation = DrawingPin.PinOrientation.UP,
@@ -498,18 +498,18 @@ def generateSIPResistorPack(count):
         ))
         # Resistor bodies
         symbol.drawing.append(DrawingRectangle(
-            end = {'x': pin_left + resistor_width / 2, 'y': -(bottom - pin_length)},
-            start = {'x': pin_left - resistor_width / 2, 'y': -(bottom - pin_length - resistor_length)},
+            end = Point(pin_left + resistor_width / 2, -(bottom - pin_length)),
+            start = Point(pin_left - resistor_width / 2, -(bottom - pin_length - resistor_length)),
             unit_idx = 0
         ))
         # Resistor long leads
         symbol.drawing.append(DrawingPolyline(
             line_width = 0,
             points = [
-                {'x': pin_left, 'y': -(bottom - pin_length - resistor_length)},
-                {'x': pin_left, 'y': -(bottom - pin_length - resistor_length - W_dist)},
-                {'x': pin_left + dp, 'y': -(bottom - pin_length - resistor_length - W_dist)},
-                {'x': pin_left + dp, 'y': -(bottom - pin_length)}
+                Point(pin_left, -(bottom - pin_length - resistor_length)),
+                Point(pin_left, -(bottom - pin_length - resistor_length - W_dist)),
+                Point(pin_left + dp, -(bottom - pin_length - resistor_length - W_dist)),
+                Point(pin_left + dp, -(bottom - pin_length))
             ],
             unit_idx = 0
         ))
