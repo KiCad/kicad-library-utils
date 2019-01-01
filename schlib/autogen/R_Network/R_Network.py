@@ -1,7 +1,10 @@
-import sys, os
-sys.path.append(os.path.join(sys.path[0],'..'))
+#!/usr/bin/env python3
 
 import math
+import os
+import sys
+
+sys.path.append(os.path.join(sys.path[0], '..'))
 
 from KiCadSymbolGenerator import *
 
