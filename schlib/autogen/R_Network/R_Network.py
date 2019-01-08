@@ -8,7 +8,7 @@ sys.path.append(os.path.join(sys.path[0], '..'))
 
 from KiCadSymbolGenerator import *
 
-def roundG(x, g):
+def roundToGrid(x, g):
     if x > 0:
         return math.ceil(x / g) * g
     else:
@@ -336,7 +336,7 @@ def generateResistorPack(count):
     resistor_width = 50
     box_l_offset = 50
     box_t_offset = 20
-    left = -roundG(((count - 1) * dp) / 2, 100)
+    left = -roundToGrid(((count - 1) * dp) / 2, 100)
     body_x = left - box_l_offset
     body_height = resistor_length + 2 * box_t_offset
     body_y = -body_height / 2
@@ -438,7 +438,7 @@ def generateSIPResistorPack(count):
     resistor_width = 60
     W_dist = 30
     box_l_offset = 50
-    left = -roundG(((count - 1) * dR) / 2, 100)
+    left = -roundToGrid(((count - 1) * dR) / 2, 100)
     body_x = left - box_l_offset
     body_y = -75
     body_height = 250
