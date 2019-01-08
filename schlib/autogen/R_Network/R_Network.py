@@ -25,18 +25,18 @@ def generateResistorNetwork(count):
     keywords = 'R network star-topology'
     datasheet = 'http://www.vishay.com/docs/31509/csc.pdf'
 
-    dp = 100
+    grid_size = 100
     junction_diameter = 20
     pin_length = 100
     resistor_length = 160
     resistor_width = 60
-    W_dist = 30
-    box_l_offset = 50
-    left = -math.floor(count / 2) * dp
-    body_x = left - box_l_offset
+    resistor_top_lead_length = 30
+    body_left_offset = 50
+    left = -math.floor(count / 2) * grid_size
+    body_x = left - body_left_offset
     body_y = -125
     body_height = 250
-    body_width = (count - 1) * dp + 2 * box_l_offset
+    body_width = (count - 1) * grid_size + 2 * body_left_offset
     top = -200
     bottom = 200
 
@@ -115,22 +115,22 @@ def generateResistorNetwork(count):
                 line_width = 0,
                 points = [
                     Point(pin_left, -(bottom - pin_length - resistor_length)),
-                    Point(pin_left, -(bottom - pin_length - resistor_length - W_dist)),
-                    Point(pin_left + dp, -(bottom - pin_length - resistor_length - W_dist)),
-                    Point(pin_left + dp, -(bottom - pin_length - resistor_length))
+                    Point(pin_left, -(bottom - pin_length - resistor_length - resistor_top_lead_length)),
+                    Point(pin_left + grid_size, -(bottom - pin_length - resistor_length - resistor_top_lead_length)),
+                    Point(pin_left + grid_size, -(bottom - pin_length - resistor_length))
                 ],
                 unit_idx = 0
             ))
             # Junctions
             symbol.drawing.append(DrawingCircle(
-                at = Point(pin_left, -(bottom - pin_length - resistor_length - W_dist)),
+                at = Point(pin_left, -(bottom - pin_length - resistor_length - resistor_top_lead_length)),
                 fill = ElementFill.FILL_FOREGROUND,
                 line_width = 0,
                 radius = junction_diameter / 2,
                 unit_idx = 0
             ))
 
-        pin_left = pin_left + dp
+        pin_left = pin_left + grid_size
 
 def generateSIPNetworkDividers(count):
     name = 'R_Network_Dividers_x{:02d}_SIP'.format(count)
@@ -141,20 +141,20 @@ def generateSIPNetworkDividers(count):
     keywords = 'R network divider topology'
     datasheet = 'http://www.vishay.com/docs/31509/csc.pdf'
 
-    dp = 200
+    grid_size = 200
     junction_diameter = 20
     pin_length = 100
     resistor_length = 100
     resistor_width = 40
-    box_l_offset = 50
-    left = -math.floor(count / 2) * dp
+    body_left_offset = 50
+    left = -math.floor(count / 2) * grid_size
     top = -300
     bottom = 300
-    body_x = left - box_l_offset
+    body_x = left - body_left_offset
     body_y = top + pin_length
     body_height = abs(bottom - pin_length - body_y)
-    body_width = (count - 1) * dp + dp / 2 + 2 * box_l_offset
-    R_dist = (body_height - 2 * resistor_length) / 3
+    body_width = (count - 1) * grid_size + grid_size / 2 + 2 * body_left_offset
+    resistor_vertical_spacing = (body_height - 2 * resistor_length) / 3
 
     symbol = generator.addSymbol(name,
         dcm_options = {
@@ -200,7 +200,7 @@ def generateSIPNetworkDividers(count):
     ))
     # Common 2 pin
     symbol.drawing.append(DrawingPin(
-        at = Point(left + (count - 1) * dp + dp / 2, -top),
+        at = Point(left + (count - 1) * grid_size + grid_size / 2, -top),
         name = 'COM2',
         number = count + 2,
         orientation = DrawingPin.PinOrientation.DOWN,
@@ -210,8 +210,8 @@ def generateSIPNetworkDividers(count):
     symbol.drawing.append(DrawingPolyline(
         line_width = 0,
         points = [
-            Point(left + (count - 1) * dp + dp / 2, -(bottom - pin_length - R_dist / 2)),
-            Point(left + (count - 1) * dp + dp / 2, -(top + pin_length))
+            Point(left + (count - 1) * grid_size + grid_size / 2, -(bottom - pin_length - resistor_vertical_spacing / 2)),
+            Point(left + (count - 1) * grid_size + grid_size / 2, -(top + pin_length))
         ],
         unit_idx = 0
     ))
@@ -227,23 +227,23 @@ def generateSIPNetworkDividers(count):
         ))
         # Top resistor bodies
         symbol.drawing.append(DrawingRectangle(
-            end = Point(pin_left + resistor_width / 2, -(top + pin_length + R_dist + resistor_length)),
-            start = Point(pin_left - resistor_width / 2, -(top + pin_length + R_dist)),
+            end = Point(pin_left + resistor_width / 2, -(top + pin_length + resistor_vertical_spacing + resistor_length)),
+            start = Point(pin_left - resistor_width / 2, -(top + pin_length + resistor_vertical_spacing)),
             unit_idx = 0
         ))
         # Bottom resistor bodies
         symbol.drawing.append(DrawingRectangle(
-            end = Point(pin_left + 3 * resistor_width / 2 + resistor_width / 2, -(bottom - pin_length - R_dist - resistor_length)),
-            start = Point(pin_left + 3 * resistor_width / 2 - resistor_width / 2, -(bottom - pin_length - R_dist)),
+            end = Point(pin_left + 3 * resistor_width / 2 + resistor_width / 2, -(bottom - pin_length - resistor_vertical_spacing - resistor_length)),
+            start = Point(pin_left + 3 * resistor_width / 2 - resistor_width / 2, -(bottom - pin_length - resistor_vertical_spacing)),
             unit_idx = 0
         ))
         # Horizontal COM2 leads
         symbol.drawing.append(DrawingPolyline(
             line_width = 0,
             points = [
-                Point(pin_left + 3 * resistor_width / 2, -(bottom - pin_length - R_dist)),
-                Point(pin_left + 3 * resistor_width / 2, -(bottom - pin_length - R_dist / 2)),
-                Point(left + (count - 1) * dp + dp / 2, -(bottom - pin_length - R_dist / 2))
+                Point(pin_left + 3 * resistor_width / 2, -(bottom - pin_length - resistor_vertical_spacing)),
+                Point(pin_left + 3 * resistor_width / 2, -(bottom - pin_length - resistor_vertical_spacing / 2)),
+                Point(left + (count - 1) * grid_size + grid_size / 2, -(bottom - pin_length - resistor_vertical_spacing / 2))
             ],
             unit_idx = 0
         ))
@@ -254,7 +254,7 @@ def generateSIPNetworkDividers(count):
                 line_width = 0,
                 points = [
                     Point(pin_left, -(top + pin_length)),
-                    Point(pin_left, -(top + pin_length + R_dist))
+                    Point(pin_left, -(top + pin_length + resistor_vertical_spacing))
                 ],
                 unit_idx = 0
             ))
@@ -264,9 +264,9 @@ def generateSIPNetworkDividers(count):
             symbol.drawing.append(DrawingPolyline(
                 line_width = 0,
                 points = [
-                    Point(pin_left - dp, -(top + pin_length + R_dist / 2)),
-                    Point(pin_left, -(top + pin_length + R_dist / 2)),
-                    Point(pin_left, -(top + pin_length + R_dist))
+                    Point(pin_left - grid_size, -(top + pin_length + resistor_vertical_spacing / 2)),
+                    Point(pin_left, -(top + pin_length + resistor_vertical_spacing / 2)),
+                    Point(pin_left, -(top + pin_length + resistor_vertical_spacing))
                 ],
                 unit_idx = 0
             ))
@@ -276,7 +276,7 @@ def generateSIPNetworkDividers(count):
             line_width = 0,
             points = [
                 Point(pin_left, -(bottom - pin_length)),
-                Point(pin_left, -(top + pin_length + R_dist + resistor_length))
+                Point(pin_left, -(top + pin_length + resistor_vertical_spacing + resistor_length))
             ],
             unit_idx = 0
         ))
@@ -284,9 +284,9 @@ def generateSIPNetworkDividers(count):
         symbol.drawing.append(DrawingPolyline(
             line_width = 0,
             points = [
-                Point(pin_left, -(top + pin_length + R_dist + resistor_length + R_dist / 2)),
-                Point(pin_left + 3 * resistor_width / 2, -(top + pin_length + R_dist + resistor_length + R_dist / 2)),
-                Point(pin_left + 3 * resistor_width / 2, -(bottom - pin_length - R_dist - resistor_length))
+                Point(pin_left, -(top + pin_length + resistor_vertical_spacing + resistor_length + resistor_vertical_spacing / 2)),
+                Point(pin_left + 3 * resistor_width / 2, -(top + pin_length + resistor_vertical_spacing + resistor_length + resistor_vertical_spacing / 2)),
+                Point(pin_left + 3 * resistor_width / 2, -(bottom - pin_length - resistor_vertical_spacing - resistor_length))
             ],
             unit_idx = 0
         ))
@@ -302,7 +302,7 @@ def generateSIPNetworkDividers(count):
         if s > 1:
             # Bottom junctions
             symbol.drawing.append(DrawingCircle(
-                at = Point(pin_left + 3 * resistor_width / 2, -(bottom - pin_length - R_dist / 2)),
+                at = Point(pin_left + 3 * resistor_width / 2, -(bottom - pin_length - resistor_vertical_spacing / 2)),
                 fill = ElementFill.FILL_FOREGROUND,
                 line_width = 0,
                 radius = junction_diameter / 2,
@@ -312,14 +312,14 @@ def generateSIPNetworkDividers(count):
         if s < count:
             # Top junctions
             symbol.drawing.append(DrawingCircle(
-                at = Point(pin_left, -(top + pin_length + R_dist / 2)),
+                at = Point(pin_left, -(top + pin_length + resistor_vertical_spacing / 2)),
                 fill = ElementFill.FILL_FOREGROUND,
                 line_width = 0,
                 radius = junction_diameter / 2,
                 unit_idx = 0
             ))
 
-        pin_left = pin_left + dp
+        pin_left = pin_left + grid_size
 
 def generateResistorPack(count):
     name = 'R_Pack{:02d}'.format(count)
@@ -330,17 +330,17 @@ def generateResistorPack(count):
     keywords = 'R network parallel topology isolated'
     datasheet = '~'
 
-    dp = 100
+    grid_size = 100
     pin_length = 100
     resistor_length = 150
     resistor_width = 50
-    box_l_offset = 50
-    box_t_offset = 20
-    left = -roundToGrid(((count - 1) * dp) / 2, 100)
-    body_x = left - box_l_offset
-    body_height = resistor_length + 2 * box_t_offset
+    body_left_offset = 50
+    body_top_offset = 20
+    left = -roundToGrid(((count - 1) * grid_size) / 2, 100)
+    body_x = left - body_left_offset
+    body_height = resistor_length + 2 * body_top_offset
     body_y = -body_height / 2
-    body_width = ((count - 1) * dp) + 2 * box_l_offset
+    body_width = ((count - 1) * grid_size) + 2 * body_left_offset
     top = -200
     bottom = 200
 
@@ -420,7 +420,7 @@ def generateResistorPack(count):
             unit_idx = 0
         ))
 
-        pin_left = pin_left + dp
+        pin_left = pin_left + grid_size
 
 def generateSIPResistorPack(count):
     name = 'R_Pack{:02d}_SIP'.format(count)
@@ -431,18 +431,18 @@ def generateSIPResistorPack(count):
     keywords = 'R network parallel topology isolated'
     datasheet = 'http://www.vishay.com/docs/31509/csc.pdf'
 
-    dp = 100
-    dR = 300
+    grid_size = 100
+    resistor_horizontal_spacing = 300
     pin_length = 150
     resistor_length = 160
     resistor_width = 60
-    W_dist = 30
-    box_l_offset = 50
-    left = -roundToGrid(((count - 1) * dR) / 2, 100)
-    body_x = left - box_l_offset
+    resistor_long_lead_length = 30
+    body_left_offset = 50
+    left = -roundToGrid(((count - 1) * resistor_horizontal_spacing) / 2, 100)
+    body_x = left - body_left_offset
     body_y = -75
     body_height = 250
-    body_width = ((count - 1) * dR + dp) + 2 * box_l_offset
+    body_width = ((count - 1) * resistor_horizontal_spacing + grid_size) + 2 * body_left_offset
     bottom = 200
 
     symbol = generator.addSymbol(name,
@@ -490,7 +490,7 @@ def generateSIPResistorPack(count):
         ))
         # Resistor long pins
         symbol.drawing.append(DrawingPin(
-            at = Point(pin_left + dp, -bottom),
+            at = Point(pin_left + grid_size, -bottom),
             name = 'R{0}.2'.format(s),
             number = 2 * s,
             orientation = DrawingPin.PinOrientation.UP,
@@ -507,14 +507,14 @@ def generateSIPResistorPack(count):
             line_width = 0,
             points = [
                 Point(pin_left, -(bottom - pin_length - resistor_length)),
-                Point(pin_left, -(bottom - pin_length - resistor_length - W_dist)),
-                Point(pin_left + dp, -(bottom - pin_length - resistor_length - W_dist)),
-                Point(pin_left + dp, -(bottom - pin_length))
+                Point(pin_left, -(bottom - pin_length - resistor_length - resistor_long_lead_length)),
+                Point(pin_left + grid_size, -(bottom - pin_length - resistor_length - resistor_long_lead_length)),
+                Point(pin_left + grid_size, -(bottom - pin_length))
             ],
             unit_idx = 0
         ))
 
-        pin_left = pin_left + dR
+        pin_left = pin_left + resistor_horizontal_spacing
 
 if __name__ == '__main__':
     for i in range(3, 14):
