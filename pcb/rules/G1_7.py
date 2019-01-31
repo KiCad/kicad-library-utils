@@ -15,8 +15,8 @@ class Rule(KLCRule):
         # Only perform this check on linux systems (i.e. Travis)
         # Windows automatically checks out with CR+LF line endings
         if 'linux' in platform.platform().lower() and not self.module.unix_line_endings:
-            self.warning("Incorrect line ending")
-            self.warningExtra("Library files must use Unix-style line endings (LF)")
+            self.error("Incorrect line endings")
+            self.errorExtra("Library files must use Unix-style line endings (LF)")
             return True
 
         return False

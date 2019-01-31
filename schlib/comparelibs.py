@@ -37,6 +37,7 @@ parser.add_argument("--check", help="Perform KLC check on updated/added componen
 parser.add_argument("--nocolor", help="Does not use colors to show the output", action='store_true')
 parser.add_argument("--design-breaking-changes", help="Checks if there have been changes made that would break existing designs using a particular symbol.", action='store_true')
 parser.add_argument("--check-aliases", help="Do not only check symbols but also aliases.", action='store_true')
+parser.add_argument("--shownochanges", help="Show libraries that have not changed", action="store_true")
 
 args,extra = parser.parse_known_args()
 
@@ -114,7 +115,7 @@ for lib_name in new_libs:
 
     # If library checksums match, we can skip entire library check
     if new_lib.compareChecksum(old_lib):
-        if args.verbose:
+        if args.verbose and args.shownochanges:
             printer.yellow("No changes to library '{lib}'".format(lib=lib_name))
         continue
 
