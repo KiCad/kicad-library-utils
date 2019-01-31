@@ -3,6 +3,7 @@
 from rules.rule import *
 import string
 
+
 class Rule(KLCRule):
     """
     Create the methods check and fix to use with the kicad lib files.
@@ -23,7 +24,7 @@ class Rule(KLCRule):
                 continue
 
             # Some symbols have a special character at the start
-            if i==0:
+            if i == 0:
                 if c in ['~', '#']:
                     continue
 
@@ -40,5 +41,3 @@ class Rule(KLCRule):
 
     def fix(self):
         self.recheck()
-
-

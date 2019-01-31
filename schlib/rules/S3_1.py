@@ -3,6 +3,7 @@
 from rules.rule import *
 import math
 
+
 class Rule(KLCRule):
     """
     Create the methods check and fix to use with the kicad lib files.
@@ -47,7 +48,7 @@ class Rule(KLCRule):
         # Right on the middle!
         if x == 0 and y == 0:
             return False
-        elif math.fabs(x)<=50 and math.fabs(y)<=50:
+        elif math.fabs(x) <= 50 and math.fabs(y) <= 50:
             self.info("Symbol slightly off-center")
             self.info("  Center calculated @ ({x}, {y})".format(x=x, y=y))
         else:
@@ -59,5 +60,3 @@ class Rule(KLCRule):
     def fix(self):
 
         self.recheck()
-
-

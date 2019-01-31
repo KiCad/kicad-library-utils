@@ -3,16 +3,17 @@
 from rules.rule import *
 import re
 
+
 class Rule(KLCRule):
 
-    #No-connect pins should be "N"
+    # No-connect pins should be "N"
     NC_PINS = ['^nc$', '^dnc$', '^n\.c\.$']
 
-    #check if a pin name fits within a list of possible pins (using regex testing)
+    # check if a pin name fits within a list of possible pins (using regex testing)
     def test(self, pinName, nameList):
 
         for name in nameList:
-            if re.search(name,pinName,flags=re.IGNORECASE) is not None:
+            if re.search(name, pinName, flags=re.IGNORECASE) is not None:
                 return True
 
         return False
@@ -39,7 +40,7 @@ class Rule(KLCRule):
             if self.test(name.lower(), self.NC_PINS) or etype == 'N':
 
                 # NC pins should be of type N
-                if not etype == 'N': # Not set to NC
+                if not etype == 'N':  # Not set to NC
                     self.type_errors.append(pin)
 
                 # NC pins should be invisible
@@ -51,8 +52,8 @@ class Rule(KLCRule):
 
             for pin in self.type_errors:
                 self.errorExtra("{pin} should be of type NOT CONNECTED, but is of type {pintype}".format(
-                    pin = pinString(pin),
-                    pintype = pinElectricalTypeToStr(pin['electrical_type'])))
+                    pin=pinString(pin),
+                    pintype=pinElectricalTypeToStr(pin['electrical_type'])))
 
         if len(self.invisible_errors) > 0:
             self.warning("NC pins are VISIBLE (should be INVISIBLE):")

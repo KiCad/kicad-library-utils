@@ -3,6 +3,7 @@
 from rules.rule import *
 import re
 
+
 class Rule(KLCRule):
     """
     Create the methods check and fix to use with the kicad lib files.
@@ -16,7 +17,7 @@ class Rule(KLCRule):
             try:
                 num = int(pin['num'])
             except ValueError:
-                nums = map(str,range(10))
+                nums = map(str, range(10))
 
                 if not any([num in pin['num'] for num in nums]):
                     self.wrong_pin_numbers.append(pin)
@@ -40,7 +41,7 @@ class Rule(KLCRule):
 
             found = False
 
-            for i,pin_list in enumerate(pin_lists):
+            for i, pin_list in enumerate(pin_lists):
 
                 # Compare against first item
                 p_test = pin_list[0]
@@ -69,7 +70,7 @@ class Rule(KLCRule):
 
     # Check pin numbers only generates a warning
     def checkPinNumbers(self):
-        #check for missing pins within the range of pins
+        # check for missing pins within the range of pins
         missing = False
 
         int_pins = []
@@ -97,4 +98,4 @@ class Rule(KLCRule):
         """
         Proceeds the fixing of the rule, if possible.
         """
-        self.info("FIX: not supported" )
+        self.info("FIX: not supported")

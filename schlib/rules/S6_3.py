@@ -2,6 +2,7 @@
 
 from rules.rule import *
 
+
 class Rule(KLCRule):
     """
     Create the methods check and fix to use with the kicad lib files.
@@ -19,16 +20,16 @@ class Rule(KLCRule):
         self.only_datasheet_missing = False
         invalid_documentation = 0
 
-        #check part itself
+        # check part itself
         if self.checkDocumentation(self.component.name, self.component.documentation, False, self.component.isGraphicSymbol() or self.component.isPowerSymbol()):
             invalid_documentation += 1
 
-        #check all its aliases too
+        # check all its aliases too
         if self.component.aliases:
             invalid = []
             for alias in self.component.aliases.keys():
                 if self.checkDocumentation(alias, self.component.aliases[alias], True, self.component.isGraphicSymbol() or self.component.isPowerSymbol()):
-                    invalid_documentation+=1
+                    invalid_documentation += 1
 
         return invalid_documentation > 0
 
@@ -75,8 +76,8 @@ class Rule(KLCRule):
 
         if len(errors) > 0 or len(warnings) > 0:
             msg = "{cmp} {name} has metadata errors:".format(
-                cmp = "ALIAS" if alias else "Component",
-                name = name)
+                cmp="ALIAS" if alias else "Component",
+                name=name)
             if len(errors) == 0:
                 self.warning(msg)
             else:
@@ -89,9 +90,8 @@ class Rule(KLCRule):
 
         return len(errors) > 0
 
-
     def fix(self):
         """
         Proceeds the fixing of the rule, if possible.
         """
-        self.info("FIX: not supported" )
+        self.info("FIX: not supported")

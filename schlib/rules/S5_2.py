@@ -3,6 +3,7 @@
 from rules.rule import *
 import re
 
+
 class Rule(KLCRule):
     """
     Create the methods check and fix to use with the kicad lib files.
@@ -17,7 +18,7 @@ class Rule(KLCRule):
         for filter in filters:
             errors = []
             # Filter must contain a "*" wildcard
-            if not '*' in filter:
+            if '*' not in filter:
                 errors.append("Does not contain wildcard ('*') character")
 
             else:

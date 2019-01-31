@@ -3,38 +3,39 @@
 from rules.rule import *
 import re
 
+
 class Rule(KLCRule):
 
-    #Power Input Pins should be 'W'
+    # Power Input Pins should be 'W'
     POWER_INPUTS = ['^[ad]*g(rou)*nd$', '^[ad]*v(aa|cc|dd|ss|bat|in)$']
 
-    #Power Output Pins should be 'w'
+    # Power Output Pins should be 'w'
     POWER_OUTPUTS = ['^vout$']
 
     PASSIVE_PINS = []
 
-    #Input Pins should be "I"
+    # Input Pins should be "I"
     INPUT_PINS = ['^sdi$', '^cl(oc)*k(in)*$', '^~*cs~*$', '^[av]ref$']
 
-    #Output pins should be "O"
+    # Output pins should be "O"
     OUTPUT_PINS = ['^sdo$', '^cl(oc)*kout$']
 
-    #Bidirectional pins should be "B"
+    # Bidirectional pins should be "B"
     BIDIR_PINS = ['^sda$', '^s*dio$']
 
     warning_tests = {
-        "w" : POWER_OUTPUTS,
-        "P" : PASSIVE_PINS,
-        "I" : INPUT_PINS,
-        "O" : OUTPUT_PINS,
-        "B" : BIDIR_PINS,
+        "w": POWER_OUTPUTS,
+        "P": PASSIVE_PINS,
+        "I": INPUT_PINS,
+        "O": OUTPUT_PINS,
+        "B": BIDIR_PINS,
         }
 
-    #check if a pin name fits within a list of possible pins (using regex testing)
+    # check if a pin name fits within a list of possible pins (using regex testing)
     def test(self, pinName, nameList):
 
         for name in nameList:
-            if re.search(name,pinName,flags=re.IGNORECASE) is not None:
+            if re.search(name, pinName, flags=re.IGNORECASE) is not None:
                 return True
 
         return False
@@ -54,11 +55,11 @@ class Rule(KLCRule):
             name = pin['name'].lower()
             etype = pin['electrical_type']
 
-            inSpecialStack=False
-            Rule43NotExecuted=True
+            inSpecialStack = False
+            Rule43NotExecuted = True
             if hasattr(self.component, 'padInSpecialPowerStack'):
-                inSpecialStack=pin['num'] in self.component.padInSpecialPowerStack
-                Rule43NotExecuted=False
+                inSpecialStack = pin['num'] in self.component.padInSpecialPowerStack
+                Rule43NotExecuted = False
 
             if self.test(name.lower(), self.POWER_INPUTS) and (not etype.lower() == 'w') and (not inSpecialStack):
                 if len(self.power_errors) == 0:
@@ -67,9 +68,8 @@ class Rule(KLCRule):
                         self.errorExtra("NOTE: If power-pins have been stacked, you may ignore this error in some cases (Ensure to check rule S4.3 in addition to recognize such stacks).")
                 self.power_errors.append(pin)
                 self.errorExtra("{pin} is of type {t}".format(
-                    pin = pinString(pin),
-                    t = pinElectricalTypeToStr(etype)))
-
+                    pin=pinString(pin),
+                    t=pinElectricalTypeToStr(etype)))
 
         return len(self.power_errors) > 0
 
@@ -94,9 +94,9 @@ class Rule(KLCRule):
                             self.warning("Pin types should match pin function")
                         self.suggestions.append(pin)
                         self.warningExtra("{pin} is type {t1} : suggested {t2}".format(
-                                        pin = pinString(pin),
-                                        t1 = pinElectricalTypeToStr(etype),
-                                        t2 = pinElectricalTypeToStr(pin_type)))
+                                        pin=pinString(pin),
+                                        t1=pinElectricalTypeToStr(etype),
+                                        t2=pinElectricalTypeToStr(pin_type)))
 
                     break
 
@@ -141,12 +141,12 @@ class Rule(KLCRule):
 
         for pin in self.power_errors:
 
-            pin['electrical_type'] = 'W' # Power Input
+            pin['electrical_type'] = 'W'  # Power Input
 
             self.info("Changing pin {n} type to POWER_INPUT".format(n=pin['num']))
 
         for pin in self.inversion_errors:
-            pin['pin_type']="" #reset pin type (removes dot at the base of pin)
+            pin['pin_type'] = ""  # reset pin type (removes dot at the base of pin)
             self.info("Removing double inversion on pin {n}".format(n=pin['num']))
 
         self.recheck()

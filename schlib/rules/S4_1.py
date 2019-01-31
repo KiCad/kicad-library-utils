@@ -2,6 +2,7 @@
 
 from rules.rule import *
 
+
 class Rule(KLCRule):
     """
     Create the methods check and fix to use with the kicad lib files.
@@ -40,7 +41,7 @@ class Rule(KLCRule):
 
             found = False
 
-            for i,pin_list in enumerate(pin_lists):
+            for i, pin_list in enumerate(pin_lists):
 
                 # Compare against first item
                 p_test = pin_list[0]
@@ -76,13 +77,13 @@ class Rule(KLCRule):
             err = False
 
             # ignore zero-length pins e.g. hidden power pins
-            if length == 0: continue
+            if length == 0:
+                continue
 
             if length <= errorPinLength:
                 self.error("{pin} length ({len}mils) is below {pl}mils".format(pin=pinString(pin), len=length, pl=errorPinLength+1))
             elif length <= warningPinLength:
                 self.warning("{pin} length ({len}mils) is below {pl}mils".format(pin=pinString(pin), len=length, pl=warningPinLength+1))
-
 
             if length % 50 != 0:
                 self.warning("{pin} length ({len}mils) is not a multiple of 50mils".format(pin=pinString(pin), len=length))
@@ -91,32 +92,31 @@ class Rule(KLCRule):
             if length > 300:
                 err = True
                 self.error("{pin} length ({length}mils) is longer than maximum (300mils)".format(
-                    pin = pinString(pin),
-                    length = length))
+                    pin=pinString(pin),
+                    length=length))
 
             if err:
                 self.violating_pins.append(pin)
 
         return len(self.violating_pins) > 0
-        
+
     def check(self):
-        # determine pin-grid: 
+        # determine pin-grid:
         #  - standard components should use 100mil
         #  - "small" symbols (resistors, diodes, ...) should use 50mil
-        pingrid=100
-        errorPinLength=49
-        warningPinLength=99
+        pingrid = 100
+        errorPinLength = 49
+        warningPinLength = 99
         if self.component.isSmallComponentHeuristics():
-            pingrid=50
-            errorPinLength=24
-            warningPinLength=49
-        
+            pingrid = 50
+            errorPinLength = 24
+            warningPinLength = 49
+
         return any([
             self.checkPinOrigin(pingrid),
             self.checkPinLength(errorPinLength, warningPinLength),
             self.checkDuplicatePins()
             ])
-
 
         return True if len(self.violating_pins) > 0 else False
 

@@ -2,6 +2,7 @@
 
 from rules.rule import *
 
+
 class Rule(KLCRule):
     """
     Create the methods check and fix to use with the kicad lib files.
@@ -21,14 +22,14 @@ class Rule(KLCRule):
             text_size = int(field['text_size'])
             if (text_size != 50):
                 self.violating_fields.append(field)
-                if("reference" in field.keys()):
-                    message=field["reference"][1:-1]
-                elif (len(field["name"])>2):
-                    message=field["name"][1:-1]
+                if "reference" in field.keys():
+                    message = field["reference"][1:-1]
+                elif len(field["name"]) > 2:
+                    message = field["name"][1:-1]
                 else:
-                    message="UNKNOWN"
-                message+=(" at posx {0} posy {1}".format(field["posx"],field["posy"]))
-                self.error(" - Field {0} size {1}".format(message,field["text_size"]) )
+                    message = "UNKNOWN"
+                message += (" at posx {0} posy {1}".format(field["posx"], field["posy"]))
+                self.error(" - Field {0} size {1}".format(message, field["text_size"]))
 
         self.violating_pins = []
 

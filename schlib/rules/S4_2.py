@@ -3,6 +3,7 @@
 from rules.rule import *
 import re
 
+
 class Rule(KLCRule):
     """
     Create the methods check and fix to use with the kicad lib files.

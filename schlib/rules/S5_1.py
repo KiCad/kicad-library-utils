@@ -3,6 +3,7 @@
 from rules.rule import *
 import fnmatch
 
+
 class Rule(KLCRule):
     """
     Create the methods check and fix to use with the kicad lib files.
@@ -27,12 +28,12 @@ class Rule(KLCRule):
                 fp_name = fp_name[1:-1]
 
             fp_desc = "Footprint field '{fp}' ".format(fp=fp_name)
-            
+
             filters = self.component.fplist
 
             # Only check if there is text in the name
             if len(fp_name) > 0:
-                #footprint field should be set to invisible (if it has any text in it)
+                # footprint field should be set to invisible (if it has any text in it)
                 if fp['visibility'] == 'V':
                     fail = True
                     self.error(fp_desc + "must be set to invisible.")
@@ -63,7 +64,7 @@ class Rule(KLCRule):
 
                             fp_libs = [x.replace('.pretty', '') for x in os.listdir(self.footprints_dir) if x.endswith('.pretty')]
 
-                            if not fp_dir in fp_libs:
+                            if fp_dir not in fp_libs:
                                 self.error('Specified footprint library does not exist')
                                 self.errorExtra("Footprint library '{l}' was not found".format(l=fp_dir))
                             else:
@@ -73,29 +74,28 @@ class Rule(KLCRule):
                                 if not os.path.exists(fp_file):
                                     self.error("Specified footprint does not exist")
                                     self.errorExtra("Footprint file {l}:{f} was not found".format(l=fp_dir, f=fp_path))
-                                    
+
                     for filt in filters:
-                        match1=fnmatch.fnmatch(fp_path, filt)
-                        match2=fnmatch.fnmatch(fp_name, filt)
+                        match1 = fnmatch.fnmatch(fp_path, filt)
+                        match2 = fnmatch.fnmatch(fp_name, filt)
                         if (not match1) and (not match2):
                             self.error("Footprint filter '"+filt+"' does not match the footprint '"+fp_name+"' set for this symbol.")
                             self.errorExtra("could not match '{fp}' against filter '{fil}'".format(fp=fp_path, fil=filt))
                             self.errorExtra("could not match '{fp}' against filter '{fil}'".format(fp=fp_name, fil=filt))
-                            fails=True
-                if len(filters)==0:
+                            fails = True
+                if len(filters) == 0:
                     self.error("Symbol has a footprint defined in the footprint field, but no footprint filter set. Add a footprint filter that matches the default footprint (+ possibly variants).")
-                    fails=True
-                if len(filters)>1:
+                    fails = True
+                if len(filters) > 1:
                     self.error("Symbol has a footprint defined in the footprint field, but several ({fpcnt}) footprint filters set. If the symbol is for a single default footprint, remove the surplus filters. If the symbol is meant for multiple different footprints, empty the footprint field.".format(fpcnt=len(filters)))
-                    fails=True
-            elif len(filters)==1:
+                    fails = True
+            elif len(filters) == 1:
                 self.warning("Symbol possibly missing default footprint")
                 self.warningExtra("Symbol has a single footprint filter "
                         "string '{fil}' (i.e. it may be intended for a single "
                         "default footprint only), but the footprint field is "
                         "empty.".format(fil=filters[0]))
-                fails=True
-
+                fails = True
 
         return fail
 
