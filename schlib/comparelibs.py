@@ -176,12 +176,7 @@ for lib_name in new_libs:
                             pins_missing += 1
                         continue
 
-                    if pin_old['posx'] != pin_new['posx']:
-                        if pin_old['electrical_type'] == 'N' and pin_new['electrical_type'] == 'N':
-                            nc_pins_moved +=1
-                        else:
-                            pins_moved += 1
-                    elif pin_old['posy'] != pin_new['posy']:
+                    if pin_old['posx'] != pin_new['posx'] or pin_old['posy'] != pin_new['posy']:
                         if pin_old['electrical_type'] == 'N' and pin_new['electrical_type'] == 'N':
                             nc_pins_moved +=1
                         else:
