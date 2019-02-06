@@ -172,18 +172,18 @@ class Rule(KLCRule):
             # Warning msg
             if module.attribute=='virtual':
                 # virtual components don't need a 3D model
-                self.warning("No 3D model provided for virtual component")
+                self.warning("No 3D model settings provided for virtual component")
                 self.no3DModel = True
                 return False
             else:
-                self.error("No 3D model provided")
+                self.error("Footprint 3D model settings are not allowed to be empty")
                 self.no3DModel = True
                 return True
 
         self.tooMany3DModel = False
         if len(models) > 1:
             self.tooMany3DModel = True
-            self.warning("More than one 3D model provided")
+            self.warning("More than one 3D model setting provided")
 
         model_error = False
 
