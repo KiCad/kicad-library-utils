@@ -139,7 +139,7 @@ class Rule(KLCRule):
         if not isValidName(model_file):
             error = True
             self.model3D_invalidName = True
-            self.error("3D model path '{p}' contains invalid characters as per KLC G1.1".format(
+            self.error("3D model file path '{p}' contains invalid characters as per KLC G1.1".format(
                 p = model_file))
 
         return error
@@ -172,18 +172,18 @@ class Rule(KLCRule):
             # Warning msg
             if module.attribute=='virtual':
                 # virtual components don't need a 3D model
-                self.warning("No 3D model provided for virtual component")
+                self.warning("Optional 3D model file path missing from the 3D model settings of the virtual footprint")
                 self.no3DModel = True
                 return False
             else:
-                self.error("No 3D model provided")
+                self.error("3D model file path missing from the 3D model settings of the footprint")
                 self.no3DModel = True
                 return True
 
         self.tooMany3DModel = False
         if len(models) > 1:
             self.tooMany3DModel = True
-            self.warning("More than one 3D model provided")
+            self.warning("More than one 3D model file path provided within the 3D model settings of the footprint")
 
         model_error = False
 
