@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import inspect, os
+import inspect, os, sys
 import json
 
 def logError(log_file, rule_name, lib_name, item_name, warning=False):
@@ -65,6 +65,23 @@ def isValidName(name, checkForGraphicSymbol=False, checkForPowerSymbol=False):
             return False
 
         return True
+
+def checkLineEndings(filename):
+    """
+    Check for proper (Unix) line endings
+    """
+    filecontentsraw = open(filename, 'rb').readline()
+
+    LE1 = ord(chr(filecontentsraw[-2]))
+    LE2 = ord(chr(filecontentsraw[-1]))
+
+    # 0x0D0A = Windows (CRLF)
+    # 0x__0D = Mac OS 9 (CR)
+    # 0x__0A = Unix (LF)
+    if (LE1 == 0x0D and LE2 == 0x0A) or (LE2 == 0x0D):
+        return False
+
+    return True
 
 class Verbosity:
     NONE=0

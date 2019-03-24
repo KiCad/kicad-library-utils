@@ -53,24 +53,6 @@ class KicadMod(object):
     def __init__(self, filename):
         self.filename = filename
 
-        # check file line-endings
-        self.unix_line_endings=True
-        filecontentsraw=open(filename,"rb").readline()
-
-        LE1 = filecontentsraw[-2]
-        LE2 = filecontentsraw[-1]
-
-        # Ord is different for python3
-        if sys.version_info.major >= 3:
-            LE1 = chr(LE1)
-            LE2 = chr(LE2)
-
-        LE1 = ord(LE1)
-        LE2 = ord(LE2)
-
-        if (LE1 == 0x0D and LE2 == 0x0A) or (LE2 == 0x0D):
-            self.unix_line_endings=False
-
         # read the s-expression data
         f = open(filename)
         sexpr_data = ''.join(f.readlines())
@@ -1097,7 +1079,7 @@ class KicadMod(object):
 
         se.endGroup(True)
 
-        with open(filename, 'w') as f:
+        with open(filename, 'w', newline='\n') as f:
             f.write(se.output)
             f.write('\n')
 

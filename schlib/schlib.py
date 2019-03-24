@@ -59,7 +59,6 @@ class Documentation(object):
         for line in f.readlines():
             checksum_data += line.strip()
             line = line.replace('\n', '')
-            line = line.replace('\r', '')
             if line.startswith(Documentation.line_keys['start']):
                 name = line[5:].strip()
                 keywords = None
@@ -105,7 +104,7 @@ class Documentation(object):
         to_write.append("#\n")#again, spacer^^
         to_write.append("#End Doc Library\n")
 
-        f = open(filename, 'w')
+        f = open(filename, 'w', newline='\n')
         f.writelines(to_write)
         f.close()
 
@@ -137,10 +136,12 @@ class Component(object):
 
     _KEYS = {'DEF':_DEF_KEYS, 'F0':_F0_KEYS, 'F':_FN_KEYS,
              'A':_ARC_KEYS, 'C':_CIRCLE_KEYS, 'P':_POLY_KEYS, 'S':_RECT_KEYS, 'T':_TEXT_KEYS, 'X':_PIN_KEYS}
-    def __init__(self, data, comments, documentation):
+    def __init__(self, data, comments, filename, documentation):
         self.comments = comments
         self.fplist = []
         self.aliases = OrderedDict()
+        self.lib_filename = filename
+        self.dcm_filename = documentation.filename
         building_fplist = False
         building_draw = False
         building_fields = False
@@ -395,7 +396,7 @@ class SchLib(object):
                 component_data.append(line)
                 if line.startswith('ENDDEF'):
                     building_component = False
-                    self.components.append(Component(component_data, comments, self.documentation))
+                    self.components.append(Component(component_data, comments, self.filename, self.documentation))
                     comments = []
         f.close()
 
@@ -552,6 +553,6 @@ class SchLib(object):
         to_write.append('#\n')
         to_write.append('#End Library\n')
 
-        f = open(filename, 'w')
+        f = open(filename, 'w', newline='\n')
         f.writelines(to_write)
         f.close()
