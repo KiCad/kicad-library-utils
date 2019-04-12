@@ -96,6 +96,51 @@ class Rule(KLCRule):
         else:
             return None
 
+
+    def isClosed(self, layer):
+      def isSame(p1, p2, tolerance):
+        s = abs(p1['x'] - p2['x']) <= tolerance and abs(p1['y'] - p2['y']) <= tolerance
+        return s
+
+      # no line is considered as closed
+      if len(layer) == 0:
+        return []
+
+      # clone the lines, so we can remove them from the list
+      lines = layer[0:]
+      curr_line = lines.pop()
+      curr_point = getStartPoint(curr_line)
+      end_point = getEndPoint(curr_line)
+      tolerance = 0
+
+      while len(lines) > 0:
+        tolerance = 0
+        match = False
+        for line in lines:
+          if 'angle' in line or 'angle' in curr_line:
+            tolerance = 0.01
+          if isSame(curr_point, getStartPoint(line), tolerance):
+            curr_line = line
+            curr_point = getEndPoint(line)
+            lines.remove(line)
+            match = True
+            break
+          if isSame(curr_point, getEndPoint(line), tolerance):
+            curr_line = line
+            curr_point = getStartPoint(line)
+            lines.remove(line)
+            match = True
+            break
+        # we should hit a continue
+        # if now, that means no line connects
+        if not match:
+          return [curr_line]
+      # now check the if the last points match
+      if isSame(curr_point, end_point, tolerance):
+        return []
+      else:
+        return [curr_line]
+
     def check(self):
         """
         Proceeds the checking of the rule.
@@ -118,6 +163,7 @@ class Rule(KLCRule):
 
         self.bad_grid  = []
         self.bad_width = []
+        self.unconnected = []
 
         self.fCourtyard = module.filterGraphs('F.CrtYd')
         self.bCourtyard = module.filterGraphs('B.CrtYd')
@@ -132,6 +178,10 @@ class Rule(KLCRule):
         self.courtyard = self.fCourtyard + self.bCourtyard
 
         GRID = int(KLC_CRTYD_GRID * 1E6)
+
+        # Check for intersecting lines
+        self.unconnected.extend(self.isClosed(self.fCourtyard))
+        self.unconnected.extend(self.isClosed(self.bCourtyard))
 
         for graph in self.courtyard:
             if graph['width'] != KLC_CRTYD_WIDTH:
@@ -174,9 +224,17 @@ class Rule(KLCRule):
             for bad in self.bad_grid:
                 self.errorExtra(graphItemString(bad, layer=True, width=False))
 
+        # Check that courtyard is closed
+        if len(self.unconnected) > 0:
+            self.error("Courtyard must be closed.")
+            self.errorExtra("The following lines have unconnected endpoints")
+            for bad in self.unconnected:
+                self.errorExtra(graphItemString(bad, layer=True, width=False))
+
         return any([
             len(self.bad_width) > 0,
-            len(self.bad_grid) > 0
+            len(self.bad_grid) > 0,
+            len(self.unconnected) > 0
             ])
 
     def fix(self):
