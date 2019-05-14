@@ -294,7 +294,7 @@ class Component(object):
         return self.reference.startswith('#')
 
     def isPowerSymbol(self):
-        return (self.reference=='#PWR') and (len(self.pins)==1) and (self.pins[0]['electrical_type'].lower()=='w')
+        return self.definition['option_flag'] == 'P'
 
     def isPossiblyPowerSymbol(self):
         return (self.reference=='#PWR')
