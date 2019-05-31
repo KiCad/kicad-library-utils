@@ -39,6 +39,10 @@ class Rule(KLCRule):
         return math.sqrt((a['x'] - b['x'])**2 + (a['y'] - b['y'])**2)
 
       def is_between(a,b,c):
+        # check if c is the same as a or b, then c is not between a or b
+        if c == b or c == a:
+          return False
+        # c is between a and b if in a virtual triangle the distances AC + BC = AB
         ac = distance(a,c)
         cb = distance(c,b)
         ab = distance(a,b)
@@ -86,7 +90,6 @@ class Rule(KLCRule):
               if not line in overlap:
                 overlap.append(line)
                 lines.remove(line)
-            #if is_between(line['start'], line['end'], line2['start']) or is_between(line['start'], line['end'], line2['end']):
             if is_between(line['start'], line['end'], line2['start']):
               if not line in overlap:
                 overlap.append(line)
