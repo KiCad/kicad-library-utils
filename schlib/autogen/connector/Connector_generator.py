@@ -15,7 +15,7 @@ import argparse
 pin_per_row_range = range(1,41)
 pin_per_row_range_dual = range(2,41) #for some dual row connectors all numbering schemes generate the same symbol for the 1 pin per row variant.
 pin_per_row_range_screw = range(1,21)
-pin_range_dual_row_odd_count = range(2,35)
+pin_range_dual_row_odd_count = range(2,38)
 
 reference_designator = 'J'
 
