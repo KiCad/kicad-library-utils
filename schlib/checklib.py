@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import argparse
@@ -100,7 +100,7 @@ for libfile in libfiles:
         printer.purple('Library: %s' % libfile)
 
     n_allviolations=0
-    
+
     for component in lib.components:
 
         #simple match
@@ -166,7 +166,7 @@ for libfile in libfiles:
         if n_violations > 0:
             exit_code += 1
         n_allviolations=n_allviolations+n_violations
-        
+
     if args.fix and n_allviolations > 0:
         lib.save()
         printer.green("saved '{file}' with fixes for {n_violations} violations.".format(file=libfile, n_violations=n_allviolations))
