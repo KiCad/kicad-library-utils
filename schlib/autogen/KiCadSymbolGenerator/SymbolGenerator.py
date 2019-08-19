@@ -34,7 +34,7 @@ class uniqueNameManager:
 
     def addName(self, name):
         if name in self.used_names:
-            raise AliasConflictError('The symbol name {:s} already exists in this lib.'.format(symbol_name))
+            raise AliasConflictError('The symbol name {:s} already exists in this lib.'.format(name))
         self.used_names.add(name)
 
 class SymbolField:

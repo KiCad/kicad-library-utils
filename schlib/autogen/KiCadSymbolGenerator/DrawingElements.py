@@ -379,12 +379,14 @@ class DrawingArc:
 
     def mirrorHorizontal(self, apply_on_copy = False):
         obj = self if not apply_on_copy else deepcopy(self)
+        obj.at.mirrorHorizontal()
         obj.angle_start = DrawingArc.__mirrorAngleHorizontal(obj.angle_start)
         obj.angle_end = DrawingArc.__mirrorAngleHorizontal(obj.angle_end)
         return obj
 
     def mirrorVertical(self, apply_on_copy = False):
         obj = self if not apply_on_copy else deepcopy(self)
+        obj.at.mirrorVertical()
         obj.angle_start *= -1
         obj.angle_end *= -1
         return obj
