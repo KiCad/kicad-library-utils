@@ -14,6 +14,7 @@ import argparse
 import sys
 import os
 from glob import glob
+import fnmatch
 
 # Path to common directory
 common = os.path.abspath(os.path.join(sys.path[0], '..','common'))
@@ -30,8 +31,8 @@ def ExitError( msg ):
 
 parser = argparse.ArgumentParser(description="Compare two .lib files to determine which symbols have changed")
 
-parser.add_argument("--new", help="New (updated) .lib file(s)", nargs='+')
-parser.add_argument("--old", help="Old (original) .lib file(s) for comparison", nargs='+')
+parser.add_argument("--new", help="New (updated) .lib file(s), or folder of .lib files", nargs='+')
+parser.add_argument("--old", help="Old (original) .lib file(s), or folder of .lib files for comparison", nargs='+')
 parser.add_argument("-v", "--verbose", help="Enable extra verbose output", action="store_true")
 parser.add_argument("--check", help="Perform KLC check on updated/added components", action='store_true')
 parser.add_argument("--nocolor", help="Does not use colors to show the output", action='store_true')
@@ -74,14 +75,24 @@ for lib in args.new:
     libs = glob(lib)
 
     for l in libs:
-        if l.endswith('.lib') and os.path.exists(l):
+        if os.path.isdir(l):
+            for root, dirnames, filenames in os.walk(l):
+                for filename in fnmatch.filter(filenames, '*.lib'):
+                    new_libs[os.path.basename(filename)] = os.path.abspath(os.path.join(root, filename))
+
+        elif l.endswith('.lib') and os.path.exists(l):
             new_libs[os.path.basename(l)] = os.path.abspath(l)
 
 for lib in args.old:
     libs = glob(lib)
 
     for l in libs:
-        if l.endswith('.lib') and os.path.exists(l):
+        if os.path.isdir(l):
+            for root, dirnames, filenames in os.walk(l):
+                for filename in fnmatch.filter(filenames, '*.lib'):
+                    old_libs[os.path.basename(filename)] = os.path.abspath(os.path.join(root, filename))
+
+        elif l.endswith('.lib') and os.path.exists(l):
             old_libs[os.path.basename(l)] = os.path.abspath(l)
 
 errors = 0
