@@ -181,7 +181,7 @@ for lib_name in new_libs:
                 for pin_old in old_cmp[cmp]['cmp'].pins:
                     pin_new = new_cmp[cmp]['cmp'].getPinByNumber(pin_old['num'])
                     if pin_new is None:
-                        if pin_old['electrical_type'] == 'N' and pin_new['electrical_type'] == 'N':
+                        if pin_old['electrical_type'] == 'N':
                             nc_pins_missing +=1
                         else:
                             pins_missing += 1
