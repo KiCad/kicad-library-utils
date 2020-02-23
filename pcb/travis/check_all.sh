@@ -4,6 +4,9 @@ echo "Commit range checked: $TRAVIS_COMMIT_RANGE"
 
 error=0
 for change in $(git diff --name-only --diff-filter=AMR $TRAVIS_COMMIT_RANGE); do
+    if [[ $change == *"fp-lib-table" ]]; then
+        continue
+    fi
     echo "Checking: $change"
     python3 $SCRIPT "/$1/$change" -vv
     error="$(($error+$?))"
