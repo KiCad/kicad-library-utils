@@ -47,7 +47,8 @@ for f in args.sch_file:
             if field['name'].replace('"', '') == args.pn_field_name:
                 break
         else:
-            field = component.addField({'name': '"%s"' % args.pn_field_name, 'ref': '"~"'})
+            field = component.addField(name="{}".format(args.pn_field_name),
+                                       ref="{}".format("~"))
 
         # component reference
         comp_ref = component.fields[0]['ref'].replace('"', '')

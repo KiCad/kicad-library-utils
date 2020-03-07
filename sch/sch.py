@@ -1,6 +1,21 @@
 # -*- coding: utf-8 -*-
 
-import sys, shlex
+import sys
+import shlex
+import re
+
+
+def ensure_quoted(s):
+    """
+    Returns a quoted version of string 's' if that's not already the case
+    """
+    rx = r"^\"(.+)\"$"
+
+    if re.match(rx, s) is not None:
+        return s
+    else:
+        return "\"{}\"".format(s)
+
 
 class Description(object):
     """
@@ -10,6 +25,7 @@ class Description(object):
     def __init__(self, data):
         self.raw_data = data
 
+
 class Component(object):
     """
     A class to parse components of Schematic Files Format of the KiCad
@@ -18,9 +34,12 @@ class Component(object):
     _U_KEYS = ['unit', 'convert', 'time_stamp']
     _P_KEYS = ['posx', 'posy']
     _AR_KEYS = ['path', 'ref', 'part']
-    _F_KEYS = ['id', 'ref', 'orient', 'posx', 'posy', 'size', 'attributs', 'hjust', 'props', 'name']
+    _F_KEYS = ['id', 'ref', 'orient', 'posx', 'posy', 'size', 'attributs',
+               'hjust', 'props', 'name']
 
-    _KEYS = {'L':_L_KEYS, 'U':_U_KEYS, 'P':_P_KEYS, 'AR':_AR_KEYS, 'F':_F_KEYS}
+    _KEYS = {'L': _L_KEYS, 'U': _U_KEYS, 'P': _P_KEYS,
+             'AR': _AR_KEYS, 'F': _F_KEYS}
+
     def __init__(self, data):
         self.labels = {}
         self.unit = {}
@@ -44,45 +63,52 @@ class Component(object):
             # select the keys list and default values array
             if line[0] in self._KEYS:
                 key_list = self._KEYS[line[0]]
-                values = line[1:] + ['' for n in range(len(key_list) - len(line[1:]))]
+                values = line[1:] + ['']*(len(key_list) - len(line[1:]))
 
             if line[0] == 'L':
-                self.labels = dict(zip(key_list,values))
+                self.labels = dict(zip(key_list, values))
             elif line[0] == 'U':
-                self.unit = dict(zip(key_list,values))
+                self.unit = dict(zip(key_list, values))
             elif line[0] == 'P':
-                self.position = dict(zip(key_list,values))
+                self.position = dict(zip(key_list, values))
             elif line[0] == 'AR':
-                self.references.append(dict(zip(key_list,values)))
+                self.references.append(dict(zip(key_list, values)))
             elif line[0] == 'F':
-                self.fields.append(dict(zip(key_list,values)))
+                self.fields.append(dict(zip(key_list, values)))
 
-    # TODO: error checking
-    # * check if field_data is a dictionary
-    # * check if at least 'ref' and 'name' were passed
-    # * ignore invalid items of field_data on merging
     # TODO: enhancements
     # * 'value' could be used instead of 'ref'
-    def addField(self, field_data):
-        def_field = {'id':None, 'ref':None, 'orient':'H', 'posx':'0', 'posy':'0', 'size':'50',
-                     'attributs':'0001', 'hjust':'C', 'props':'CNN', 'name':'~'}
+    def addField(self, *, ref, name, **field_data):
+        field = {'id': None, 'ref': None, 'orient': 'H', 'posx': '0',
+                 'posy': '0', 'size': '50', 'attributs': '0001',
+                 'hjust': 'C', 'props': 'CNN', 'name': '~'}
+
+        # 'ref' and 'name' must be quoted
+        ref = ensure_quoted(ref)
+        name = ensure_quoted(name)
+
+        # ignore invalid items in field_data
+        field_data = {key: val for (key, val) in field_data.items()
+                      if key in self._F_KEYS}
 
         # merge dictionaries and set the id value
-        field = dict(list(def_field.items()) + list(field_data.items()))
+        field.update(field_data, ref=ref, name=name)
         field['id'] = str(len(self.fields))
 
         self.fields.append(field)
         return field
 
+
 class Sheet(object):
     """
     A class to parse sheets of Schematic Files Format of the KiCad
     """
-    _S_KEYS = ['topLeftPosx', 'topLeftPosy','botRightPosx', 'botRightPosy']
+    _S_KEYS = ['topLeftPosx', 'topLeftPosy', 'botRightPosx', 'botRightPosy']
     _U_KEYS = ['uniqID']
     _F_KEYS = ['id', 'value', 'IOState', 'side', 'posx', 'posy', 'size']
 
-    _KEYS = {'S':_S_KEYS, 'U':_U_KEYS, 'F':_F_KEYS}
+    _KEYS = {'S': _S_KEYS, 'U': _U_KEYS, 'F': _F_KEYS}
+
     def __init__(self, data):
         self.shape = {}
         self.unit = {}
@@ -97,15 +123,16 @@ class Sheet(object):
             # select the keys list and default values array
             if line[0] in self._KEYS:
                 key_list = self._KEYS[line[0]]
-                values = line[1:] + ['' for n in range(len(key_list) - len(line[1:]))]
+                values = line[1:] + ['']*(len(key_list) - len(line[1:]))
             if line[0] == 'S':
-                self.shape = dict(zip(key_list,values))
+                self.shape = dict(zip(key_list, values))
             elif line[0] == 'U':
-                self.unit = dict(zip(key_list,values))
+                self.unit = dict(zip(key_list, values))
             elif line[0][0] == 'F':
                 key_list = self._F_KEYS
                 values = line + ['' for n in range(len(key_list) - len(line))]
-                self.fields.append(dict(zip(key_list,values)))
+                self.fields.append(dict(zip(key_list, values)))
+
 
 class Bitmap(object):
     """
@@ -114,6 +141,7 @@ class Bitmap(object):
     """
     def __init__(self, data):
         self.raw_data = data
+
 
 class Schematic(object):
     """
@@ -135,7 +163,7 @@ class Schematic(object):
         self.conns = []
         self.noconns = []
 
-        if not 'EESchema Schematic File' in self.header:
+        if 'EESchema Schematic File' not in self.header:
             self.header = None
             sys.stderr.write('The file is not a KiCad Schematic File\n')
             return
@@ -144,7 +172,8 @@ class Schematic(object):
 
         while True:
             line = f.readline()
-            if not line: break
+            if not line:
+                break
 
             if line.startswith('LIBS:'):
                 self.libs.append(line)
@@ -160,19 +189,19 @@ class Schematic(object):
                     block_data = []
                     block_data.append(line)
                 elif line.startswith('Text'):
-                    data = {'desc':line, 'data':f.readline()}
+                    data = {'desc': line, 'data': f.readline()}
                     self.texts.append(data)
                 elif line.startswith('Wire'):
-                    data = {'desc':line, 'data':f.readline()}
+                    data = {'desc': line, 'data': f.readline()}
                     self.wires.append(data)
                 elif line.startswith('Entry'):
-                    data = {'desc':line, 'data':f.readline()}
+                    data = {'desc': line, 'data': f.readline()}
                     self.entries.append(data)
                 elif line.startswith('Connection'):
-                    data = {'desc':line}
+                    data = {'desc': line}
                     self.conns.append(data)
                 elif line.startswith('NoConn'):
-                    data = {'desc':line}
+                    data = {'desc': line}
                     self.noconns.append(data)
 
             elif building_block:
@@ -191,9 +220,11 @@ class Schematic(object):
 
     def save(self, filename=None):
         # check whether it has header, what means that sch file was loaded fine
-        if not self.header: return
+        if not self.header:
+            return
 
-        if not filename: filename = self.filename
+        if not filename:
+            filename = self.filename
 
         # insert the header
         to_write = []
@@ -214,7 +245,7 @@ class Schematic(object):
             if sheet.shape:
                 line = 'S '
                 for key in sheet._S_KEYS:
-                    line+= sheet.shape[key] + ' '
+                    line += sheet.shape[key] + ' '
                 to_write += [line.rstrip() + '\n']
             if sheet.unit:
                 line = 'U '
