@@ -4,6 +4,7 @@ import math
 import string
 import sys, os
 import math
+import re
 
 common = os.path.abspath(os.path.join(sys.path[0], '..','common'))
 
