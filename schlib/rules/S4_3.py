@@ -155,7 +155,7 @@ class Rule(KLCRule):
                             self.component.padInSpecialPowerStack.add(pin['num'])
                             # check if all passive pins are invisible
                             if pin['electrical_type'] == 'P' and (not pin['pin_type'].startswith('N')):
-                                self.errorExtra("{pin} : {etype} should be invisible (power-pin stack)".format(
+                                self.error("{pin} : {etype} should be invisible (power-pin stack)".format(
                                     pin=self.pinStr(pin),
                                     etype=pinElectricalTypeToStr(pin['electrical_type'])))
                                 err = True
@@ -163,7 +163,7 @@ class Rule(KLCRule):
                             # check if power-pin is visible
                             if (pin['electrical_type'] == 'O' or pin['electrical_type'] == 'w' or pin['electrical_type'] == 'W'):
                                 if pin['pin_type'].startswith('N'):
-                                    self.errorExtra("{pin} : {etype} should be visible in a power-in/power-out/output pin stack".format(
+                                    self.error("{pin} : {etype} should be visible in a power-in/power-out/output pin stack".format(
                                         pin=self.pinStr(pin),
                                         etype=pinElectricalTypeToStr(pin['electrical_type'])))
                                     err = True
@@ -174,7 +174,7 @@ class Rule(KLCRule):
                                 else:
                                     specialpincount += 1
                             if specialpincount > 1:
-                                self.errorExtra("{pin} : {etype} should be an invisible PASSIVE pin power-in/power-out/output pin stack".format(
+                                self.error("{pin} : {etype} should be an invisible PASSIVE pin power-in/power-out/output pin stack".format(
                                     pin=self.pinStr(pin),
                                     etype=pinElectricalTypeToStr(pin['electrical_type'])))
                                 self.fix_make_invisible.add(pin['num'])
@@ -195,7 +195,7 @@ class Rule(KLCRule):
         if (not err) and (not isPowerLib):
             for pin in self.component.pins:
                 if ((pin['electrical_type'] == 'w') or (pin['electrical_type'] == 'W')) and pin['pin_type'].startswith('N'):
-                    self.errorExtra("{pin} : {etype} should be visible (power-in/power-out pins may never be invisible, unless in a power-net tag/symbol)".format(
+                    self.error("{pin} : {etype} should be visible (power-in/power-out pins may never be invisible, unless in a power-net tag/symbol)".format(
                                     pin=self.pinStr(pin),
                                     etype=pinElectricalTypeToStr(pin['electrical_type'])))
                     self.fix_make_visible.add(pin['num'])
