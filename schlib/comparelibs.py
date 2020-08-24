@@ -54,10 +54,11 @@ def KLCCheck(lib, component):
     if " " in lib and '"' not in lib:
         lib = '"' + lib + '"'
 
-    call = 'python checklib.py {lib} -c={cmp} -vv -s {nocolor}'.format(
+    call = '{exe} checklib.py {lib} -c={cmp} -vv -s {nocolor}'.format(
+                exe = sys.executable,
                 lib = lib,
                 cmp = component,
-                nocolor = "--nocolor" if args.nocolor else ""
+                nocolor = "--nocolor " if args.nocolor else ""
                 )
 
     # Pass extra arguments to checklib script
