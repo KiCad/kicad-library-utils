@@ -69,6 +69,7 @@ CONNECTOR = namedtuple("CONNECTOR",[
 ])
 
 num_gen_row_letter_first = lambda old_number: old_number[:1] + str(int(old_number[1:])+1)
+num_gen_row_letter_first_by2 = lambda old_number: old_number[:1] + str(int(old_number[1:])+2)
 num_gen_row_letter_last = lambda old_number: str(int(old_number[:-1])+1) + old_number[-1:]
 
 conn_screw_terminal = {
@@ -321,6 +322,86 @@ conn_iec_din = {
         enclosing_rectangle = True,
         mirror = False
     ),
+	'dual_row_din41612_ab_even-pins' : CONNECTOR(
+        num_rows = 2,
+        pin_per_row_range = [5, 8, 16],
+        odd_count = False,
+        symbol_name_format = 'DIN41612_02x{num_pins_per_row:02d}_AB_EvenPins',
+        top_pin_number = ['a2', lambda num_pin_per_row: 'b2'],
+        pin_number_generator = [num_gen_row_letter_first_by2, num_gen_row_letter_first_by2],
+        description = 'DIN41612 connector, double row (AB) even pins only, 02x{num_pins_per_row:02d}',
+        keywords = 'connector',
+        datasheet = '~', # generic symbol, no datasheet, ~ to make travis happy
+        default_footprint = '', # generic symbol, no default footprint
+        footprint_filter = 'DIN41612*',
+        graphic_type = 0, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
+        enclosing_rectangle = True,
+        mirror = False
+    ),
+	'dual_row_din41612_ac_even-pins' : CONNECTOR(
+        num_rows = 2,
+        pin_per_row_range = [5, 8, 16],
+        odd_count = False,
+        symbol_name_format = 'DIN41612_02x{num_pins_per_row:02d}_AC_EvenPins',
+        top_pin_number = ['a2', lambda num_pin_per_row: 'c2'],
+        pin_number_generator = [num_gen_row_letter_first_by2, num_gen_row_letter_first_by2],
+        description = 'DIN41612 connector, double row (AC) even pins only, 02x{num_pins_per_row:02d}',
+        keywords = 'connector',
+        datasheet = '~', # generic symbol, no datasheet, ~ to make travis happy
+        default_footprint = '', # generic symbol, no default footprint
+        footprint_filter = 'DIN41612*',
+        graphic_type = 0, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
+        enclosing_rectangle = True,
+        mirror = False
+    ),
+	'dual_row_din41612_ae_even-pins' : CONNECTOR(
+        num_rows = 2,
+        pin_per_row_range = [5, 8, 16],
+        odd_count = False,
+        symbol_name_format = 'DIN41612_02x{num_pins_per_row:02d}_AE_EvenPins',
+        top_pin_number = ['a2', lambda num_pin_per_row: 'e2'],
+        pin_number_generator = [num_gen_row_letter_first_by2, num_gen_row_letter_first_by2],
+        description = 'DIN41612 connector, double row (AE) even pins only, 02x{num_pins_per_row:02d}',
+        keywords = 'connector',
+        datasheet = '~', # generic symbol, no datasheet, ~ to make travis happy
+        default_footprint = '', # generic symbol, no default footprint
+        footprint_filter = 'DIN41612*',
+        graphic_type = 0, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
+        enclosing_rectangle = True,
+        mirror = False
+    ),
+	'dual_row_din41612_zb_even-pins' : CONNECTOR(
+        num_rows = 2,
+        pin_per_row_range = [5, 8, 16],
+        odd_count = False,
+        symbol_name_format = 'DIN41612_02x{num_pins_per_row:02d}_ZB_EvenPins',
+        top_pin_number = ['z2', lambda num_pin_per_row: 'b2'],
+        pin_number_generator = [num_gen_row_letter_first_by2, num_gen_row_letter_first_by2],
+        description = 'DIN41612 connector, double row (ZB) even pins only, 02x{num_pins_per_row:02d}',
+        keywords = 'connector',
+        datasheet = '~', # generic symbol, no datasheet, ~ to make travis happy
+        default_footprint = '', # generic symbol, no default footprint
+        footprint_filter = 'DIN41612*',
+        graphic_type = 0, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
+        enclosing_rectangle = True,
+        mirror = False
+    ),
+	'dual_row_din41612_zb_even-pins' : CONNECTOR(
+        num_rows = 2,
+        pin_per_row_range = [5, 8, 16],
+        odd_count = False,
+        symbol_name_format = 'DIN41612_02x{num_pins_per_row:02d}_ZB_EvenPins',
+        top_pin_number = ['z2', lambda num_pin_per_row: 'b2'],
+        pin_number_generator = [num_gen_row_letter_first_by2, num_gen_row_letter_first_by2],
+        description = 'DIN41612 connector, double row (ZB) even pins only, 02x{num_pins_per_row:02d}',
+        keywords = 'connector',
+        datasheet = '~', # generic symbol, no datasheet, ~ to make travis happy
+        default_footprint = '', # generic symbol, no default footprint
+        footprint_filter = 'DIN41612*',
+        graphic_type = 0, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
+        enclosing_rectangle = True,
+        mirror = False
+    )
 }
 
 def merge_dicts(*dict_args):
