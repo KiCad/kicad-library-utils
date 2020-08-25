@@ -238,7 +238,6 @@ conn_generic = {
         enclosing_rectangle = True,
         mirror = False
     ),
-
     'dual_row_odd_pin_count' : CONNECTOR(
         num_rows = 2,
         pin_per_row_range = pin_range_dual_row_odd_count,
@@ -251,6 +250,73 @@ conn_generic = {
         datasheet = '~', # generic symbol, no datasheet, ~ to make travis happy
         default_footprint = '', # generic symbol, no default footprint
         footprint_filter = filter_dual_row_odd_count,
+        graphic_type = 0, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
+        enclosing_rectangle = True,
+        mirror = False
+    )
+}
+
+conn_iec_din = {
+	'dual_row_din41612_ab' : CONNECTOR(
+        num_rows = 2,
+        pin_per_row_range = [10, 16, 32],
+        odd_count = False,
+        symbol_name_format = 'DIN41612_02x{num_pins_per_row:02d}_AB',
+        top_pin_number = ['a1', lambda num_pin_per_row: 'b1'],
+        pin_number_generator = [num_gen_row_letter_first, num_gen_row_letter_first],
+        description = 'DIN41612 connector, double row (AB), 02x{num_pins_per_row:02d}',
+        keywords = 'connector',
+        datasheet = '~', # generic symbol, no datasheet, ~ to make travis happy
+        default_footprint = '', # generic symbol, no default footprint
+        footprint_filter = 'DIN41612*',
+        graphic_type = 0, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
+        enclosing_rectangle = True,
+        mirror = False
+    ),
+	'dual_row_din41612_ac' : CONNECTOR(
+        num_rows = 2,
+        pin_per_row_range = [10, 16, 32],
+        odd_count = False,
+        symbol_name_format = 'DIN41612_02x{num_pins_per_row:02d}_AC',
+        top_pin_number = ['a1', lambda num_pin_per_row: 'c1'],
+        pin_number_generator = [num_gen_row_letter_first, num_gen_row_letter_first],
+        description = 'DIN41612 connector, double row (AC), 02x{num_pins_per_row:02d}',
+        keywords = 'connector',
+        datasheet = '~', # generic symbol, no datasheet, ~ to make travis happy
+        default_footprint = '', # generic symbol, no default footprint
+        footprint_filter = 'DIN41612*',
+        graphic_type = 0, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
+        enclosing_rectangle = True,
+        mirror = False
+    ),
+	'dual_row_din41612_ae' : CONNECTOR(
+        num_rows = 2,
+        pin_per_row_range = [10, 16, 32],
+        odd_count = False,
+        symbol_name_format = 'DIN41612_02x{num_pins_per_row:02d}_AE',
+        top_pin_number = ['a1', lambda num_pin_per_row: 'e1'],
+        pin_number_generator = [num_gen_row_letter_first, num_gen_row_letter_first],
+        description = 'DIN41612 connector, double row (AE), 02x{num_pins_per_row:02d}',
+        keywords = 'connector',
+        datasheet = '~', # generic symbol, no datasheet, ~ to make travis happy
+        default_footprint = '', # generic symbol, no default footprint
+        footprint_filter = 'DIN41612*',
+        graphic_type = 0, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
+        enclosing_rectangle = True,
+        mirror = False
+    ),
+	'dual_row_din41612_zb' : CONNECTOR(
+        num_rows = 2,
+        pin_per_row_range = [10, 16, 32],
+        odd_count = False,
+        symbol_name_format = 'DIN41612_02x{num_pins_per_row:02d}_ZB',
+        top_pin_number = ['z1', lambda num_pin_per_row: 'b1'],
+        pin_number_generator = [num_gen_row_letter_first, num_gen_row_letter_first],
+        description = 'DIN41612 connector, double row (ZB), 02x{num_pins_per_row:02d}',
+        keywords = 'connector',
+        datasheet = '~', # generic symbol, no datasheet, ~ to make travis happy
+        default_footprint = '', # generic symbol, no default footprint
+        footprint_filter = 'DIN41612*',
         graphic_type = 0, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
         enclosing_rectangle = True,
         mirror = False
@@ -341,7 +407,15 @@ all_symbols = [{
     'pn_modifier': '-1MP',
     'suffix': '_MountingPin',
     'extra_pin_descr':' connectable mounting pin'
-    }
+    },
+	{
+    'lib_name': 'Connector_IEC_DIN',
+    'symbol_def': conn_iec_din,
+    'extra_pin': None,
+    'pn_modifier': '_',
+    'suffix': '',
+    'extra_pin_descr':''
+    },
 ]
 
 def innerArtwork(type=0):
