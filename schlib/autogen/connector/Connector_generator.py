@@ -269,7 +269,7 @@ conn_iec_din = {
         keywords = 'connector',
         datasheet = '~', # generic symbol, no datasheet, ~ to make travis happy
         default_footprint = '', # generic symbol, no default footprint
-        footprint_filter = 'DIN41612*',
+        footprint_filter = ['DIN41612*1x*'],
         graphic_type = 0, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
         enclosing_rectangle = True,
         mirror = False
@@ -285,7 +285,7 @@ conn_iec_din = {
         keywords = 'connector',
         datasheet = '~', # generic symbol, no datasheet, ~ to make travis happy
         default_footprint = '', # generic symbol, no default footprint
-        footprint_filter = 'DIN41612*',
+        footprint_filter = ['DIN41612*2x*'],
         graphic_type = 0, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
         enclosing_rectangle = True,
         mirror = False
@@ -301,7 +301,7 @@ conn_iec_din = {
         keywords = 'connector',
         datasheet = '~', # generic symbol, no datasheet, ~ to make travis happy
         default_footprint = '', # generic symbol, no default footprint
-        footprint_filter = 'DIN41612*',
+        footprint_filter = ['DIN41612*2x*'],
         graphic_type = 0, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
         enclosing_rectangle = True,
         mirror = False
@@ -317,7 +317,7 @@ conn_iec_din = {
         keywords = 'connector',
         datasheet = '~', # generic symbol, no datasheet, ~ to make travis happy
         default_footprint = '', # generic symbol, no default footprint
-        footprint_filter = 'DIN41612*',
+        footprint_filter = ['DIN41612*2x*'],
         graphic_type = 0, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
         enclosing_rectangle = True,
         mirror = False
@@ -333,7 +333,7 @@ conn_iec_din = {
         keywords = 'connector',
         datasheet = '~', # generic symbol, no datasheet, ~ to make travis happy
         default_footprint = '', # generic symbol, no default footprint
-        footprint_filter = 'DIN41612*',
+        footprint_filter = ['DIN41612*2x*'],
         graphic_type = 0, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
         enclosing_rectangle = True,
         mirror = False
@@ -349,7 +349,7 @@ conn_iec_din = {
         keywords = 'connector',
         datasheet = '~', # generic symbol, no datasheet, ~ to make travis happy
         default_footprint = '', # generic symbol, no default footprint
-        footprint_filter = 'DIN41612*',
+        footprint_filter = ['DIN41612*2x*'],
         graphic_type = 0, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
         enclosing_rectangle = True,
         mirror = False
@@ -365,7 +365,7 @@ conn_iec_din = {
         keywords = 'connector',
         datasheet = '~', # generic symbol, no datasheet, ~ to make travis happy
         default_footprint = '', # generic symbol, no default footprint
-        footprint_filter = 'DIN41612*',
+        footprint_filter = ['DIN41612*2x*'],
         graphic_type = 0, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
         enclosing_rectangle = True,
         mirror = False
@@ -381,7 +381,7 @@ conn_iec_din = {
         keywords = 'connector',
         datasheet = '~', # generic symbol, no datasheet, ~ to make travis happy
         default_footprint = '', # generic symbol, no default footprint
-        footprint_filter = 'DIN41612*',
+        footprint_filter = ['DIN41612*2x*'],
         graphic_type = 0, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
         enclosing_rectangle = True,
         mirror = False
@@ -397,7 +397,7 @@ conn_iec_din = {
         keywords = 'connector',
         datasheet = '~', # generic symbol, no datasheet, ~ to make travis happy
         default_footprint = '', # generic symbol, no default footprint
-        footprint_filter = 'DIN41612*',
+        footprint_filter = ['DIN41612*2x*'],
         graphic_type = 0, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
         enclosing_rectangle = True,
         mirror = False
@@ -413,7 +413,7 @@ conn_iec_din = {
         keywords = 'connector',
         datasheet = '~', # generic symbol, no datasheet, ~ to make travis happy
         default_footprint = '', # generic symbol, no default footprint
-        footprint_filter = 'DIN41612*',
+        footprint_filter = ['DIN41612*2x*'],
         graphic_type = 0, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
         enclosing_rectangle = True,
         mirror = False
