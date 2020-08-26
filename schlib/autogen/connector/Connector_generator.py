@@ -258,7 +258,23 @@ conn_generic = {
 }
 
 conn_iec_din = {
-	'dual_row_din41612_ab' : CONNECTOR(
+	'single_row_din41612_a' : CONNECTOR(
+        num_rows = 1,
+        pin_per_row_range = [32],
+        odd_count = False,
+        symbol_name_format = 'DIN41612_01x{num_pins_per_row:02d}{suffix:s}_A',
+        top_pin_number = ['a1'],
+        pin_number_generator = [num_gen_row_letter_first],
+        description = 'DIN41612 connector, single row (A), 01x{num_pins_per_row:02d}',
+        keywords = 'connector',
+        datasheet = '~', # generic symbol, no datasheet, ~ to make travis happy
+        default_footprint = '', # generic symbol, no default footprint
+        footprint_filter = 'DIN41612*',
+        graphic_type = 0, # 0 = neutral, 1 = male, 2 = female, 3 = screw terminal
+        enclosing_rectangle = True,
+        mirror = False
+    ),
+    'dual_row_din41612_ab' : CONNECTOR(
         num_rows = 2,
         pin_per_row_range = [10, 16, 32],
         odd_count = False,
