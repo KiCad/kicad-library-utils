@@ -23,7 +23,7 @@ def mmToMicrons(mm):
     elif mm > 0:
         mm += 0.0000005
 
-    return int(mm * 1E6)
+    return int(round(mm * 1E6))
 
 def getStartPoint(graph):
     if 'center' in graph:
