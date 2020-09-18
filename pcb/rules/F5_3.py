@@ -177,12 +177,14 @@ class Rule(KLCRule):
 
         self.courtyard = self.fCourtyard + self.bCourtyard
 
-        GRID = int(KLC_CRTYD_GRID * 1E6)
 
         # Check for intersecting lines
         self.unconnected.extend(self.isClosed(self.fCourtyard))
         self.unconnected.extend(self.isClosed(self.bCourtyard))
 
+
+        # Check for elements that are not on the grid
+        GRID = mmToNanoMeter(KLC_CRTYD_GRID)
         for graph in self.courtyard:
             if graph['width'] != KLC_CRTYD_WIDTH:
                 self.bad_width.append(graph)
@@ -194,14 +196,16 @@ class Rule(KLCRule):
                 self.bad_grid.append(graph)
                 continue
 
-            x1 = mmToMicrons(start['x'])
-            y1 = mmToMicrons(start['y'])
-
-            x2 = mmToMicrons(end['x'])
-            y2 = mmToMicrons(end['y'])
-
+            # make a list of all x and y coordinates of this graphical elements
+            x1 = mmToNanoMeter(start['x'])
+            y1 = mmToNanoMeter(start['y'])
+            x2 = mmToNanoMeter(end['x'])
+            y2 = mmToNanoMeter(end['y'])
             check = [x1, y2, x2, y2]
 
+            # use a modulo division to check if those coordinates are on the grid
+            # if at least one of the coordinates is not on the grid, add this
+            # element to the bad_grid list
             grid_error = False
             for c in check:
                 if not (c % GRID) == 0:
