@@ -17,13 +17,8 @@ def mapToGrid(dimension, grid):
     return round(dimension / grid) * grid
 
 # Convert mm to microns
-def mmToMicrons(mm):
-    if mm < 0:
-        mm -= 0.0000005
-    elif mm > 0:
-        mm += 0.0000005
-
-    return int(round(mm * 1E6))
+def mmToNanoMeter(mm):
+    return round(mm * 1E6)
 
 def getStartPoint(graph):
     if 'center' in graph:
